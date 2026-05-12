@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f5f2ee;
+  --foreground: #1a1a1a;
+  --muted: #ebe8e4;
+  --muted-foreground: #5c5a57;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --border: rgba(0, 0, 0, 0.07);
+  --accent: #e8432d;
+  --accent-foreground: #ffffff;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  @apply min-h-dvh bg-background font-sans text-foreground antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
