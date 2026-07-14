@@ -43,6 +43,55 @@ _Last updated: 2026-05-12_
 
 ---
 
+## Current entry — 2026-07-14 (Phase 4: PWA polish + deploy runbook)
+
+Continued on `claude/phase-2-unblock-debug-qtksid` per instructions. **Note:** PR #2
+was already **merged** into `main` before this session started (branch tree ==
+`origin/main`); these Phase-4 commits land on the branch after the merge, so they are
+**not** reflected by the now-closed PR #2 — Harish decides whether to open a fresh PR
+or fast-forward `main`.
+
+### What was built (all lint + build green; verified at 430px in Supabase pass-through)
+- **Real icons.** `scripts/generate-icons.mjs` renders the exact **idle HonzaOrb**
+  dot-matrix face (cream `#FFF4EE`, accent `#E8432D`) to PNGs via `rsvg-convert`.
+  Replaced the 1×1 transparent placeholder stubs. Now: `icon-192/512` (`any`,
+  full-bleed), `icon-maskable-192/512` (`maskable`, face scaled to 0.58 inside the
+  ~80% safe zone), `apple-touch-icon.png` (180, opaque). Rerun the script if the face
+  or palette changes.
+- **Manifest fixed.** Split the old single `"any maskable"` entry (which crops on
+  Android) into separate `any` + `maskable` icons; richer name/description/categories.
+- **layout.tsx meta.** Added `icons` (icon + apple) + `applicationName`; `metadataBase`
+  from `NEXT_PUBLIC_SITE_URL` when set.
+- **InstallPrompt rewrite** (`src/components/pwa/InstallPrompt.tsx`): 4s reveal delay;
+  dismissal persisted 14 days via `localStorage` `honza-install-dismissed-at`;
+  already-installed detection (`display-mode:standalone` / iOS `navigator.standalone` /
+  `appinstalled`); iOS-Safari-only manual "Add to Home Screen" hint (beforeinstallprompt
+  never fires on iOS); DESIGN.md styling (`// INSTALL`, accent Button, rounded-card).
+- **next.config.js SW sanity for App Router:** kept `skipWaiting` (+`clientsClaim`),
+  added `buildExcludes` for `middleware-manifest`/`app-build-manifest`,
+  `cacheOnFrontEndNav`, `reloadOnOnline`, and `dynamicStartUrl:false` (`/` is auth-gated
+  and 307s to `/signin`, so don't cache a redirecting start URL). Confirmed in `sw.js`.
+- **DEPLOY.md** — Vercel env-var table (OpenRouter server-only + Supabase public),
+  project setup steps, and a production verification checklist.
+
+### Verified
+- `lint` + `build` green (13 routes, `ƒ Middleware`, `sw.js` regenerated). All icon +
+  manifest URLs serve 200 with correct content-types/sizes. Install card renders after
+  4s; "Not now" persists and it does **not** reappear on re-dispatch within the window.
+- **openrouter.ai IS reachable from this environment** (models endpoint → HTTP 200) —
+  the previous sandbox's egress block is gone. But there is **no `OPENROUTER_API_KEY`**
+  here, so the authenticated live chat round-trip is still unverified.
+
+### Still open (needs Harish — can't be done by Claude)
+- **Vercel project + env vars** — needs Harish's Vercel account; Claude can't create
+  the project or enter secret keys. Runbook is in `DEPLOY.md`.
+- **Live OpenRouter round-trip green check** — needs the deployed URL + real key. Fast
+  local path available: drop `OPENROUTER_API_KEY` into `.env.local` and Claude can run
+  the round-trip locally (network is open here).
+- Phase 1 auth end-to-end gate (real magic-link click) — unchanged.
+
+---
+
 ## Current entry — 2026-07-14 (Phase 3: AI integration — OpenRouter + hardening + level-aware persona)
 
 Supabase provisioned by Harish; `NEXT_PUBLIC_SUPABASE_URL` + publishable (anon) key now in local `.env.local` (gitignored). App runs in **configured** mode locally (protected routes redirect to `/signin`; API routes are not gated). Gateway decision confirmed: **OpenRouter**.

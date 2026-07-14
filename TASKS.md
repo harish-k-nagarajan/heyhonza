@@ -65,11 +65,11 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 
 ## Phase 4 — PWA polish and Vercel deploy
 
-- [ ] **Icons + maskable assets** — match manifest; splash / apple meta if needed. `[independent]`
-- [ ] **Install prompt UX** — timing, dismissal persistence, “already installed” detection. `[depends on: next-pwa]`
-- [ ] **Service worker behavior** — `skipWaiting`, cache strategy sanity for App Router. `[depends on: next-pwa]`
-- [ ] **Vercel project** — production branch, env vars (`OPENAI_API_KEY`, `HONZA_DEFAULT_MODEL`, etc.). `[independent]`
-- [ ] **Production verification** — `next build`, smoke test chat + doc route on deployed URL. `[depends on: Vercel project]` + `[depends on: Client ↔ API wiring]`
+- [x] **Icons + maskable assets** — real dot-matrix Honza face PNGs generated from the idle `HonzaOrb` (`scripts/generate-icons.mjs`); manifest now has separate `any` (full-bleed) + `maskable` (safe-zone) icons; `apple-touch-icon.png` (180, opaque) + `icons`/`apple` meta wired in `layout.tsx`. Replaced the 1×1 placeholder stubs. `[independent]`
+- [x] **Install prompt UX** — 4s reveal delay, dismissal persisted 14 days (`honza-install-dismissed-at`), already-installed detection (`display-mode: standalone` / `navigator.standalone` / `appinstalled`), iOS-Safari manual "Add to Home Screen" hint; styled to DESIGN.md (`// INSTALL`). Verified at 430px. `[depends on: next-pwa]`
+- [x] **Service worker behavior** — `skipWaiting`+`clientsClaim`, `buildExcludes` middleware/app-build manifests, `cacheOnFrontEndNav`, `reloadOnOnline`, `dynamicStartUrl:false` (start URL is auth-gated). Verified in generated `public/sw.js`. `[depends on: next-pwa]`
+- [ ] **Vercel project** — production branch `main` + env vars (`OPENROUTER_API_KEY` server-only, `HONZA_DEFAULT_MODEL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`). Runbook in `DEPLOY.md`. `[blocked on: Harish's Vercel account + secrets — Claude can't create the project or enter keys]`
+- [ ] **Production verification** — `next build` (green locally), smoke test chat + doc route on deployed URL; this is where the live OpenRouter round-trip gets its green check. `[blocked on: Vercel project]` (openrouter.ai IS reachable from this env — can also verify locally if `OPENROUTER_API_KEY` is added to `.env.local`)
 
 ---
 
