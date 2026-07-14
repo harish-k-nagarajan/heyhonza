@@ -5,8 +5,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Composer } from "@/components/chat/Composer";
 import { MessageList } from "@/components/chat/MessageList";
+import { HonzaOrb } from "@/components/honza/HonzaOrb";
+import type { HonzaOrbState } from "@/components/honza/HonzaOrb";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ROUTES } from "@/lib/constants";
 import { buildLearnerContextText } from "@/lib/context";
 import { useSettingsHydrated } from "@/hooks/useSettingsHydrated";
@@ -20,6 +23,7 @@ export default function ChatClient() {
   const preferredModel = useSettingsStore((s) => s.preferredModel);
   const selectedTopics = useSettingsStore((s) => s.selectedTopics);
   const contextChunks = useSettingsStore((s) => s.contextChunks);
+  const level = useSettingsStore((s) => s.level);
 
   const messages = useChatStore((s) => s.messages);
   const status = useChatStore((s) => s.status);
@@ -33,11 +37,35 @@ export default function ChatClient() {
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
   const bootstrapLock = useRef(false);
 
+  // Brief "speaking" beat when a new Honza message lands, so the orb reacts.
+  const [speaking, setSpeaking] = useState(false);
+  const assistantCount = useRef(0);
+
   useEffect(() => {
     if (hydrated && !onboardingComplete) {
       router.replace(ROUTES.onboarding);
     }
   }, [hydrated, onboardingComplete, router]);
+
+  useEffect(() => {
+    const count = messages.filter((m) => m.role === "assistant").length;
+    if (count > assistantCount.current) {
+      assistantCount.current = count;
+      setSpeaking(true);
+      const t = window.setTimeout(() => setSpeaking(false), 700);
+      return () => window.clearTimeout(t);
+    }
+    assistantCount.current = count;
+  }, [messages]);
+
+  const orbState: HonzaOrbState =
+    status === "loading"
+      ? "thinking"
+      : bootstrapError || lastError
+        ? "oops"
+        : speaking
+          ? "speaking"
+          : "idle";
 
   const callChatApi = useCallback(
     async (opts: {
@@ -52,6 +80,7 @@ export default function ChatClient() {
           model: preferredModel,
           topics: selectedTopics,
           learnerContext,
+          level,
           messages: opts.messages,
           bootstrap: opts.bootstrap,
         }),
@@ -65,7 +94,7 @@ export default function ChatClient() {
       }
       return data.message;
     },
-    [contextChunks, preferredModel, selectedTopics],
+    [contextChunks, preferredModel, selectedTopics, level],
   );
 
   const runBootstrap = useCallback(async () => {
@@ -133,10 +162,24 @@ export default function ChatClient() {
     (m) => m.role === "user" || m.role === "assistant",
   );
 
+  const showEmptyState =
+    threadMessages.length === 0 && status !== "loading" && !bootstrapError;
+
   return (
     <div className="flex h-[calc(100dvh-7rem)] flex-col gap-3">
-      <header className="flex shrink-0 items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">Chat</h1>
+      {/* Character-first header: Honza leads, and his face reacts to state. */}
+      <header className="flex shrink-0 items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <HonzaOrb state={orbState} size="avatar" />
+          <div className="flex flex-col gap-1">
+            <SectionLabel>Chat with Honza</SectionLabel>
+            <span className="font-sans text-xs text-muted-foreground">
+              {status === "loading"
+                ? "Honza is typing…"
+                : "Reply in Czech, get corrected."}
+            </span>
+          </div>
+        </div>
         <Button type="button" variant="ghost" className="text-xs" onClick={clearThread}>
           New chat
         </Button>
@@ -161,7 +204,17 @@ export default function ChatClient() {
       ) : null}
 
       <Card className="flex min-h-0 flex-1 flex-col gap-3 p-3">
-        <MessageList messages={threadMessages} />
+        {showEmptyState ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+            <HonzaOrb state="idle" size="avatar" />
+            <p className="font-sans text-sm leading-relaxed text-muted-foreground">
+              Honza will open the conversation in Czech. Reply below and he&apos;ll
+              keep it going.
+            </p>
+          </div>
+        ) : (
+          <MessageList messages={threadMessages} />
+        )}
         <Composer onSend={(t) => void send(t)} disabled={status === "loading"} />
       </Card>
     </div>

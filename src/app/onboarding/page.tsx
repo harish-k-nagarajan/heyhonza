@@ -4,16 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { HonzaOrb } from "@/components/honza/HonzaOrb";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Textarea } from "@/components/ui/Textarea";
-import { ROUTES, TOPIC_OPTIONS } from "@/lib/constants";
+import { LEVEL_OPTIONS, ROUTES, TOPIC_OPTIONS } from "@/lib/constants";
 import { isLikelyGoogleDocUrl } from "@/lib/validators";
 import { useSettingsHydrated } from "@/hooks/useSettingsHydrated";
 import { useSettingsStore } from "@/stores/useSettingsStore";
-import type { TopicId } from "@/lib/constants";
+import type { LevelId, TopicId } from "@/lib/constants";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -22,6 +24,8 @@ export default function OnboardingPage() {
   const setOnboardingComplete = useSettingsStore((s) => s.setOnboardingComplete);
   const selectedTopics = useSettingsStore((s) => s.selectedTopics);
   const setTopics = useSettingsStore((s) => s.setTopics);
+  const level = useSettingsStore((s) => s.level);
+  const setLevel = useSettingsStore((s) => s.setLevel);
   const addContextChunk = useSettingsStore((s) => s.addContextChunk);
 
   const [docUrl, setDocUrl] = useState("");
@@ -130,16 +134,45 @@ export default function OnboardingPage() {
 
   return (
     <div className="mx-auto flex max-w-app flex-col gap-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome to Honza</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The API key stays on the server (Vercel env). Here you choose topics and
-          context—Honza will message you in Czech in the chat.
+      <header className="flex flex-col items-center gap-4 text-center">
+        <HonzaOrb state="idle" size="avatar" />
+        <SectionLabel as="p">WELCOME</SectionLabel>
+        <h1 className="text-2xl font-semibold tracking-tight">Ahoj! I&apos;m Honza</h1>
+        <p className="text-sm text-muted-foreground">
+          The API key stays on the server (Vercel env). Choose topics and context—
+          then Honza will message you in Czech in the chat.
         </p>
       </header>
 
       <Card className="space-y-3">
-        <h2 className="text-base font-semibold">Topics</h2>
+        <SectionLabel>Your Czech level</SectionLabel>
+        <p className="text-xs text-muted-foreground">
+          Honza scales vocabulary and corrections to this.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {LEVEL_OPTIONS.map((l) => {
+            const on = level === l.id;
+            return (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setLevel(l.id as LevelId)}
+                aria-pressed={on}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                  on
+                    ? "border-accent bg-accent/15 text-accent"
+                    : "border-border bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {l.label}
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+
+      <Card className="space-y-3">
+        <SectionLabel>Topics</SectionLabel>
         <p className="text-xs text-muted-foreground">
           Pick areas you care about.
         </p>
@@ -165,7 +198,7 @@ export default function OnboardingPage() {
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="text-base font-semibold">Context from a Google Doc</h2>
+        <SectionLabel>Context · Google Doc</SectionLabel>
         <p className="text-xs text-muted-foreground">
           The doc must be public: Share → Anyone with the link → Viewer. The
           server downloads plain text (no OAuth).
@@ -191,7 +224,7 @@ export default function OnboardingPage() {
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="text-base font-semibold">File or pasted text</h2>
+        <SectionLabel>File or pasted text</SectionLabel>
         <Label htmlFor="file">File (.txt, .md)</Label>
         <Input
           id="file"

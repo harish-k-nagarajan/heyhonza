@@ -7,13 +7,19 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Textarea } from "@/components/ui/Textarea";
-import { MODEL_OPTIONS, ROUTES, TOPIC_OPTIONS } from "@/lib/constants";
+import {
+  LEVEL_OPTIONS,
+  MODEL_OPTIONS,
+  ROUTES,
+  TOPIC_OPTIONS,
+} from "@/lib/constants";
 import { isLikelyGoogleDocUrl } from "@/lib/validators";
 import { useSettingsHydrated } from "@/hooks/useSettingsHydrated";
 import { useChatStore } from "@/stores/useChatStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
-import type { ModelId, TopicId } from "@/lib/constants";
+import type { LevelId, ModelId, TopicId } from "@/lib/constants";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -21,6 +27,8 @@ export default function SettingsPage() {
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
   const preferredModel = useSettingsStore((s) => s.preferredModel);
   const setPreferredModel = useSettingsStore((s) => s.setPreferredModel);
+  const level = useSettingsStore((s) => s.level);
+  const setLevel = useSettingsStore((s) => s.setLevel);
   const selectedTopics = useSettingsStore((s) => s.selectedTopics);
   const setTopics = useSettingsStore((s) => s.setTopics);
   const contextChunks = useSettingsStore((s) => s.contextChunks);
@@ -45,8 +53,8 @@ export default function SettingsPage() {
     void (async () => {
       try {
         const res = await fetch("/api/health");
-        const data = (await res.json()) as { openaiConfigured?: boolean };
-        setServerOk(Boolean(data.openaiConfigured));
+        const data = (await res.json()) as { llmConfigured?: boolean };
+        setServerOk(Boolean(data.llmConfigured));
       } catch {
         setServerOk(false);
       }
@@ -135,27 +143,55 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto flex max-w-app flex-col gap-6">
-      <header>
+      <header className="space-y-2">
+        <SectionLabel as="p">Settings</SectionLabel>
         <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           API keys live on the server (Vercel). The client never stores them.
         </p>
       </header>
 
       <Card className="space-y-2">
-        <h2 className="text-sm font-semibold">Server status</h2>
+        <SectionLabel>Server status</SectionLabel>
         <p className="text-sm text-muted-foreground">
-          OpenAI env on Vercel:{" "}
+          OpenRouter env on server:{" "}
           {serverOk === null
             ? "…"
             : serverOk
               ? "configured"
-              : "missing OPENAI_API_KEY"}
+              : "missing OPENROUTER_API_KEY"}
         </p>
       </Card>
 
       <Card className="space-y-3">
-        <Label htmlFor="model">Model</Label>
+        <SectionLabel>Czech level</SectionLabel>
+        <div className="flex flex-wrap gap-2">
+          {LEVEL_OPTIONS.map((l) => {
+            const on = level === l.id;
+            return (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setLevel(l.id as LevelId)}
+                aria-pressed={on}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                  on
+                    ? "border-accent bg-accent/15 text-accent"
+                    : "border-border bg-muted text-muted-foreground"
+                }`}
+              >
+                {l.label}
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+
+      <Card className="space-y-3">
+        <SectionLabel>Model</SectionLabel>
+        <Label htmlFor="model" className="sr-only">
+          Model
+        </Label>
         <select
           id="model"
           className="h-11 w-full rounded-card border border-border bg-muted px-3 text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
@@ -171,7 +207,7 @@ export default function SettingsPage() {
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="text-sm font-semibold">Topics</h2>
+        <SectionLabel>Topics</SectionLabel>
         <div className="flex flex-wrap gap-2">
           {TOPIC_OPTIONS.map((t) => {
             const on = selectedTopics.includes(t.id);
@@ -194,7 +230,7 @@ export default function SettingsPage() {
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="text-sm font-semibold">Context documents</h2>
+        <SectionLabel>Context documents</SectionLabel>
         <Label htmlFor="s-doc">Google Doc (public link)</Label>
         <Input
           id="s-doc"
@@ -257,7 +293,7 @@ export default function SettingsPage() {
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="text-sm font-semibold">Device data</h2>
+        <SectionLabel>Device data</SectionLabel>
         <Button
           type="button"
           variant="secondary"

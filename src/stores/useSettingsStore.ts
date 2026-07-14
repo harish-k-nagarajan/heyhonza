@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import type { ModelId, TopicId } from "@/lib/constants";
+import { DEFAULT_LEVEL_ID, DEFAULT_MODEL_ID } from "@/lib/constants";
+import type { LevelId, ModelId, TopicId } from "@/lib/constants";
 import { buildLearnerContextText } from "@/lib/context";
 import type { ContextChunk, ContextSource } from "@/types";
 
@@ -10,9 +11,11 @@ export type SettingsState = {
   selectedTopics: TopicId[];
   contextChunks: ContextChunk[];
   preferredModel: ModelId;
+  level: LevelId;
   setOnboardingComplete: (v: boolean) => void;
   setTopics: (topics: TopicId[]) => void;
   setPreferredModel: (m: ModelId) => void;
+  setLevel: (l: LevelId) => void;
   addContextChunk: (text: string, meta: ContextSource) => void;
   removeContextChunk: (id: string) => void;
   getLearnerContextText: () => string;
@@ -27,7 +30,8 @@ const initial = {
   onboardingComplete: false,
   selectedTopics: [] as TopicId[],
   contextChunks: [] as ContextChunk[],
-  preferredModel: "gpt-4o-mini" as ModelId,
+  preferredModel: DEFAULT_MODEL_ID as ModelId,
+  level: DEFAULT_LEVEL_ID as LevelId,
 };
 
 export const useSettingsStore = create<SettingsState>()(
@@ -37,6 +41,7 @@ export const useSettingsStore = create<SettingsState>()(
       setOnboardingComplete: (v) => set({ onboardingComplete: v }),
       setTopics: (topics) => set({ selectedTopics: topics }),
       setPreferredModel: (m) => set({ preferredModel: m }),
+      setLevel: (l) => set({ level: l }),
       addContextChunk: (text, meta) => {
         const t = text.trim();
         if (!t) return;

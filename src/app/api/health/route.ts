@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 
+import { isEngineConfigured } from "@/lib/server/conversation-engine";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const hasKey = Boolean(process.env.OPENAI_API_KEY);
+  const llmConfigured = isEngineConfigured();
   return NextResponse.json({
     ok: true,
-    openaiConfigured: hasKey,
+    provider: "openrouter",
+    llmConfigured,
+    // Back-compat alias (older clients read openaiConfigured).
+    openaiConfigured: llmConfigured,
   });
 }

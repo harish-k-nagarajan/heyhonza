@@ -4,6 +4,25 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 
 ---
 
+## Phase 0 — BUILD_SPEC repo inventory & reconciliation (read-only)
+
+- [x] **Repo inventory + baseline build** — read CONTEXT/DESIGN/TASKS/MEMORY + all `src/` primitives; `npm install` + `lint` + `build` all green. Findings recorded in `MEMORY.md` (2026-07-14 entry). `[independent]`
+- [x] **Primitive status stated** — auth (none), Honza state store (partial: component yes, shared store no), conversation engine (partial: OpenAI not OpenRouter, in-route not service), context ingestion (partial: fetch yes, per-user DB no). `[independent]`
+- [x] **Design tokens confirmed vs DESIGN.md** — cream/Share Tech Mono/state colors all match; no dark remnants. `[independent]`
+- [x] **BUILD_SPEC adoption decision** — Harish (2026-07-14): adopt BUILD_SPEC **phase-gated** (confirm each phase boundary); switch model gateway to **OpenRouter**. See MEMORY.md. `[done]`
+
+---
+
+## BUILD_SPEC Phase 1 — Auth + user identity (Supabase, scaffold-first)
+
+- [x] **Supabase clients + config** — browser/server/middleware clients, `isSupabaseConfigured()` gate. `[done]`
+- [x] **`profiles` table + RLS + signup trigger** — `supabase/migrations/0001_profiles.sql`. `[done]`
+- [x] **Middleware session refresh + route protection** — `src/middleware.ts`; verified 307→/signin with dummy env. `[done]`
+- [x] **Magic-link sign-in screen + callback + signout** — `/signin`, `/auth/callback`, `/auth/signout`. `[done]`
+- [ ] **End-to-end gate (needs Harish's Supabase keys)** — real email link → authed; refresh persists; sign-out; second email = separate user. `[blocked on: Supabase provisioning]`
+
+---
+
 ## Phase 1 — Scaffold and design system
 
 - [x] **Next.js 14 App Router + TypeScript project** — `src/app`, strict typing, ESLint. `[independent]`
@@ -14,7 +33,7 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 - [x] **Base UI primitives** — `Button`, `Card`, `Input`, `Label`, `Textarea`. `[depends on: Tailwind + global dark tokens]`
 - [x] **Layout shell** — `AppShell`, `BottomNav`, mobile-first max width. `[depends on: Base UI primitives]`
 - [ ] **Toggle component** — a11y, keyboard, 999px pill track per `DESIGN.md`. `[depends on: Base UI primitives]`
-- [ ] **HonzaOrb states** — idle / thinking / speaking motion + reduced-motion path. `[depends on: Layout shell]`
+- [x] **HonzaOrb states** — idle / thinking / speaking / oops / excited motion + reduced-motion path; all five states render with per-state keyframes and a 200ms crossfade. `[depends on: Layout shell]`
 - [ ] **Token audit** — align implementation with `DESIGN.md` (e.g. muted vs surface roles). `[depends on: Tailwind + global dark tokens]`
 
 ---
@@ -22,24 +41,25 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 ## Phase 2 — Core screens (onboarding, home, chat, settings)
 
 - [x] **Routes wired** — `/`, `/onboarding`, `/chat`, `/settings`. `[depends on: Layout shell]`
-- [ ] **Onboarding** — steps, validation, completion flag, route to home. `[depends on: Routes wired]` + `[depends on: Zustand stores (chat, settings)]`
-- [ ] **Home** — Honza status, entry into chat, orb integration. `[depends on: HonzaOrb states]` + `[depends on: Routes wired]`
-- [ ] **Chat** — message list, composer, empty/loading/error states, Honza vs user styling. `[depends on: Routes wired]` + `[depends on: Zustand stores (chat, settings)]`
-- [ ] **Settings** — doc URL field, toggles, reset/export if spec’d. `[depends on: Toggle component]` + `[depends on: Zustand stores (chat, settings)]`
-- [ ] **Navigation polish** — back behavior, deep links, onboarding gate on first visit. `[depends on: Onboarding]`
+- [x] **Onboarding** — topic select, Google-Doc/file/paste context, validation, completion flag, routes to home; now character-first (leads with HonzaOrb) with `//` section labels. `[depends on: Routes wired]` + `[depends on: Zustand stores (chat, settings)]`
+- [x] **Home** — leads with hero HonzaOrb (idle), "open chat" entry, sign-out. `[depends on: HonzaOrb states]` + `[depends on: Routes wired]`
+- [x] **Chat** — message list, redesigned composer, empty/loading/error states, Honza vs user bubble styling; character-first header with a HonzaOrb that reacts to state (idle/thinking/speaking/oops). `[depends on: Routes wired]` + `[depends on: Zustand stores (chat, settings)]`
+- [x] **Settings** — model select, topics, Google-Doc/file/paste context list, server-status card, reset; `//` section labels throughout. (No on/off Toggle needed yet — current controls are pills + select; the a11y Toggle primitive stays a Phase-1 task for when a real toggle appears.) `[depends on: Zustand stores (chat, settings)]`
+- [x] **Navigation polish** — dot-indicator bottom nav, onboarding gate on first visit (client redirect when `onboardingComplete` is false), real route deep links. `[depends on: Onboarding]`
 
 ---
 
 ## Phase 3 — AI integration via Route Handlers
 
-- [x] **`/api/chat` Route Handler** — server-side OpenAI (or chosen provider) proxy. `[independent]`
+- [x] **`/api/chat` Route Handler** — thin route over `lib/server/conversation-engine.ts`; gateway is **OpenRouter** (OpenAI-compatible SDK + `OPENROUTER_API_KEY`). `[independent]`
 - [x] **`/api/context/google-doc` + server helper** — public URL fetch, no OAuth. `[independent]`
-- [x] **`/api/health`** — deploy/smoke checks. `[independent]`
-- [ ] **Chat API hardening** — validation, error mapping, timeouts, optional streaming. `[depends on: /api/chat Route Handler]`
-- [ ] **Honza persona + system prompt** — level-aware Czech tutoring behavior. `[independent]`
-- [ ] **Client ↔ API wiring** — send history, apply assistant messages to store, optimistic UI. `[depends on: Chat API hardening]` + `[depends on: Chat]`
-- [ ] **Context injection** — merge Google Doc excerpt into prompt when URL valid. `[depends on: /api/context/google-doc + server helper]` + `[depends on: Client ↔ API wiring]`
-- [ ] **Rate limiting / abuse basics** — minimal protection if exposed publicly. `[depends on: Chat API hardening]`
+- [x] **`/api/health`** — reports `{ provider: "openrouter", llmConfigured }`. `[independent]`
+- [x] **Chat API hardening** — JSON/message validation + caps, per-request 30s timeout, typed `EngineError` → friendly status/message (401/403→auth, 429→busy, timeout→504, 503 not-configured). Streaming intentionally deferred (not needed for MVP). `[depends on: /api/chat Route Handler]`
+- [x] **Honza persona + system prompt** — level-aware (A1–B2): vocabulary + correction depth scale with CEFR level; tutor loop (correct → explain briefly → continue). Level set in onboarding + settings, threaded through to the prompt. `[independent]`
+- [x] **Client ↔ API wiring** — ChatClient sends model/topics/level/context + history, applies assistant messages to the store, bootstrap opener, loading/error states. `[depends on: Chat API hardening]` + `[depends on: Chat]`
+- [x] **Context injection** — `buildLearnerContextText` merges Google-Doc/file/paste chunks into the system prompt (capped at 48k chars). `[depends on: /api/context/google-doc + server helper]` + `[depends on: Client ↔ API wiring]`
+- [x] **Rate limiting / abuse basics** — in-memory fixed-window limiter (20/min per client key) in `lib/server/rate-limit.ts`; soft guard on serverless, verified returning 429. `[depends on: Chat API hardening]`
+- [ ] **Live end-to-end chat verification** — real OpenRouter reply round-trip. `[blocked on: OPENROUTER_API_KEY]` (code paths, validation, rate limit, and not-configured 503 all verified without a key)
 
 ---
 

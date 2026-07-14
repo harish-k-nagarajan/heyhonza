@@ -8,7 +8,8 @@ import { BottomNav } from "./BottomNav";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const hideNav = pathname.startsWith(ROUTES.onboarding);
+  const hideNav =
+    pathname.startsWith(ROUTES.onboarding) || pathname.startsWith(ROUTES.signin);
 
   return (
     <div className="min-h-dvh bg-[#F5F2EE]">

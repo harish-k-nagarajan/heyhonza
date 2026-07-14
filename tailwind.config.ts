@@ -36,6 +36,7 @@ const config: Config = {
         "honza-speak": "honza-speak 0.4s ease-out 1 forwards",
         "honza-oops": "honza-oops 3.5s ease-in-out infinite",
         "honza-excited": "honza-excited 2.6s ease-in-out infinite",
+        blink: "blink 1.1s step-end infinite",
       },
       keyframes: {
         honza: {
@@ -63,9 +64,13 @@ const config: Config = {
           "0%, 100%": { transform: "scale(1)" },
           "50%": { transform: "scale(1.04)" },
         },
+        blink: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0" },
+        },
       },
       maxWidth: {
-        app: "390px",
+        app: "430px",
       },
     },
   },

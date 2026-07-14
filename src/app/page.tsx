@@ -40,6 +40,15 @@ export default function HomePage() {
       >
         OPEN CHAT
       </button>
+
+      <form action="/auth/signout" method="post">
+        <button
+          type="submit"
+          className="font-sans text-[11px] uppercase tracking-[0.2em] text-muted-foreground underline transition hover:text-foreground"
+        >
+          Sign out
+        </button>
+      </form>
     </div>
   );
 }
