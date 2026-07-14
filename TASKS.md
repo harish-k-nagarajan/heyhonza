@@ -13,6 +13,16 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 
 ---
 
+## BUILD_SPEC Phase 1 — Auth + user identity (Supabase, scaffold-first)
+
+- [x] **Supabase clients + config** — browser/server/middleware clients, `isSupabaseConfigured()` gate. `[done]`
+- [x] **`profiles` table + RLS + signup trigger** — `supabase/migrations/0001_profiles.sql`. `[done]`
+- [x] **Middleware session refresh + route protection** — `src/middleware.ts`; verified 307→/signin with dummy env. `[done]`
+- [x] **Magic-link sign-in screen + callback + signout** — `/signin`, `/auth/callback`, `/auth/signout`. `[done]`
+- [ ] **End-to-end gate (needs Harish's Supabase keys)** — real email link → authed; refresh persists; sign-out; second email = separate user. `[blocked on: Supabase provisioning]`
+
+---
+
 ## Phase 1 — Scaffold and design system
 
 - [x] **Next.js 14 App Router + TypeScript project** — `src/app`, strict typing, ESLint. `[independent]`
