@@ -1,0 +1,55 @@
+"use client";
+
+import { useEffect } from "react";
+
+import { fetchServerState } from "@/lib/client/state-sync";
+import { useChatStore } from "@/stores/useChatStore";
+import { useSettingsStore } from "@/stores/useSettingsStore";
+import { useSyncStore } from "@/stores/useSyncStore";
+import type { ChatMessage } from "@/types";
+import type { LevelId, ModelId, TopicId } from "@/lib/constants";
+
+/**
+ * On first mount, ask the server whether this browser is a signed-in user with
+ * DB-backed state. If so, overwrite the local Zustand stores with the DB truth
+ * (chat history, settings, context) so history survives refresh / re-login and
+ * a second user sees their own separate data. When not persisted (local
+ * pass-through dev, or signed out), leaves the localStorage-backed stores as-is.
+ */
+export function ServerSync() {
+  const markChecked = useSyncStore((s) => s.markChecked);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const data = await fetchServerState();
+      if (cancelled) return;
+
+      if (data.persisted && data.profile) {
+        const settings = useSettingsStore.getState();
+        settings.setLevel(data.profile.level as LevelId);
+        settings.setTopics(data.profile.topics as TopicId[]);
+        if (data.profile.preferredModel) {
+          settings.setPreferredModel(data.profile.preferredModel as ModelId);
+        }
+        settings.setOnboardingComplete(data.profile.onboardingCompleted);
+        settings.setContextChunks(data.contextChunks ?? []);
+
+        const mapped: ChatMessage[] = (data.messages ?? []).map((m) => ({
+          id: m.id,
+          role: m.role,
+          content: m.content,
+          createdAt: m.createdAt,
+        }));
+        useChatStore.getState().setMessages(mapped);
+      }
+
+      markChecked(Boolean(data.persisted));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [markChecked]);
+
+  return null;
+}

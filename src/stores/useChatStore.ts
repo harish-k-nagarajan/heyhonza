@@ -13,6 +13,7 @@ export type ChatState = {
   lastError: string | null;
   addUserMessage: (content: string) => void;
   addAssistantMessage: (content: string) => void;
+  setMessages: (messages: ChatMessage[]) => void;
   setStatus: (s: ChatState["status"]) => void;
   setError: (msg: string | null) => void;
   clearThread: () => void;
@@ -48,6 +49,7 @@ export const useChatStore = create<ChatState>()(
             },
           ],
         })),
+      setMessages: (messages) => set({ messages }),
       setStatus: (status) => set({ status }),
       setError: (lastError) => set({ lastError }),
       clearThread: () => set({ messages: [], lastError: null, status: "idle" }),
