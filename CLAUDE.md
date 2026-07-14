@@ -11,6 +11,7 @@ Guidance for Claude Code working in this repository. Honza already has a documen
 | `TASKS.md` | Build order with dependency tags | Pick the lowest phase with an unchecked task; prefer `[independent]` when starting cold. Check items off as you complete them. |
 | `MEMORY.md` | What works, what broke, decisions not to revisit | **Update after every meaningful change or debugging session.** |
 | `README.md` | Public-facing summary | Keep in sync when scope or stack changes. |
+| `BUILD_SPEC.md` | Full v1 build spec (phased plan, primitives, integration doctrine) for a larger scope than current MVP (magic-link auth, OpenRouter, voice calls, etc.) | Reference only — **not yet reconciled** with the Hard Rules below. Do not build toward it without Harish's explicit OK; where it conflicts with `CONTEXT.md` or the Hard Rules, those win until this doc is formally adopted. |
 
 ## Project Overview
 
