@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Textarea } from "@/components/ui/Textarea";
 import { MODEL_OPTIONS, ROUTES, TOPIC_OPTIONS } from "@/lib/constants";
 import { isLikelyGoogleDocUrl } from "@/lib/validators";
@@ -135,15 +136,16 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto flex max-w-app flex-col gap-6">
-      <header>
+      <header className="space-y-2">
+        <SectionLabel as="p">Settings</SectionLabel>
         <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           API keys live on the server (Vercel). The client never stores them.
         </p>
       </header>
 
       <Card className="space-y-2">
-        <h2 className="text-sm font-semibold">Server status</h2>
+        <SectionLabel>Server status</SectionLabel>
         <p className="text-sm text-muted-foreground">
           OpenAI env on Vercel:{" "}
           {serverOk === null
@@ -155,7 +157,10 @@ export default function SettingsPage() {
       </Card>
 
       <Card className="space-y-3">
-        <Label htmlFor="model">Model</Label>
+        <SectionLabel>Model</SectionLabel>
+        <Label htmlFor="model" className="sr-only">
+          Model
+        </Label>
         <select
           id="model"
           className="h-11 w-full rounded-card border border-border bg-muted px-3 text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
@@ -171,7 +176,7 @@ export default function SettingsPage() {
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="text-sm font-semibold">Topics</h2>
+        <SectionLabel>Topics</SectionLabel>
         <div className="flex flex-wrap gap-2">
           {TOPIC_OPTIONS.map((t) => {
             const on = selectedTopics.includes(t.id);
@@ -194,7 +199,7 @@ export default function SettingsPage() {
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="text-sm font-semibold">Context documents</h2>
+        <SectionLabel>Context documents</SectionLabel>
         <Label htmlFor="s-doc">Google Doc (public link)</Label>
         <Input
           id="s-doc"
@@ -257,7 +262,7 @@ export default function SettingsPage() {
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="text-sm font-semibold">Device data</h2>
+        <SectionLabel>Device data</SectionLabel>
         <Button
           type="button"
           variant="secondary"

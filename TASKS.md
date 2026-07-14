@@ -33,7 +33,7 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 - [x] **Base UI primitives** — `Button`, `Card`, `Input`, `Label`, `Textarea`. `[depends on: Tailwind + global dark tokens]`
 - [x] **Layout shell** — `AppShell`, `BottomNav`, mobile-first max width. `[depends on: Base UI primitives]`
 - [ ] **Toggle component** — a11y, keyboard, 999px pill track per `DESIGN.md`. `[depends on: Base UI primitives]`
-- [ ] **HonzaOrb states** — idle / thinking / speaking motion + reduced-motion path. `[depends on: Layout shell]`
+- [x] **HonzaOrb states** — idle / thinking / speaking / oops / excited motion + reduced-motion path; all five states render with per-state keyframes and a 200ms crossfade. `[depends on: Layout shell]`
 - [ ] **Token audit** — align implementation with `DESIGN.md` (e.g. muted vs surface roles). `[depends on: Tailwind + global dark tokens]`
 
 ---
@@ -41,11 +41,11 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 ## Phase 2 — Core screens (onboarding, home, chat, settings)
 
 - [x] **Routes wired** — `/`, `/onboarding`, `/chat`, `/settings`. `[depends on: Layout shell]`
-- [ ] **Onboarding** — steps, validation, completion flag, route to home. `[depends on: Routes wired]` + `[depends on: Zustand stores (chat, settings)]`
-- [ ] **Home** — Honza status, entry into chat, orb integration. `[depends on: HonzaOrb states]` + `[depends on: Routes wired]`
-- [ ] **Chat** — message list, composer, empty/loading/error states, Honza vs user styling. `[depends on: Routes wired]` + `[depends on: Zustand stores (chat, settings)]`
-- [ ] **Settings** — doc URL field, toggles, reset/export if spec’d. `[depends on: Toggle component]` + `[depends on: Zustand stores (chat, settings)]`
-- [ ] **Navigation polish** — back behavior, deep links, onboarding gate on first visit. `[depends on: Onboarding]`
+- [x] **Onboarding** — topic select, Google-Doc/file/paste context, validation, completion flag, routes to home; now character-first (leads with HonzaOrb) with `//` section labels. `[depends on: Routes wired]` + `[depends on: Zustand stores (chat, settings)]`
+- [x] **Home** — leads with hero HonzaOrb (idle), "open chat" entry, sign-out. `[depends on: HonzaOrb states]` + `[depends on: Routes wired]`
+- [x] **Chat** — message list, redesigned composer, empty/loading/error states, Honza vs user bubble styling; character-first header with a HonzaOrb that reacts to state (idle/thinking/speaking/oops). `[depends on: Routes wired]` + `[depends on: Zustand stores (chat, settings)]`
+- [x] **Settings** — model select, topics, Google-Doc/file/paste context list, server-status card, reset; `//` section labels throughout. (No on/off Toggle needed yet — current controls are pills + select; the a11y Toggle primitive stays a Phase-1 task for when a real toggle appears.) `[depends on: Zustand stores (chat, settings)]`
+- [x] **Navigation polish** — dot-indicator bottom nav, onboarding gate on first visit (client redirect when `onboardingComplete` is false), real route deep links. `[depends on: Onboarding]`
 
 ---
 
