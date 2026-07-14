@@ -43,6 +43,31 @@ _Last updated: 2026-05-12_
 
 ---
 
+## Current entry — 2026-07-14 (Phase 3: AI integration — OpenRouter + hardening + level-aware persona)
+
+Supabase provisioned by Harish; `NEXT_PUBLIC_SUPABASE_URL` + publishable (anon) key now in local `.env.local` (gitignored). App runs in **configured** mode locally (protected routes redirect to `/signin`; API routes are not gated). Gateway decision confirmed: **OpenRouter**.
+
+### What was built
+- **Conversation engine extracted** — `src/lib/server/conversation-engine.ts` is now the single place that talks to the model gateway (BUILD_SPEC §3 wanted this out of the route). Uses the `openai` SDK pointed at `https://openrouter.ai/api/v1` with `OPENROUTER_API_KEY` (OpenRouter is OpenAI-compatible — **no new dependency**). Exposes `generateReply`, `buildSystemPrompt`, `sanitizeMessages`, `isEngineConfigured`, and a typed `EngineError`.
+- **`/api/chat` is now thin** — rate-limit → validate → `generateReply` → map `EngineError` to status/message. No OpenAI-direct code left.
+- **Model IDs switched to OpenRouter slugs** — `openai/gpt-4o-mini` (default), `openai/gpt-4o` in `MODEL_OPTIONS`; `DEFAULT_MODEL_ID`/`HONZA_DEFAULT_MODEL` updated. Old persisted `preferredModel: "gpt-4o-mini"` gracefully falls back (allowlist + `resolveModel`).
+- **Level-aware persona** — new CEFR `level` (A1/A2/B1/B2, default A2) in `useSettingsStore`, picked in **onboarding** and **settings**, sent in the chat request, and turned into per-level Czech guidance in the system prompt (vocabulary + correction depth + how much English scaffolding).
+- **Hardening** — 30s per-request timeout (SDK `timeout` + `maxRetries: 1`), typed error mapping (401/403→auth, 429→busy, timeout→504, missing key→503), message/char caps retained.
+- **Rate limiting** — `src/lib/server/rate-limit.ts`, in-memory fixed window (20/min per `x-forwarded-for`/`x-real-ip` key). Soft guard on serverless (per-instance, resets on cold start) — swap for Upstash/Redis if real enforcement is needed.
+- **Health + settings** — health returns `{ provider: "openrouter", llmConfigured }` (kept `openaiConfigured` alias); Settings server-status card reads `llmConfigured` and names OpenRouter.
+
+### Verified (no OpenRouter key needed)
+- `lint` + `build` green. `/api/health` → `llmConfigured:false, provider:openrouter`. `/api/chat`: not-configured → **503** with OpenRouter message; invalid JSON → **400**; empty messages → **400**; **rate limit → 429 after 20/min** (confirmed by firing 25 requests). Onboarding + settings level pickers render and persist (screenshotted at 430px in pass-through on :3100; B1 seed shows selected, model label resolves, status reads OpenRouter).
+
+### Still open
+- **Live chat round-trip** — needs `OPENROUTER_API_KEY` (from openrouter.ai/keys) in `.env.local` / Vercel. Everything up to the model call is verified; only the real reply is untested.
+- Phase 1 auth end-to-end gate (real magic-link login) — still needs a human to click the email; unchanged.
+
+### Decision applied
+- **Gateway = OpenRouter** (Harish confirmed again 2026-07-14). Supersedes CLAUDE.md Hard Rule #1's OpenAI naming — reconcile CLAUDE.md/CONTEXT.md wording in a later docs pass.
+
+---
+
 ## Current entry — 2026-07-14 (Phase 2: core screens finished to DESIGN.md)
 
 Took over Phase 2 in a fresh session (the previous session's uncommitted work was in a separate ephemeral container and unrecoverable — nothing to salvage).

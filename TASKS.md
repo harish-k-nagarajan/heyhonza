@@ -51,14 +51,15 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 
 ## Phase 3 — AI integration via Route Handlers
 
-- [x] **`/api/chat` Route Handler** — server-side OpenAI (or chosen provider) proxy. `[independent]`
+- [x] **`/api/chat` Route Handler** — thin route over `lib/server/conversation-engine.ts`; gateway is **OpenRouter** (OpenAI-compatible SDK + `OPENROUTER_API_KEY`). `[independent]`
 - [x] **`/api/context/google-doc` + server helper** — public URL fetch, no OAuth. `[independent]`
-- [x] **`/api/health`** — deploy/smoke checks. `[independent]`
-- [ ] **Chat API hardening** — validation, error mapping, timeouts, optional streaming. `[depends on: /api/chat Route Handler]`
-- [ ] **Honza persona + system prompt** — level-aware Czech tutoring behavior. `[independent]`
-- [ ] **Client ↔ API wiring** — send history, apply assistant messages to store, optimistic UI. `[depends on: Chat API hardening]` + `[depends on: Chat]`
-- [ ] **Context injection** — merge Google Doc excerpt into prompt when URL valid. `[depends on: /api/context/google-doc + server helper]` + `[depends on: Client ↔ API wiring]`
-- [ ] **Rate limiting / abuse basics** — minimal protection if exposed publicly. `[depends on: Chat API hardening]`
+- [x] **`/api/health`** — reports `{ provider: "openrouter", llmConfigured }`. `[independent]`
+- [x] **Chat API hardening** — JSON/message validation + caps, per-request 30s timeout, typed `EngineError` → friendly status/message (401/403→auth, 429→busy, timeout→504, 503 not-configured). Streaming intentionally deferred (not needed for MVP). `[depends on: /api/chat Route Handler]`
+- [x] **Honza persona + system prompt** — level-aware (A1–B2): vocabulary + correction depth scale with CEFR level; tutor loop (correct → explain briefly → continue). Level set in onboarding + settings, threaded through to the prompt. `[independent]`
+- [x] **Client ↔ API wiring** — ChatClient sends model/topics/level/context + history, applies assistant messages to the store, bootstrap opener, loading/error states. `[depends on: Chat API hardening]` + `[depends on: Chat]`
+- [x] **Context injection** — `buildLearnerContextText` merges Google-Doc/file/paste chunks into the system prompt (capped at 48k chars). `[depends on: /api/context/google-doc + server helper]` + `[depends on: Client ↔ API wiring]`
+- [x] **Rate limiting / abuse basics** — in-memory fixed-window limiter (20/min per client key) in `lib/server/rate-limit.ts`; soft guard on serverless, verified returning 429. `[depends on: Chat API hardening]`
+- [ ] **Live end-to-end chat verification** — real OpenRouter reply round-trip. `[blocked on: OPENROUTER_API_KEY]` (code paths, validation, rate limit, and not-configured 503 all verified without a key)
 
 ---
 

@@ -11,11 +11,11 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Textarea } from "@/components/ui/Textarea";
-import { ROUTES, TOPIC_OPTIONS } from "@/lib/constants";
+import { LEVEL_OPTIONS, ROUTES, TOPIC_OPTIONS } from "@/lib/constants";
 import { isLikelyGoogleDocUrl } from "@/lib/validators";
 import { useSettingsHydrated } from "@/hooks/useSettingsHydrated";
 import { useSettingsStore } from "@/stores/useSettingsStore";
-import type { TopicId } from "@/lib/constants";
+import type { LevelId, TopicId } from "@/lib/constants";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -24,6 +24,8 @@ export default function OnboardingPage() {
   const setOnboardingComplete = useSettingsStore((s) => s.setOnboardingComplete);
   const selectedTopics = useSettingsStore((s) => s.selectedTopics);
   const setTopics = useSettingsStore((s) => s.setTopics);
+  const level = useSettingsStore((s) => s.level);
+  const setLevel = useSettingsStore((s) => s.setLevel);
   const addContextChunk = useSettingsStore((s) => s.addContextChunk);
 
   const [docUrl, setDocUrl] = useState("");
@@ -141,6 +143,33 @@ export default function OnboardingPage() {
           then Honza will message you in Czech in the chat.
         </p>
       </header>
+
+      <Card className="space-y-3">
+        <SectionLabel>Your Czech level</SectionLabel>
+        <p className="text-xs text-muted-foreground">
+          Honza scales vocabulary and corrections to this.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {LEVEL_OPTIONS.map((l) => {
+            const on = level === l.id;
+            return (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setLevel(l.id as LevelId)}
+                aria-pressed={on}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                  on
+                    ? "border-accent bg-accent/15 text-accent"
+                    : "border-border bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {l.label}
+              </button>
+            );
+          })}
+        </div>
+      </Card>
 
       <Card className="space-y-3">
         <SectionLabel>Topics</SectionLabel>

@@ -23,6 +23,7 @@ export default function ChatClient() {
   const preferredModel = useSettingsStore((s) => s.preferredModel);
   const selectedTopics = useSettingsStore((s) => s.selectedTopics);
   const contextChunks = useSettingsStore((s) => s.contextChunks);
+  const level = useSettingsStore((s) => s.level);
 
   const messages = useChatStore((s) => s.messages);
   const status = useChatStore((s) => s.status);
@@ -79,6 +80,7 @@ export default function ChatClient() {
           model: preferredModel,
           topics: selectedTopics,
           learnerContext,
+          level,
           messages: opts.messages,
           bootstrap: opts.bootstrap,
         }),
@@ -92,7 +94,7 @@ export default function ChatClient() {
       }
       return data.message;
     },
-    [contextChunks, preferredModel, selectedTopics],
+    [contextChunks, preferredModel, selectedTopics, level],
   );
 
   const runBootstrap = useCallback(async () => {
