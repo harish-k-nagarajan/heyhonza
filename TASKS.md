@@ -4,6 +4,15 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 
 ---
 
+## Phase 0 — BUILD_SPEC repo inventory & reconciliation (read-only)
+
+- [x] **Repo inventory + baseline build** — read CONTEXT/DESIGN/TASKS/MEMORY + all `src/` primitives; `npm install` + `lint` + `build` all green. Findings recorded in `MEMORY.md` (2026-07-14 entry). `[independent]`
+- [x] **Primitive status stated** — auth (none), Honza state store (partial: component yes, shared store no), conversation engine (partial: OpenAI not OpenRouter, in-route not service), context ingestion (partial: fetch yes, per-user DB no). `[independent]`
+- [x] **Design tokens confirmed vs DESIGN.md** — cream/Share Tech Mono/state colors all match; no dark remnants. `[independent]`
+- [ ] **BUILD_SPEC adoption decision (blocks Phases 1+)** — magic-link auth+DB, OpenRouter, and voice are OUT of current MVP per CLAUDE.md Hard Rules; need Harish's explicit OK to build BUILD_SPEC's later phases. `[blocked on: Harish]`
+
+---
+
 ## Phase 1 — Scaffold and design system
 
 - [x] **Next.js 14 App Router + TypeScript project** — `src/app`, strict typing, ESLint. `[independent]`
