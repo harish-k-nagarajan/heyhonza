@@ -39,3 +39,6 @@ public/worker-*.js
 public/sw.js.map
 public/workbox-*.js.map
 public/worker-*.js.map
+
+# accidental RTF export of local env (contains secrets)
+env.local.rtf

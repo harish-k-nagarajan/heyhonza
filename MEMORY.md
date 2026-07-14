@@ -82,12 +82,24 @@ or fast-forward `main`.
   the previous sandbox's egress block is gone. But there is **no `OPENROUTER_API_KEY`**
   here, so the authenticated live chat round-trip is still unverified.
 
+### Live verification — DONE locally (2026-07-14)
+- Harish added `OPENROUTER_API_KEY` (+ `HONZA_DEFAULT_MODEL=openai/gpt-4o-mini`) to
+  `.env.local`. **Live OpenRouter round-trip confirmed:** `/api/health` →
+  `llmConfigured:true`; bootstrap opener returns Czech ("Ahoj! Jaký máš dnes den?");
+  a user turn ("dnes já jdu do práce") got corrected → explained (drop the pronoun) →
+  continued with a follow-up. Tutor loop works end to end on `openai/gpt-4o-mini`.
+- **Google-Doc route** smoke-tested live: invalid URL → 400; valid-format non-public
+  doc → 422 graceful (proves docs.google.com egress + fetch path work). Only the 200
+  happy path (real public doc → extracted text) is unhit — needs a real public doc URL.
+- **Gotcha:** Harish first saved the env file from TextEdit as `env.local.rtf` (RTF, not
+  read by Next). Converted file→file with `textutil -convert txt -output .env.local`
+  (never printed the key). `env.local.rtf` is **not** matched by `.gitignore`'s
+  `.env*.local` — added an explicit ignore line. Recommend deleting the stray `.rtf`.
+
 ### Still open (needs Harish — can't be done by Claude)
 - **Vercel project + env vars** — needs Harish's Vercel account; Claude can't create
   the project or enter secret keys. Runbook is in `DEPLOY.md`.
-- **Live OpenRouter round-trip green check** — needs the deployed URL + real key. Fast
-  local path available: drop `OPENROUTER_API_KEY` into `.env.local` and Claude can run
-  the round-trip locally (network is open here).
+- **Production verification on the deployed URL** — re-run the same checks against Vercel.
 - Phase 1 auth end-to-end gate (real magic-link click) — unchanged.
 
 ---

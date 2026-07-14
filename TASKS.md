@@ -59,7 +59,7 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 - [x] **Client ↔ API wiring** — ChatClient sends model/topics/level/context + history, applies assistant messages to the store, bootstrap opener, loading/error states. `[depends on: Chat API hardening]` + `[depends on: Chat]`
 - [x] **Context injection** — `buildLearnerContextText` merges Google-Doc/file/paste chunks into the system prompt (capped at 48k chars). `[depends on: /api/context/google-doc + server helper]` + `[depends on: Client ↔ API wiring]`
 - [x] **Rate limiting / abuse basics** — in-memory fixed-window limiter (20/min per client key) in `lib/server/rate-limit.ts`; soft guard on serverless, verified returning 429. `[depends on: Chat API hardening]`
-- [ ] **Live end-to-end chat verification** — real OpenRouter reply round-trip. `[blocked on: OPENROUTER_API_KEY]` (code paths, validation, rate limit, and not-configured 503 all verified without a key)
+- [x] **Live end-to-end chat verification** — real OpenRouter reply round-trip **confirmed** (2026-07-14, local, key in `.env.local`): bootstrap opener returns Czech; a user turn triggers correct→explain→continue on `openai/gpt-4o-mini`. `/api/health` → `llmConfigured:true`.
 
 ---
 
@@ -69,7 +69,7 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 - [x] **Install prompt UX** — 4s reveal delay, dismissal persisted 14 days (`honza-install-dismissed-at`), already-installed detection (`display-mode: standalone` / `navigator.standalone` / `appinstalled`), iOS-Safari manual "Add to Home Screen" hint; styled to DESIGN.md (`// INSTALL`). Verified at 430px. `[depends on: next-pwa]`
 - [x] **Service worker behavior** — `skipWaiting`+`clientsClaim`, `buildExcludes` middleware/app-build manifests, `cacheOnFrontEndNav`, `reloadOnOnline`, `dynamicStartUrl:false` (start URL is auth-gated). Verified in generated `public/sw.js`. `[depends on: next-pwa]`
 - [ ] **Vercel project** — production branch `main` + env vars (`OPENROUTER_API_KEY` server-only, `HONZA_DEFAULT_MODEL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`). Runbook in `DEPLOY.md`. `[blocked on: Harish's Vercel account + secrets — Claude can't create the project or enter keys]`
-- [ ] **Production verification** — `next build` (green locally), smoke test chat + doc route on deployed URL; this is where the live OpenRouter round-trip gets its green check. `[blocked on: Vercel project]` (openrouter.ai IS reachable from this env — can also verify locally if `OPENROUTER_API_KEY` is added to `.env.local`)
+- [~] **Production verification** — live round-trip **verified locally** against real OpenRouter (chat correct→explain→continue; `/api/health` llmConfigured; google-doc route validates 400 + fails gracefully 422 — 200 happy path needs a real public doc). **Remaining:** re-run the same checks on the deployed Vercel URL. `[blocked on: Vercel project]`
 
 ---
 
