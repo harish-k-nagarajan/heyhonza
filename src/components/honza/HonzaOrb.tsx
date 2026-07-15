@@ -3,19 +3,14 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
+import { HONZA_STATE_COLORS } from "./theme";
+import type { HonzaOrbState } from "./theme";
 
-/** Visual / mood states for the dot-matrix face and screen tinting. */
-export type HonzaOrbState = "idle" | "thinking" | "speaking" | "oops" | "excited";
+// Re-exported for back-compat; canonical home is `honza/theme`.
+export { HONZA_STATE_COLORS };
+export type { HonzaOrbState };
 
 export type HonzaOrbSize = "hero" | "avatar";
-
-export const HONZA_STATE_COLORS = {
-  idle: { background: "#FFF4EE", accent: "#E8432D" },
-  thinking: { background: "#EEF2FF", accent: "#3A7BD5" },
-  speaking: { background: "#EEFFEE", accent: "#2E7D32" },
-  oops: { background: "#FFF0F5", accent: "#C2185B" },
-  excited: { background: "#FFF4EE", accent: "#E8432D" },
-} as const;
 
 const GRID = 15;
 const VIEW = 90;

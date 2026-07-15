@@ -16,14 +16,22 @@ import {
   TOPIC_OPTIONS,
 } from "@/lib/constants";
 import { isLikelyGoogleDocUrl } from "@/lib/validators";
+import {
+  addContext,
+  persistProfile,
+  removeContext,
+  resetUserData,
+} from "@/lib/client/context-actions";
 import { useSettingsHydrated } from "@/hooks/useSettingsHydrated";
-import { useChatStore } from "@/stores/useChatStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
+import { useSyncStore } from "@/stores/useSyncStore";
 import type { LevelId, ModelId, TopicId } from "@/lib/constants";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const hydrated = useSettingsHydrated();
+  const localHydrated = useSettingsHydrated();
+  const serverChecked = useSyncStore((s) => s.checked);
+  const hydrated = localHydrated && serverChecked;
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
   const preferredModel = useSettingsStore((s) => s.preferredModel);
   const setPreferredModel = useSettingsStore((s) => s.setPreferredModel);
@@ -32,10 +40,20 @@ export default function SettingsPage() {
   const selectedTopics = useSettingsStore((s) => s.selectedTopics);
   const setTopics = useSettingsStore((s) => s.setTopics);
   const contextChunks = useSettingsStore((s) => s.contextChunks);
-  const removeContextChunk = useSettingsStore((s) => s.removeContextChunk);
-  const addContextChunk = useSettingsStore((s) => s.addContextChunk);
-  const reset = useSettingsStore((s) => s.reset);
-  const clearThread = useChatStore((s) => s.clearThread);
+
+  const chooseLevel = (l: LevelId) => {
+    setLevel(l);
+    persistProfile({ level: l });
+  };
+  const chooseModel = (m: ModelId) => {
+    setPreferredModel(m);
+    persistProfile({ preferredModel: m });
+  };
+
+  const lastSynced = contextChunks.reduce(
+    (max, c) => Math.max(max, c.meta.addedAt),
+    0,
+  );
 
   const [docUrl, setDocUrl] = useState("");
   const [paste, setPaste] = useState("");
@@ -62,11 +80,11 @@ export default function SettingsPage() {
   }, []);
 
   const toggleTopic = (id: TopicId) => {
-    setTopics(
-      selectedTopics.includes(id)
-        ? selectedTopics.filter((t) => t !== id)
-        : [...selectedTopics, id],
-    );
+    const next = selectedTopics.includes(id)
+      ? selectedTopics.filter((t) => t !== id)
+      : [...selectedTopics, id];
+    setTopics(next);
+    persistProfile({ topics: next });
   };
 
   const importGoogleDoc = async () => {
@@ -88,11 +106,10 @@ export default function SettingsPage() {
         return;
       }
       if (data.text) {
-        const stamp = Date.now();
-        addContextChunk(data.text, {
+        await addContext(data.text, {
           kind: "google_doc",
           url: docUrl.trim(),
-          addedAt: stamp,
+          addedAt: Date.now(),
         });
         setDocUrl("");
       }
@@ -106,7 +123,7 @@ export default function SettingsPage() {
   const addPaste = () => {
     const t = paste.trim();
     if (!t) return;
-    addContextChunk(t, {
+    void addContext(t, {
       kind: "pasted",
       label: "Pasted text",
       addedAt: Date.now(),
@@ -126,7 +143,7 @@ export default function SettingsPage() {
       setDocError("File is empty.");
       return;
     }
-    addContextChunk(text.trim(), {
+    await addContext(text.trim(), {
       kind: "file",
       name: f.name,
       addedAt: Date.now(),
@@ -172,7 +189,7 @@ export default function SettingsPage() {
               <button
                 key={l.id}
                 type="button"
-                onClick={() => setLevel(l.id as LevelId)}
+                onClick={() => chooseLevel(l.id as LevelId)}
                 aria-pressed={on}
                 className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                   on
@@ -196,7 +213,7 @@ export default function SettingsPage() {
           id="model"
           className="h-11 w-full rounded-card border border-border bg-muted px-3 text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
           value={preferredModel}
-          onChange={(e) => setPreferredModel(e.target.value as ModelId)}
+          onChange={(e) => chooseModel(e.target.value as ModelId)}
         >
           {MODEL_OPTIONS.map((m) => (
             <option key={m.id} value={m.id}>
@@ -231,6 +248,11 @@ export default function SettingsPage() {
 
       <Card className="space-y-3">
         <SectionLabel>Context documents</SectionLabel>
+        <p className="text-xs text-muted-foreground">
+          {lastSynced > 0
+            ? `Last synced ${new Date(lastSynced).toLocaleString()} · ${contextChunks.length} source${contextChunks.length === 1 ? "" : "s"} Honza reads from.`
+            : "No context yet. Add a Google Doc, file, or paste to teach Honza what you're learning."}
+        </p>
         <Label htmlFor="s-doc">Google Doc (public link)</Label>
         <Input
           id="s-doc"
@@ -283,7 +305,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 className="shrink-0 text-accent underline"
-                onClick={() => removeContextChunk(c.id)}
+                onClick={() => void removeContext(c.id)}
               >
                 Remove
               </button>
@@ -298,8 +320,7 @@ export default function SettingsPage() {
           type="button"
           variant="secondary"
           onClick={() => {
-            clearThread();
-            reset();
+            void resetUserData();
             router.push(ROUTES.onboarding);
           }}
         >

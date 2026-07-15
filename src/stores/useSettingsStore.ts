@@ -16,8 +16,9 @@ export type SettingsState = {
   setTopics: (topics: TopicId[]) => void;
   setPreferredModel: (m: ModelId) => void;
   setLevel: (l: LevelId) => void;
-  addContextChunk: (text: string, meta: ContextSource) => void;
+  addContextChunk: (text: string, meta: ContextSource, id?: string) => void;
   removeContextChunk: (id: string) => void;
+  setContextChunks: (chunks: ContextChunk[]) => void;
   getLearnerContextText: () => string;
   reset: () => void;
 };
@@ -42,13 +43,13 @@ export const useSettingsStore = create<SettingsState>()(
       setTopics: (topics) => set({ selectedTopics: topics }),
       setPreferredModel: (m) => set({ preferredModel: m }),
       setLevel: (l) => set({ level: l }),
-      addContextChunk: (text, meta) => {
+      addContextChunk: (text, meta, id) => {
         const t = text.trim();
         if (!t) return;
         set((s) => ({
           contextChunks: [
             ...s.contextChunks,
-            { id: rid(), text: t, meta },
+            { id: id ?? rid(), text: t, meta },
           ],
         }));
       },
@@ -56,6 +57,7 @@ export const useSettingsStore = create<SettingsState>()(
         set((s) => ({
           contextChunks: s.contextChunks.filter((c) => c.id !== id),
         })),
+      setContextChunks: (chunks) => set({ contextChunks: chunks }),
       getLearnerContextText: () => buildLearnerContextText(get().contextChunks),
       reset: () => set(initial),
     }),

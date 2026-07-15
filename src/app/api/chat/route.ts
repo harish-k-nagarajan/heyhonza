@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 
 import {
   EngineError,
+  buildOpenerPrompt,
   generateReply,
   sanitizeMessages,
 } from "@/lib/server/conversation-engine";
 import { clientKey, rateLimit } from "@/lib/server/rate-limit";
+import { insertMessages, loadEngineContext } from "@/lib/server/user-data";
 
 export const runtime = "nodejs";
 
@@ -16,6 +18,9 @@ type ChatRequestBody = {
   learnerContext?: string;
   level?: string;
   bootstrap?: boolean;
+  /** Phase 7 — client hints so the unprompted opener feels ambient. */
+  localHour?: number;
+  lastContactAt?: number;
 };
 
 export async function POST(req: Request) {
@@ -35,7 +40,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const messages = sanitizeMessages(body.messages, Boolean(body.bootstrap));
+  const bootstrap = Boolean(body.bootstrap);
+  const messages = sanitizeMessages(body.messages, bootstrap);
   if (!messages) {
     return NextResponse.json(
       { error: "Missing messages or bootstrap." },
@@ -43,16 +49,55 @@ export async function POST(req: Request) {
     );
   }
 
+  // When the user is signed in, the engine reads context/topics/level from the
+  // DB (BUILD_SPEC §3/§5: "the engine reads context from the store, not the
+  // client"). Falls back to the client-sent values in local pass-through dev.
+  const serverContext = await loadEngineContext();
+  const persisted = serverContext !== null;
+
+  // On bootstrap, Honza initiates: replace the thread with a single synthetic
+  // opener instruction that's aware of time-of-day + time since last contact.
+  const engineMessages = bootstrap
+    ? [
+        {
+          role: "user" as const,
+          content: buildOpenerPrompt({
+            localHour: typeof body.localHour === "number" ? body.localHour : undefined,
+            lastContactAt:
+              typeof body.lastContactAt === "number" ? body.lastContactAt : undefined,
+          }),
+        },
+      ]
+    : messages;
+
   try {
     const { text, model } = await generateReply({
-      requestedModel: body.model,
-      topics: Array.isArray(body.topics) ? body.topics : undefined,
-      learnerContext:
-        typeof body.learnerContext === "string" ? body.learnerContext : "",
-      level: typeof body.level === "string" ? body.level : undefined,
-      messages,
+      requestedModel: serverContext?.preferredModel ?? body.model,
+      topics: serverContext
+        ? serverContext.topics
+        : Array.isArray(body.topics)
+          ? body.topics
+          : undefined,
+      learnerContext: serverContext
+        ? serverContext.contextText
+        : typeof body.learnerContext === "string"
+          ? body.learnerContext
+          : "",
+      level: serverContext?.level ?? (typeof body.level === "string" ? body.level : undefined),
+      messages: engineMessages,
     });
-    return NextResponse.json({ message: text, model });
+
+    // Persist the just-sent user turn (not on bootstrap, which has no real user
+    // message) plus Honza's reply, so history survives refresh / re-login.
+    if (persisted) {
+      const turns: { role: "user" | "assistant"; content: string }[] = [];
+      const lastUser = [...messages].reverse().find((m) => m.role === "user");
+      if (!bootstrap && lastUser) turns.push({ role: "user", content: lastUser.content });
+      turns.push({ role: "assistant", content: text });
+      await insertMessages(turns);
+    }
+
+    return NextResponse.json({ message: text, model, persisted });
   } catch (e) {
     if (e instanceof EngineError) {
       return NextResponse.json({ error: e.message }, { status: e.status });

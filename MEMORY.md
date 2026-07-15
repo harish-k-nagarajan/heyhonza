@@ -43,6 +43,61 @@ _Last updated: 2026-05-12_
 
 ---
 
+## Current entry — 2026-07-15 (BS Phase 2 mood store + tint · DB persistence 4/5/6 · Phase 7 Home initiation)
+
+Branch `claude/phase-2-mood-db-home` off `main` (PR #3 merged). Local dev: only
+`OPENROUTER_API_KEY` + `HONZA_DEFAULT_MODEL` in `.env.local` → Supabase blank → middleware
+pass-through, so DB code runs in **fallback mode** locally (the DB gates need live Supabase,
+same human blocker as Phase 1). `lint` + `build` green; all three features verified live at
+375px in the running app.
+
+### What was built
+- **BS Phase 2 — shared mood store + app-wide tint (✅ verified).** New `useMoodStore`
+  (`idle/thinking/speaking/oops/excited`, `setMood` + one-shot `flashMood`). Palette moved to
+  `src/components/honza/theme.ts` (`HonzaOrb` re-exports for back-compat). `AppShell` reads the
+  store and sets the tinted background **and** `--accent` on its wrapper → accent UI recolors
+  app-wide. Removed hardcoded `bg-[#F5F2EE]` on Home so the tint shows. Dev-only `MoodCycler`
+  gated behind `NEXT_PUBLIC_HONZA_DEV_TOOLS=1` (I set it in a gitignored `.env.development.local`
+  for local verification — do **not** commit; unset in prod → component is `null`). Verified:
+  cycler + a real chat event both shift the whole app (thinking=blue, speaking=green).
+- **DB persistence 4/5/6 (🟡 built, fallback verified).** Migration
+  `0002_conversations_and_context.sql`: `messages` (per user, `kind` chat/call, RLS own-row),
+  `user_context` (source/content/`synced_at`, RLS own-row), + `level`/`topics`/`preferred_model`
+  columns on `profiles`. `src/lib/server/user-data.ts` is the DB access layer (no-op/null when
+  unconfigured). `/api/state` GET hydrates the user, PUT patches profile/context/reset
+  (`force-dynamic`). `/api/chat` now **reads context/topics/level from the DB** when signed in
+  (engine reads from the store, not the client) and persists the user turn + reply. Client:
+  `state-sync.ts` (`dbMode` set from `persisted`), `ServerSync` (in AppShell) hydrates stores
+  from DB on mount, `useSyncStore.checked` gates onboarding redirects, `context-actions.ts` +
+  `chat-actions.ts` write local+DB in one path. Settings shows "Last synced …".
+- **BS Phase 7 — Home initiates (✅ verified).** `buildOpenerPrompt` (time-of-day + time since
+  last contact) in the engine; on bootstrap `/api/chat` swaps the thread for that synthetic
+  opener. Home + Chat both call `initiateOpener()` (module lock prevents double-fire); the
+  opener lands in the shared thread so navigating Home→Chat shows one continuous conversation.
+  Live: Home generated "Ahoj! Jsem Honza, tvůj kamarád na učení češtiny…" with no typing.
+
+### Verified live (375px, no-DB fallback)
+- Mood tint app-wide (cycler + real send). Home unprompted opener via the engine. Chat tutor
+  loop: user turn → correct→explain→continue on `openai/gpt-4o-mini`. Refresh keeps the thread
+  (ServerSync does **not** wipe the store when `persisted:false`). `/api/state` → `{persisted:false}`
+  locally, no console errors.
+
+### Still open (needs Harish / live Supabase — cannot be done headless)
+- **DB gates (Phases 4/5/6):** apply 0001 + 0002 in Supabase, set `NEXT_PUBLIC_SUPABASE_*`, then
+  verify send→refresh→re-login persists, second email = separate empty history, doc reflected
+  across re-login. Same blocker as Phase 1's magic-link click.
+- Phase 8 (voice, needs TTS key), Phase 9 (landing/polish), Vercel deploy — unchanged.
+
+### Gotcha / decisions
+- **One code path, two modes:** `dbMode` is true only when the server confirms `persisted`
+  (Supabase configured **and** a signed-in user). Keeps every screen working with no auth locally
+  and DB-backed in prod without page-level branching.
+- Multi-user-on-one-device: localStorage stores linger after sign-out (ServerSync overwrites on
+  next login, but an anonymous reload could show stale local data). Fine for MVP; clear stores on
+  sign-out later if it matters.
+
+---
+
 ## Current entry — 2026-07-14 (Phase 4: PWA polish + deploy runbook)
 
 Continued on `claude/phase-2-unblock-debug-qtksid` per instructions. **Note:** PR #2

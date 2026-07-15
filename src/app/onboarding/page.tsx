@@ -13,20 +13,23 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Textarea } from "@/components/ui/Textarea";
 import { LEVEL_OPTIONS, ROUTES, TOPIC_OPTIONS } from "@/lib/constants";
 import { isLikelyGoogleDocUrl } from "@/lib/validators";
+import { addContext, persistProfile } from "@/lib/client/context-actions";
 import { useSettingsHydrated } from "@/hooks/useSettingsHydrated";
 import { useSettingsStore } from "@/stores/useSettingsStore";
+import { useSyncStore } from "@/stores/useSyncStore";
 import type { LevelId, TopicId } from "@/lib/constants";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const hydrated = useSettingsHydrated();
+  const localHydrated = useSettingsHydrated();
+  const serverChecked = useSyncStore((s) => s.checked);
+  const hydrated = localHydrated && serverChecked;
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
   const setOnboardingComplete = useSettingsStore((s) => s.setOnboardingComplete);
   const selectedTopics = useSettingsStore((s) => s.selectedTopics);
   const setTopics = useSettingsStore((s) => s.setTopics);
   const level = useSettingsStore((s) => s.level);
   const setLevel = useSettingsStore((s) => s.setLevel);
-  const addContextChunk = useSettingsStore((s) => s.addContextChunk);
 
   const [docUrl, setDocUrl] = useState("");
   const [paste, setPaste] = useState("");
@@ -41,11 +44,16 @@ export default function OnboardingPage() {
   }, [hydrated, onboardingComplete, router]);
 
   const toggleTopic = (id: TopicId) => {
-    setTopics(
-      selectedTopics.includes(id)
-        ? selectedTopics.filter((t) => t !== id)
-        : [...selectedTopics, id],
-    );
+    const next = selectedTopics.includes(id)
+      ? selectedTopics.filter((t) => t !== id)
+      : [...selectedTopics, id];
+    setTopics(next);
+    persistProfile({ topics: next });
+  };
+
+  const chooseLevel = (l: LevelId) => {
+    setLevel(l);
+    persistProfile({ level: l });
   };
 
   const importGoogleDoc = async () => {
@@ -70,11 +78,10 @@ export default function OnboardingPage() {
         setDocError("Empty server response.");
         return;
       }
-      const stamp = Date.now();
-      addContextChunk(data.text, {
+      await addContext(data.text, {
         kind: "google_doc",
         url: docUrl.trim(),
-        addedAt: stamp,
+        addedAt: Date.now(),
       });
       setDocUrl("");
     } catch {
@@ -97,11 +104,10 @@ export default function OnboardingPage() {
       setFileError("File is empty.");
       return;
     }
-    const stamp = Date.now();
-    addContextChunk(text.trim(), {
+    await addContext(text.trim(), {
       kind: "file",
       name: f.name,
-      addedAt: stamp,
+      addedAt: Date.now(),
     });
   };
 
@@ -112,7 +118,7 @@ export default function OnboardingPage() {
       setFileError("Paste some text.");
       return;
     }
-    addContextChunk(t, {
+    void addContext(t, {
       kind: "pasted",
       label: "Pasted text",
       addedAt: Date.now(),
@@ -156,7 +162,7 @@ export default function OnboardingPage() {
               <button
                 key={l.id}
                 type="button"
-                onClick={() => setLevel(l.id as LevelId)}
+                onClick={() => chooseLevel(l.id as LevelId)}
                 aria-pressed={on}
                 className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                   on
@@ -253,6 +259,13 @@ export default function OnboardingPage() {
         className="w-full"
         onClick={() => {
           setOnboardingComplete(true);
+          // Persist the full onboarding payload as one data model (Phase 6):
+          // onboarding flag + the same Settings fields (topics, level).
+          persistProfile({
+            onboardingCompleted: true,
+            topics: selectedTopics,
+            level,
+          });
           router.push(ROUTES.home);
         }}
       >

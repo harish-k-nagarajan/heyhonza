@@ -73,6 +73,35 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 
 ---
 
+## BUILD_SPEC Phase 2 — Honza state machine (shared mood store + app-wide tint)
+
+- [x] **`honza/theme` module** — extracted `HONZA_STATE_COLORS` + `HonzaOrbState` out of the component so a store can import the palette; `HonzaOrb` re-exports for back-compat. `[independent]`
+- [x] **`useMoodStore`** — single Zustand source of truth for Honza's mood (`idle/thinking/speaking/oops/excited`) with `setMood` + `flashMood` (one-shot beat → idle). Not persisted (ephemeral). `[independent]`
+- [x] **App-wide tint** — `AppShell` reads the mood store and sets the tinted background **and** `--accent` custom property on the wrapper, so accent UI (borders/buttons/links/composer) recolors app-wide. **Verified live at 375px.** `[depends on: useMoodStore]`
+- [x] **Chat + Home drive the store** — chat-actions set `thinking`/`speaking`/`oops`; both surfaces' orbs read the shared mood. `[depends on: useMoodStore]`
+- [x] **Dev-only mood cycler** — `MoodCycler` cycles all 5 states; gated behind `NEXT_PUBLIC_HONZA_DEV_TOOLS=1` (compiles to `null` in a normal build, unreachable by real users). `[independent]`
+
+---
+
+## BUILD_SPEC Phases 4/5/6 — Per-user DB persistence
+
+- [x] **Migrations `0002_conversations_and_context.sql`** — `messages` (per user, `kind` chat/call) + `user_context` (source, content, `synced_at`), RLS own-row-only; settings columns (`level`, `topics`, `preferred_model`) on `profiles`. `[independent]`
+- [x] **Server data layer** — `src/lib/server/user-data.ts`: load/insert messages, load/patch profile, add/remove context, reset; all no-op/null when unconfigured or signed out. `[depends on: migrations]`
+- [x] **`/api/state` GET+PUT** — hydrate the signed-in user; patch profile/context/reset. `force-dynamic`. `[depends on: Server data layer]`
+- [x] **Chat reads context from DB + persists turns** — `/api/chat` overrides context/topics/level from the DB when signed in (BUILD_SPEC §3/§5) and inserts the user turn + reply. `[depends on: Server data layer]`
+- [x] **Client sync bridge** — `state-sync.ts` (`dbMode`, `fetchServerState`, `patchServerState`), `ServerSync` hydrates stores from DB, `useSyncStore.checked` gates onboarding redirects; `context-actions.ts` writes local + DB in one path. `[depends on: /api/state]`
+- [x] **Settings "last synced" + one data model** — Settings shows last-synced/source count; onboarding + settings write the same profile fields; reset clears chat+context and re-arms onboarding. **Fallback path verified live.** `[depends on: Client sync bridge]`
+- [ ] **DB gate (needs live Supabase)** — apply 0002, set `NEXT_PUBLIC_SUPABASE_*`, then verify: send→refresh→re-login history persists; second email = separate empty history; doc reflected across re-login. `[blocked on: Supabase provisioning — same as Phase 1 magic-link]`
+
+---
+
+## BUILD_SPEC Phase 7 — Home screen (Honza initiates)
+
+- [x] **`buildOpenerPrompt`** — engine helper producing an ambient unprompted opener aware of time-of-day + time since last contact. `[independent]`
+- [x] **Home initiation** — on load, if the thread is empty, Home calls the engine and surfaces the opener (real Czech, "Honza wrote to you" card) instead of a blank screen; hero orb reads shared mood. Shared thread flows into Chat with no double-bootstrap. **Verified live at 375px.** `[depends on: BS Phase 2, Client sync bridge]`
+
+---
+
 ## How to use in each session
 
 1. Pick the **lowest phase** with an unchecked task.
