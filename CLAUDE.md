@@ -16,7 +16,7 @@ Guidance for Claude Code working in this repository. Honza already has a documen
 
 ## Project Overview
 
-**Honza** is a mobile-first Czech language learning PWA. Learners practice real Czech in short daily conversations with Honza, an AI persona who acts as a friendly tutor. Core loop: Honza initiates → user replies in Czech (typed, MVP) → Honza corrects, encourages, continues.
+**Honza** is a mobile-first Czech language learning PWA. Learners practice real Czech in short daily conversations with Honza, an AI persona who acts as a friendly tutor. Core loop: Honza initiates → user replies in Czech (**typed in `/chat`, or spoken in `/call` where Honza speaks back**) → Honza corrects, encourages, continues.
 
 ## Stack
 
@@ -26,6 +26,7 @@ Guidance for Claude Code working in this repository. Honza already has a documen
 | Styling | Tailwind CSS 3.4 |
 | State | Zustand (`useChatStore`, `useSettingsStore`, `useMoodStore`, `useSyncStore` in `src/stores/`) |
 | AI | **OpenRouter** (default `openai/gpt-4o-mini`) — **only** via Next.js Route Handlers (`src/app/api/`). Engine: `src/lib/server/conversation-engine.ts`. |
+| Voice | **STT:** Web Speech API in-browser (`cs-CZ`, `useSpeechRecognition`). **TTS:** ElevenLabs, server-side only via `/api/tts`; provider-swap notes in `src/lib/server/tts.ts`. |
 | Auth + DB | **Supabase** — email+password with email confirmation, Postgres with own-row RLS. Clients in `src/lib/supabase/`; migrations in `supabase/migrations/`. |
 | PWA | next-pwa (disabled in dev by plugin behavior; manifest + icons in `public/`) |
 | Deployment | Vercel |
@@ -50,19 +51,19 @@ No test framework is configured. Verification is lint + build + manual check on 
 
 ## Hard Rules (decided — do not revisit without Harish's explicit OK)
 
-1. **Secrets live only in Vercel env vars** (and local `.env.local` for dev). Never in the client, never in the repo. `.env.example` documents names only. Current: `OPENROUTER_API_KEY` (required), `HONZA_DEFAULT_MODEL` (optional, default `openai/gpt-4o-mini`), `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (public-safe — RLS protects the data), and `SUPABASE_SERVICE_ROLE_KEY` (**local dev only** — it bypasses RLS; used solely by `scripts/dev-signin.mjs`, never imported by `src/`, never added to Vercel). *(Supersedes the original `OPENAI_API_KEY` naming — gateway moved to OpenRouter on 2026-07-14 with Harish's OK.)*
-2. **All model calls go through Route Handlers** (`/api/chat`; TTS likewise when Phase 8 lands). No LLM or TTS provider is ever called from the browser, and no provider key is ever exposed to it.
+1. **Secrets live only in Vercel env vars** (and local `.env.local` for dev). Never in the client, never in the repo. `.env.example` documents names only. Current: `OPENROUTER_API_KEY` (required), `HONZA_DEFAULT_MODEL` (optional, default `openai/gpt-4o-mini`), `ELEVENLABS_API_KEY` (required for voice — **server-only**, read only by `src/lib/server/tts.ts`) + `ELEVENLABS_VOICE_ID` (optional), `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (public-safe — RLS protects the data), and `SUPABASE_SERVICE_ROLE_KEY` (**local dev only** — it bypasses RLS; used solely by `scripts/dev-signin.mjs`, never imported by `src/`, never added to Vercel). *(Supersedes the original `OPENAI_API_KEY` naming — gateway moved to OpenRouter on 2026-07-14 with Harish's OK.)*
+2. **All model calls go through Route Handlers** — `/api/chat` for the LLM, `/api/tts` for voice (Phase 8, shipped 2026-07-15). No LLM or TTS provider is ever called from the browser, and no provider key is ever exposed to it. Verified against the production bundle for both keys.
 3. **Google Doc ingestion uses public URLs, no OAuth** (`/api/context/google-doc` fetches server-side).
 4. **Mobile-first installable PWA** is the product; design desktop as a centered ~430px phone stage.
 5. **The design system is the cream / dot-matrix system in `DESIGN.md`** (Share Tech Mono, `#F5F2EE` canvas, state-tinted backgrounds, HonzaOrb square dot-matrix face). This **superseded** the original "dark mode only" decision on 2026-05-12. If you find dark tokens or Inter font in product chrome, they are legacy — migrate them per DESIGN.md, don't extend them.
-6. **Still out of scope:** scheduling and social features. Don't build toward them. **Voice is no longer out of scope** — it's BUILD_SPEC Phase 8, adopted 2026-07-14, but **double-gated: needs a TTS key *and* Harish's explicit go-ahead.** Neither exists as of 2026-07-15, so don't start it. (`CONTEXT.md` was reconciled to match on 2026-07-15.)
+6. **Still out of scope:** scheduling and social features. Don't build toward them. **Voice is IN and now BUILT** — BUILD_SPEC Phase 8 shipped 2026-07-15 once Harish supplied an ElevenLabs key *and* the go-ahead (the old double gate is cleared; this rule previously said "don't start it"). `/call` + `/api/tts` + `kind:'call'` transcripts exist. Row 8 is still **🟡** only because mic/audio can't be verified headlessly — see `DEPLOY.md` §5. **TTS calls go through `/api/tts` only**; `ELEVENLABS_API_KEY` is server-only.
 7. **The character is the app.** Honza is never a small decorative icon on primary surfaces; every screen leads with the character (see DESIGN.md).
 
 ## Architecture Notes
 
-- **Routes:** `/welcome` (signed-out front door), `/signin`, `/` (home), `/onboarding`, `/chat`, `/settings`; auth: `/auth/callback`, `/auth/signout`; API: `/api/chat`, `/api/state`, `/api/context/google-doc`, `/api/health`.
+- **Routes:** `/welcome` (signed-out front door), `/signin`, `/` (home), `/onboarding`, `/chat`, `/call`, `/settings`; auth: `/auth/callback`, `/auth/signout`; API: `/api/chat`, `/api/tts`, `/api/state`, `/api/context/google-doc`, `/api/health`.
 - **Middleware:** `src/middleware.ts` — **must live under `src/`** (a root `middleware.ts` is not detected when the app is under `src/app`; a correct build lists `ƒ Middleware`). Refreshes the session and guards routes; signed-out `/` → `/welcome`.
-- **Components:** `src/components/` — `layout/` (AppShell, BottomNav, ServerSync, MoodCycler), `honza/` (HonzaOrb, StatusPill, theme), `chat/` (MessageList, MessageBubble, Composer, VoiceReplyButton), `ui/` primitives, `pwa/` (InstallPrompt).
+- **Components:** `src/components/` — `layout/` (AppShell, BottomNav, ServerSync, MoodCycler), `honza/` (HonzaOrb, StatusPill, theme), `chat/` (MessageList — which groups `kind:'call'` turns into a labeled transcript, MessageBubble, Composer, VoiceReplyButton), `ui/` primitives, `pwa/` (InstallPrompt). The call screen is `src/app/call/CallClient.tsx`.
 - **Honza's emotional states** (`idle` / `thinking` / `speaking` / `oops` / `excited`) live in the shared `useMoodStore` and drive app-wide background tint + accent via AppShell. Palette lives in `HONZA_STATE_COLORS` in `HonzaOrb.tsx`; specs in DESIGN.md. Keep those two in sync.
 - **Two-mode persistence, one code path.** `/api/state` answers `persisted:true` only when Supabase is configured **and** a user is signed in; otherwise DB writes no-op and the localStorage-backed Zustand stores are authoritative. **When verifying DB persistence, clear `localStorage` first** — otherwise the fallback is a live alternative explanation for anything that renders.
 - All motion respects `prefers-reduced-motion` (see DESIGN.md motion table).
@@ -83,9 +84,14 @@ Before calling any task finished:
 The app runs on **live Supabase** end-to-end: auth (email+password + confirmation), per-user
 profiles, chat history, and Google Doc context all persist and survive re-login, with RLS
 isolating users. The conversation engine runs on **OpenRouter**. BUILD_SPEC rows 1–7 and 9
-are ✅. **Not yet done:** Phase 8 (voice — needs a TTS key + Harish's OK), the `Toggle`
-primitive (deliberately deferred — no screen has one), custom SMTP (pre-launch, for real
-learners), and the Vercel deploy. See `BUILD_SPEC_STATUS.md` / `TASKS.md` — trust the
-checkboxes there over this paragraph.
+are ✅. **Phase 8 (voice) is BUILT** (2026-07-15): `/call`, server-side TTS via `/api/tts`,
+and `kind:'call'` transcripts in the shared history. Row 8 sits at **🟡** because mic +
+audible playback can't be verified headlessly — Harish's 2-minute checklist is `DEPLOY.md`
+§5. **Known voice limitation:** ElevenLabs' free tier can't use library voices via the API,
+so Honza currently speaks Czech with an **English accent** via a premade fallback; a paid
+plan fixes it with no code change. **Not yet done:** the `Toggle` primitive (deliberately
+deferred — no screen has one), custom SMTP (pre-launch, for real learners), and the Vercel
+deploy. See `BUILD_SPEC_STATUS.md` / `TASKS.md` — trust the checkboxes there over this
+paragraph.
 
 To sign in locally without an inbox: `node scripts/dev-signin.mjs <email>` (sends no email).

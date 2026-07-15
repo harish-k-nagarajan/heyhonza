@@ -92,13 +92,24 @@ export default function HomePage() {
         </p>
       )}
 
-      <button
-        type="button"
-        onClick={() => router.push(ROUTES.chat)}
-        className="w-full max-w-[min(360px,100%)] rounded-full bg-accent py-3.5 font-sans text-xs font-medium uppercase tracking-[0.2em] text-white shadow-sm shadow-black/10 transition hover:opacity-90 active:scale-[0.98]"
-      >
-        {waiting ? "Reply to Honza" : "Open chat"}
-      </button>
+      <div className="flex w-full max-w-[min(360px,100%)] flex-col gap-2">
+        <button
+          type="button"
+          onClick={() => router.push(ROUTES.chat)}
+          className="w-full rounded-full bg-accent py-3.5 font-sans text-xs font-medium uppercase tracking-[0.2em] text-white shadow-sm shadow-black/10 transition hover:opacity-90 active:scale-[0.98]"
+        >
+          {waiting ? "Reply to Honza" : "Open chat"}
+        </button>
+        {/* Speaking is the harder, more valuable rep — offer it next to typing
+            rather than burying it in the tab bar. */}
+        <button
+          type="button"
+          onClick={() => router.push(ROUTES.call)}
+          className="w-full rounded-full border border-accent py-3.5 font-sans text-xs font-medium uppercase tracking-[0.2em] text-accent transition hover:bg-accent/5 active:scale-[0.98]"
+        >
+          Call Honza
+        </button>
+      </div>
 
       <form action="/auth/signout" method="post">
         <button

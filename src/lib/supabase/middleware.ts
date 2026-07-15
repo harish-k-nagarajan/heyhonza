@@ -9,6 +9,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "./config"
 const PROTECTED_PREFIXES = [
   ROUTES.home,
   ROUTES.chat,
+  ROUTES.call,
   ROUTES.settings,
   ROUTES.onboarding,
 ];

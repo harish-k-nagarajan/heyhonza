@@ -9,7 +9,7 @@ numbers — these differ from `TASKS.md`'s numbering).
 
 **Legend:** ✅ done & verified · 🟡 partial · ❌ not built
 
-_Last updated: 2026-07-15 (all three remaining DB gates closed — rows 1/4/5/6 now ✅)_
+_Last updated: 2026-07-15 (Phase 8 voice built — `/call` + server-side TTS + `kind:'call'` transcripts; row 8 🟡 pending Harish's mic/audio check)_
 
 > **✅ Every DB gate is now verified live.** The last three — re-login persistence,
 > returning-user-skips-onboarding, and second-user isolation — were walked end-to-end
@@ -22,10 +22,23 @@ _Last updated: 2026-07-15 (all three remaining DB gates closed — rows 1/4/5/6 
 > (needs `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`). Sign-in is now a one-liner and
 > costs zero emails — see "How to sign in headlessly" below.
 >
-> **Remaining non-green rows are both deliberate, not gaps:** Phase 8 (voice) needs a
-> TTS key + Harish's go-ahead, and `Toggle` is deferred until a screen actually has a
-> toggle. Custom SMTP is still worth doing before production (Supabase says the
-> built-in sender isn't for production use), but it no longer blocks any testing.
+> **Phase 8 (voice) is now BUILT** — the ElevenLabs key and Harish's go-ahead both
+> landed on 2026-07-15, clearing the double gate. `/call`, server-side TTS, and
+> `kind:'call'` transcripts all exist and the server half is verified live. **Row 8 is
+> deliberately 🟡, not ✅:** its gate requires that Honza is *audible*, and mic capture
+> and audio playback cannot be driven from a headless pane — so that half is Harish's
+> to confirm via the `DEPLOY.md` §5 checklist. Everything Claude *could* verify, it
+> did; nothing is claimed on "should work".
+>
+> **Voice carries one known limitation:** ElevenLabs' free tier can't use library
+> voices via the API, so the Czech-native voice Harish picked 402s and the server falls
+> back to a premade voice with an **English accent**. Fine for proving the loop; a paid
+> plan fixes it with no code change. Pronunciation is the product, so this is worth
+> resolving before real learners arrive.
+>
+> **`Toggle` remains deferred** until a screen actually has a toggle. Custom SMTP is
+> still a genuine pre-launch item (the built-in sender isn't for production), but it
+> blocks no testing — `scripts/dev-signin.mjs` sends no mail.
 
 | BS Phase | Status | Gap / what's left |
 |---|---|---|
@@ -37,7 +50,7 @@ _Last updated: 2026-07-15 (all three remaining DB gates closed — rows 1/4/5/6 
 | 5 · Context ingestion + Settings | ✅ | **VERIFIED live:** a real public Google Doc fetched server-side (2,902 chars of Czech vocab) → stored in `user_context` → **reached the engine**: Honza spontaneously quizzed with *"Jak se řekne 'airport' česky?"* and `Letiště – Airport` is line 1 of that doc. DB-backed topics also steered the opener (picked "food" → he asked about food). **Last gap now closed: the doc is still referenced across a re-login.** After a full sign-out + `localStorage` clear + re-login, `/api/state` returned the same 2,902 chars (first lines still `Letiště – Airport` / `Nádraží – Train station` / `Lékárna – Pharmacy`), and a **freshly generated** turn quizzed *"Jak se česky řekne „restaurant"?"* — `Restaurace` is in that doc, so this is new output from doc context, not replayed history. |
 | 6 · Onboarding flow | ✅ | **VERIFIED live:** a brand-new user was **forced through onboarding from DB truth** (`onboarding_completed:false` → `/`→`/onboarding`), and completing it persisted `level:'B1'` + `topics:['food']` to `profiles`. **Last gap now closed: returning user skips onboarding.** User A (`onboardingCompleted:true`) re-logged in and landed on **`/`**, not `/onboarding`. Verified in both directions in the same browser minutes apart: user B (`false`) *was* routed to `/onboarding` — so the routing is reading DB truth, not passing by accident. |
 | 7 · Home screen | ✅ | **"Honza initiates" built + verified live at 375px:** on load Home calls the engine (`buildOpenerPrompt`, time-of-day + time-since-last-contact aware) and surfaces a real unprompted Czech opener ("Ahoj! Jsem Honza…") — no blank thread, no typing first. Same thread flows into Chat (no double-bootstrap). *Note: the "Call" entry point lands with Phase 8.* |
-| 8 · Voice call (STT/TTS) | 🟡 | **The phase outcome — a real spoken conversation — is not built.** But **STT is not missing, contrary to this row's earlier text.** `VoiceReplyButton` is a genuine Web Speech API integration (`lang: 'cs-CZ'`, `onresult` → `sendUserTurn`), wired into the chat composer — **built but never verified live** (a headless pane can't drive a mic). It is *not* a stub; don't rebuild it. **Actually missing:** (a) the `/call` screen, framed as a live call rather than a text thread; (b) **TTS so Honza is audible** — server-side route only, key never client-side, with a code comment on swapping providers; (c) transcripts persisted to the same history tagged `kind:'call'` (column already exists) and rendered in Chat as a labeled call transcript. **Needs Harish's OK + a TTS key** (e.g. ElevenLabs) — as of 2026-07-15 no TTS key of any kind is in `.env.local` (checked, not assumed). **When verifying:** the mic/audio half can't be driven from the browser pane — verify the server half for real (route returns audio, no key in any client bundle or devtools request, `kind:'call'` rows land, transcript renders) and hand Harish an explicit manual checklist for the rest. Don't claim the mic/audio half as verified. |
+| 8 · Voice call (STT/TTS) | 🟡 | **Built 2026-07-15; server half verified, mic/audio half awaiting Harish. Stays 🟡 on purpose** — the phase gate says *"Honza's reply is AUDIBLE"*, and Claude cannot hear. Per the DoD, a gate that can't be walked doesn't get a green tick. **Flip to ✅ once the `DEPLOY.md` §5 checklist passes** — no code change expected. ElevenLabs key + Harish's go-ahead both arrived, clearing the double gate. **Built:** (a) **`/call`** — a live-call screen, not a text thread: hero `HonzaOrb` leads, call-duration timer, one-line live caption, mic + hang-up controls, self-driving turn cycle (he speaks → you speak → repeat, no send button). (b) **Server-side TTS** — `lib/server/tts.ts` + `POST /api/tts` return audio bytes; the key never leaves the server. Provider swap is documented in the module header (OpenAI / Azure alternatives noted). (c) **`kind:'call'` persistence** — call turns go through the same `/api/chat` path tagged `call`, land in the same `messages` table, and render in Chat inside a labeled `// CALL TRANSCRIPT` group. **STT was already real** (`VoiceReplyButton`, `cs-CZ`); it was refactored onto a shared `useSpeechRecognition` hook rather than rebuilt. **Verified live:** `/api/tts` → HTTP 200, `audio/mpeg`, ~36–46KB, **decoded by the browser's own audio element to a real 2.18s clip**; `ttsConfigured:true` on `/api/health`; 3 `kind:'call'` rows persisted alongside 5 `chat` rows in one history; transcript renders **with `localStorage` cleared**, so the DB is provably the source; **key absent from all 26 production client-bundle files** and present only in `.next/server/app/api/tts/route.js`; **zero browser requests to `api.elevenlabs.io`**; no `xi-api-key`/hostname client-side. **NOT verified — Harish must confirm manually:** mic capture and audible playback can't be driven headlessly (CDP clicks don't reach React; `document.visibilityState` is always `hidden`). Checklist in `DEPLOY.md` §5. **Known limitation:** the free ElevenLabs tier can't use library voices via API, so the configured Czech voice `uYFJyGaibp4N2VwYQshk` 402s and the server falls back to a premade voice that speaks Czech with an **English accent**. A paid plan fixes this with no code change. |
 | 9 · Landing page + polish pass | ✅ | **`/welcome` front door built + verified live** (hero orb, three-step loop, real topic/level chips from `lib/constants` — no invented sample data; honest about the no-push seam). Middleware now sends signed-out `/`→`/welcome` instead of a bare login form; **redirect table verified for real**. PWA manifest + icons confirmed serving. **DESIGN.md pass across every screen:** killed `Card`'s legacy `shadow-black/40`, the faux-bold headings, onboarding's undersized orb + `tracking-tight`, and gave Settings a character (it had none). Learner-facing copy replaced the leaked "API key stays on the server (Vercel env)" build notes. |
 | Leftover primitives | 🟡 | **Token audit ✅ done** in the Phase 9 pass (no `dark:`/Inter/stray palettes left; fixed the shadow + faux-bold). **`Toggle` deliberately deferred** — no screen has an on/off toggle (pills + a select), so it'd be an unused component; build it when a real toggle appears. |
 

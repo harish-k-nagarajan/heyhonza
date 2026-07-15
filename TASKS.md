@@ -69,7 +69,8 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 - [x] **Icons + maskable assets** — real dot-matrix Honza face PNGs generated from the idle `HonzaOrb` (`scripts/generate-icons.mjs`); manifest now has separate `any` (full-bleed) + `maskable` (safe-zone) icons; `apple-touch-icon.png` (180, opaque) + `icons`/`apple` meta wired in `layout.tsx`. Replaced the 1×1 placeholder stubs. `[independent]`
 - [x] **Install prompt UX** — 4s reveal delay, dismissal persisted 14 days (`honza-install-dismissed-at`), already-installed detection (`display-mode: standalone` / `navigator.standalone` / `appinstalled`), iOS-Safari manual "Add to Home Screen" hint; styled to DESIGN.md (`// INSTALL`). Verified at 430px. `[depends on: next-pwa]`
 - [x] **Service worker behavior** — `skipWaiting`+`clientsClaim`, `buildExcludes` middleware/app-build manifests, `cacheOnFrontEndNav`, `reloadOnOnline`, `dynamicStartUrl:false` (start URL is auth-gated). Verified in generated `public/sw.js`. `[depends on: next-pwa]`
-- [ ] **Vercel project** — production branch `main` + env vars (`OPENROUTER_API_KEY` server-only, `HONZA_DEFAULT_MODEL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`). Runbook in `DEPLOY.md`. `[blocked on: Harish's Vercel account + secrets — Claude can't create the project or enter keys]`
+- [ ] **Vercel project** — production branch `main` + env vars (`OPENROUTER_API_KEY` server-only, `HONZA_DEFAULT_MODEL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`). **`SUPABASE_SERVICE_ROLE_KEY` must NOT be added** — local-dev-only, bypasses RLS. Runbook in `DEPLOY.md` §1–2. `[blocked on: Harish's Vercel account + secrets — Claude can't create the project or enter keys]`
+- [ ] **Custom SMTP (Resend → Supabase)** — **genuine launch blocker.** The built-in sender caps at ~2 emails/hour and Supabase says it isn't for production, so real learners can't complete the confirmation step and sign up. **Not a testing blocker** — `scripts/dev-signin.mjs` sends no email and has no cap; don't reach for SMTP to unblock verification (that mistake cost a session on 2026-07-15). Click-by-click runbook in `DEPLOY.md` §4. `[blocked on: Harish's Resend account + a domain he controls with DNS access + his Supabase dashboard]`
 - [~] **Production verification** — live round-trip **verified locally** against real OpenRouter (chat correct→explain→continue; `/api/health` llmConfigured; google-doc route validates 400 + fails gracefully 422 — 200 happy path needs a real public doc). **Remaining:** re-run the same checks on the deployed Vercel URL. `[blocked on: Vercel project]`
 
 ---
@@ -100,6 +101,21 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 
 - [x] **`buildOpenerPrompt`** — engine helper producing an ambient unprompted opener aware of time-of-day + time since last contact. `[independent]`
 - [x] **Home initiation** — on load, if the thread is empty, Home calls the engine and surfaces the opener (real Czech, "Honza wrote to you" card) instead of a blank screen; hero orb reads shared mood. Shared thread flows into Chat with no double-bootstrap. **Verified live at 375px.** `[depends on: BS Phase 2, Client sync bridge]`
+
+---
+
+## BUILD_SPEC Phase 8 — Voice call (STT + TTS)
+
+Unblocked 2026-07-15: Harish provided an ElevenLabs key **and** the explicit go-ahead,
+clearing the long-standing double gate.
+
+- [x] **Server-side TTS** — `lib/server/tts.ts` (the only place that talks to the voice provider, mirroring `conversation-engine`) + `POST /api/tts` returning audio bytes. Key is server-only. Provider-swap guidance (OpenAI / Azure) is in the module header. **Verified live:** 200 / `audio/mpeg` / ~36–46KB, and the browser's own `Audio` element decoded it to a real **2.18s** clip. `[depends on: ELEVENLABS_API_KEY]`
+- [x] **No key client-side** — **verified against the production build:** the key is absent from all 26 files in `.next/static`, present only in `.next/server/app/api/tts/route.js`; no `api.elevenlabs.io` hostname or `xi-api-key` header in any client file; **zero browser requests to ElevenLabs**. `[depends on: /api/tts]`
+- [x] **`/call` screen** — framed as a live call, not a text thread: hero `HonzaOrb` leads, call-duration timer, single-line live caption, mic + hang-up controls, and a self-driving turn cycle (he speaks → you speak → repeat) with no send button. Hanging up routes to Chat, where the transcript is waiting. `[depends on: /api/tts, useSpeechRecognition]`
+- [x] **STT reused, not rebuilt** — `VoiceReplyButton` was already a real `cs-CZ` Web Speech integration. Extracted into a shared `useSpeechRecognition` hook (plus real error mapping: permissions, no-speech, unsupported browser) so `/call` and the composer share one implementation. `[independent]`
+- [x] **`kind:'call'` persistence + transcript rendering** — call turns take the same `/api/chat` path tagged `call`, land in the same `messages` table, and render in Chat inside a labeled `// CALL TRANSCRIPT` group. Engine gained a `call` mode so spoken replies are 1–3 sentences with no markdown or parenthetical glosses. **Verified live:** 3 `call` rows alongside 5 `chat` rows in one history; transcript rendered **with `localStorage` cleared**, so the DB is provably the source. Also fixed `ServerSync` silently dropping `kind` on hydration. `[depends on: BS Phases 4/5/6]`
+- [ ] **Mic + audible playback confirmed by Harish** — the one half Claude cannot verify: a headless pane can't hold a mic or hear a speaker (and reports `visibilityState: hidden`, so audio/mic APIs misbehave). **This is why BUILD_SPEC row 8 is 🟡 and not ✅.** Two-minute checklist in `DEPLOY.md` §5. `[blocked on: Harish — needs a real mic, speakers, and Chrome/Edge/Safari]`
+- [ ] **Czech-native voice (accent fix)** — ElevenLabs' free tier can't use library voices via the API (`402 paid_plan_required`), and every Czech-native voice is a library voice. The server falls back to a premade voice that speaks Czech **with an English accent** and warns in the log. For a product teaching pronunciation this matters. A paid plan uses the configured voice automatically, **no code change**. `[blocked on: Harish's ElevenLabs plan]`
 
 ---
 

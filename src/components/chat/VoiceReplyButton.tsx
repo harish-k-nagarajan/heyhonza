@@ -1,9 +1,19 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { cn } from "@/lib/cn";
+
+/**
+ * The chat composer's mic: one spoken Czech utterance, transcribed into the
+ * composer's send path. Recognition itself lives in `useSpeechRecognition`,
+ * shared with the call screen.
+ *
+ * This is the *typed* surface's shortcut — a spoken turn here is still a chat
+ * turn. For a real spoken conversation (Honza talks back), that's `/call`.
+ */
 
 type VoiceReplyButtonProps = {
   onTranscript: (text: string) => void;
@@ -14,61 +24,16 @@ export function VoiceReplyButton({
   onTranscript,
   className,
 }: VoiceReplyButtonProps) {
-  const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const recRef = useRef<{ stop: () => void } | null>(null);
+  const { listening, supported, start, stop } = useSpeechRecognition({
+    onResult: (text) => {
+      setError(null);
+      onTranscript(text);
+    },
+    onError: setError,
+  });
 
-  const stop = useCallback(() => {
-    recRef.current?.stop();
-    recRef.current = null;
-    setListening(false);
-  }, []);
-
-  const start = useCallback(() => {
-    setError(null);
-    if (typeof window === "undefined") return;
-    const w = window as Window &
-      typeof globalThis & {
-        SpeechRecognition?: new () => unknown;
-        webkitSpeechRecognition?: new () => unknown;
-      };
-    const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
-    if (!SR) {
-      setError("Voice input is not supported in this browser.");
-      return;
-    }
-    const rec = new SR() as {
-      lang: string;
-      interimResults: boolean;
-      maxAlternatives: number;
-      start: () => void;
-      stop: () => void;
-      onresult: ((ev: {
-        results: ArrayLike<{ 0?: { transcript?: string } }>;
-      }) => void) | null;
-      onerror: (() => void) | null;
-      onend: (() => void) | null;
-    };
-    rec.lang = "cs-CZ";
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    rec.onresult = (ev) => {
-      const text = ev.results[0]?.[0]?.transcript?.trim();
-      if (text) onTranscript(text);
-      stop();
-    };
-    rec.onerror = () => {
-      setError("Recognition failed. Try again.");
-      stop();
-    };
-    rec.onend = () => {
-      setListening(false);
-      recRef.current = null;
-    };
-    recRef.current = rec;
-    setListening(true);
-    rec.start();
-  }, [onTranscript, stop]);
+  if (!supported) return null;
 
   return (
     <div className={cn("flex flex-col items-center gap-1", className)}>
@@ -77,7 +42,11 @@ export function VoiceReplyButton({
         variant={listening ? "secondary" : "ghost"}
         className="min-h-11 min-w-11 rounded-full px-0"
         aria-pressed={listening}
-        onClick={() => (listening ? stop() : start())}
+        aria-label={listening ? "Stop listening" : "Voice reply in Czech"}
+        onClick={() => {
+          setError(null);
+          listening ? stop() : start();
+        }}
         title="Voice reply (speech recognition)"
       >
         {listening ? "■" : "🎤"}

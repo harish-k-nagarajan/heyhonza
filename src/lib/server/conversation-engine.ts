@@ -22,6 +22,14 @@ export const MAX_MESSAGE_CHARS = 8_000;
 
 export type EngineMessage = { role: "user" | "assistant"; content: string };
 
+/**
+ * Chat and call share one engine, but a reply that reads well is not a reply
+ * that *speaks* well: on a call, parenthetical glosses, markdown and long
+ * paragraphs all turn into noise once they hit TTS. `mode` is the only thing
+ * that varies the prompt.
+ */
+export type EngineMode = "chat" | "call";
+
 /** Typed failure so the route can map to a friendly status + message. */
 export class EngineError extends Error {
   constructor(
@@ -70,21 +78,35 @@ function levelGuidance(level: LevelId): string {
   }
 }
 
+/**
+ * Extra rules that only apply when Honza is being *spoken* by TTS. Everything
+ * here exists because the reply is heard, not read: no markdown to render, no
+ * parentheses to skim, and a length a person can hold in their head.
+ */
+const CALL_GUIDANCE = `Tohle je ŽIVÝ HOVOR — tvoje odpověď se převede na řeč a student ji uslyší, nepřečte.
+- Odpovídej velmi krátce: ideálně 1–2 věty, maximálně 3. Nikdy dlouhé odstavce.
+- Piš čistý mluvený text: žádný markdown, žádné odrážky, žádné emoji, žádné závorky s překladem.
+- Nepoužívej zkratky ani symboly, které se špatně vyslovují (piš "korun", ne "Kč").
+- Opravuj mluvením: zopakuj správný tvar přirozeně ve větě, nevypisuj gramatické tabulky.
+- Vždy zakonči krátkou otázkou, ať student hned mluví dál.`;
+
 export function buildSystemPrompt(params: {
   topics: string[];
   learnerContext: string;
   level: LevelId;
+  mode?: EngineMode;
 }): string {
   const topics =
     params.topics.length > 0 ? params.topics.join(", ") : "běžná konverzace";
   const ctx = params.learnerContext.slice(0, MAX_CONTEXT_CHARS);
   const ctxBlock = ctx ? `\n\nKontext o uživateli (může být prázdný):\n${ctx}` : "";
+  const modeBlock = params.mode === "call" ? `\n\n${CALL_GUIDANCE}` : "";
 
   return `Jsi Honza — přátelská postava, která učí češtinu. Oslovuješ uživatele v češtině, iniciuješ zprávy a malé úkoly. Uživatel má odpovídat v češtině. Buď stručný v chatu (max pár odstavců), vtipný ale slušný. Témata, která uživatele zajímají: ${topics}.
 
 ${levelGuidance(params.level)}
 
-Jako učitel: když student udělá chybu, nejdřív ho jemně oprav (ukaž správný tvar), pak krátce pokračuj v konverzaci další otázkou, ať rozhovor plyne. Chval pokrok.${ctxBlock}
+Jako učitel: když student udělá chybu, nejdřív ho jemně oprav (ukaž správný tvar), pak krátce pokračuj v konverzaci další otázkou, ať rozhovor plyne. Chval pokrok.${ctxBlock}${modeBlock}
 
 Pravidla:
 - Piš hlavně česky; míru angličtiny přizpůsob úrovni výše.
@@ -103,6 +125,7 @@ export function buildOpenerPrompt(opts: {
   localHour?: number;
   lastContactAt?: number;
   now?: number;
+  mode?: EngineMode;
 }): string {
   const now = opts.now ?? Date.now();
   const parts: string[] = [];
@@ -126,6 +149,11 @@ export function buildOpenerPrompt(opts: {
     }
   } else {
     parts.push("Tohle je vaše první konverzace — krátce se představ.");
+  }
+
+  if (opts.mode === "call") {
+    // The user just tapped "call" — Honza picks up, he doesn't narrate.
+    return `Student ti právě zavolal a ty zvedáš telefon. Pozdrav ho mluveně, jednou nebo dvěma krátkými větami, a hned se na něco zeptej, ať začne mluvit. Zní to jako kamarád, co zvedne telefon — ne jako hlasová schránka. ${parts.join(" ")}`;
   }
 
   return `Napiš jako první krátkou zprávu v češtině: přátelský pozdrav a jedna otázka, ať student odpoví. Buď ambientní jako kamarád, který napíše sám od sebe. ${parts.join(" ")}`;
@@ -165,6 +193,7 @@ export async function generateReply(params: {
   learnerContext: string;
   level: string | undefined;
   messages: EngineMessage[];
+  mode?: EngineMode;
 }): Promise<{ text: string; model: string }> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
@@ -180,6 +209,7 @@ export async function generateReply(params: {
     topics: topicLabels(params.topics),
     learnerContext: params.learnerContext,
     level: resolveLevel(params.level),
+    mode: params.mode,
   });
 
   const client = new OpenAI({

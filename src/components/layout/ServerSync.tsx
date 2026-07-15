@@ -35,10 +35,13 @@ export function ServerSync() {
         settings.setOnboardingComplete(data.profile.onboardingCompleted);
         settings.setContextChunks(data.contextChunks ?? []);
 
+        // `kind` must survive hydration: it's what makes a call transcript
+        // still read as a call after a refresh or a re-login.
         const mapped: ChatMessage[] = (data.messages ?? []).map((m) => ({
           id: m.id,
           role: m.role,
           content: m.content,
+          kind: m.kind ?? "chat",
           createdAt: m.createdAt,
         }));
         useChatStore.getState().setMessages(mapped);
