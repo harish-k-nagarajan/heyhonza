@@ -13,8 +13,11 @@ const PROTECTED_PREFIXES = [
   ROUTES.onboarding,
 ];
 
-/** Routes an authenticated user should be bounced away from. */
-const AUTH_ROUTES = [ROUTES.signin];
+/**
+ * Public routes a signed-in user has no reason to see. `/welcome` is the
+ * marketing front door — once you're in, it's just noise, so it bounces home.
+ */
+const AUTH_ROUTES = [ROUTES.signin, ROUTES.welcome];
 
 function isProtected(pathname: string): boolean {
   if (pathname === ROUTES.home) return true;
@@ -61,8 +64,16 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && isProtected(pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = ROUTES.signin;
-    url.searchParams.set("next", pathname);
+    // A stranger hitting the root gets the front door, not a login form
+    // (BUILD_SPEC Phase 9). Deeper links still go to sign-in and return the
+    // visitor to where they were headed once the magic link lands.
+    if (pathname === ROUTES.home) {
+      url.pathname = ROUTES.welcome;
+      url.search = "";
+    } else {
+      url.pathname = ROUTES.signin;
+      url.searchParams.set("next", pathname);
+    }
     return NextResponse.redirect(url);
   }
 

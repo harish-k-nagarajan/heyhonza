@@ -32,9 +32,9 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 - [x] **next-pwa** — `next.config.js`, manifest, generated worker in `public/`. `[independent]`
 - [x] **Base UI primitives** — `Button`, `Card`, `Input`, `Label`, `Textarea`. `[depends on: Tailwind + global dark tokens]`
 - [x] **Layout shell** — `AppShell`, `BottomNav`, mobile-first max width. `[depends on: Base UI primitives]`
-- [ ] **Toggle component** — a11y, keyboard, 999px pill track per `DESIGN.md`. `[depends on: Base UI primitives]`
+- [ ] **Toggle component** — a11y, keyboard, 999px pill track per `DESIGN.md`. **Deliberately deferred, not a gap:** no screen has an on/off toggle (level/topics are pills, model is a select), so building it now would be an unused component. Build it when a real toggle appears. `[depends on: Base UI primitives]`
 - [x] **HonzaOrb states** — idle / thinking / speaking / oops / excited motion + reduced-motion path; all five states render with per-state keyframes and a 200ms crossfade. `[depends on: Layout shell]`
-- [ ] **Token audit** — align implementation with `DESIGN.md` (e.g. muted vs surface roles). `[depends on: Tailwind + global dark tokens]`
+- [x] **Token audit** — done in the BS-Phase-9 polish pass. Swept for legacy dark-mode leftovers: no `dark:` classes, no Inter in product chrome, no stray palettes (remaining hard-coded hex are static `icon.tsx` / `themeColor` / BottomNav's canonical cream, which can't read CSS vars). Fixed: `Card`'s `shadow-black/40` → `shadow-black/[0.04]` (a 40%-black shadow read as grime on cream), and the two `font-semibold` headings — Share Tech Mono ships weight 400 only, so 600 was rendering as browser-synthesized faux bold (verified in-browser: 400 and 500 are pixel-identical, 600 visibly thickens). `font-medium` left alone deliberately: it renders identically to 400. `[depends on: Tailwind + global dark tokens]`
 
 ---
 
@@ -99,6 +99,16 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 
 - [x] **`buildOpenerPrompt`** — engine helper producing an ambient unprompted opener aware of time-of-day + time since last contact. `[independent]`
 - [x] **Home initiation** — on load, if the thread is empty, Home calls the engine and surfaces the opener (real Czech, "Honza wrote to you" card) instead of a blank screen; hero orb reads shared mood. Shared thread flows into Chat with no double-bootstrap. **Verified live at 375px.** `[depends on: BS Phase 2, Client sync bridge]`
+
+---
+
+## BUILD_SPEC Phase 9 — Landing page + polish pass
+
+- [x] **`/welcome` landing page** — unauthenticated front door: hero orb, the three-step loop, and real topic/level chips rendered from `lib/constants` (the marketing surface can't drift from the product, and nothing on it is invented sample data per BUILD_SPEC §5). Honest about the one seam — says a message is *waiting when you open the app*, never claims a phone notification fires. Prerenders static (1.77 kB). `[depends on: BS Phase 1]`
+- [x] **Front-door routing** — middleware sends signed-out `/` → `/welcome` (it used to dump strangers straight on a login form); deeper links still → `/signin?next=…`; signed-in users are bounced off `/welcome`. `AppShell` hides the tab bar there (a signed-out visitor's nav would only bounce back to sign-in). **Verified live** with throwaway Supabase values (env restored byte-identical after): `/`→307→`/welcome`, `/welcome`+`/signin`→200, `/chat`+`/settings`+`/onboarding`→307→`/signin?next=…`. `[depends on: BS Phase 1]`
+- [x] **DESIGN.md polish pass — every screen** — walked welcome/signin/onboarding/home/chat/settings live at 390px + desktop. Fixed: `Card`'s legacy `shadow-black/40`; faux-bold headings (see Token audit, Phase 1); onboarding's `avatar` orb → `hero` (it was the only primary surface leading with a 64px character, against DESIGN.md rule 7) and its `tracking-tight` heading; **Settings had no Honza on it at all** → now leads with an avatar orb reading the shared mood, like the chat header. `[depends on: all prior phases]`
+- [x] **Learner-facing copy** — onboarding's first line read *"The API key stays on the server (Vercel env)"* and Settings' read *"API keys live on the server (Vercel)"* — build notes leaked onto learner screens. Rewritten in Honza's voice; dropped "(no OAuth)" from the Google-Doc help while keeping the actionable Share → Anyone with the link → Viewer step. `[independent]`
+- [x] **PWA install confirmed** — `manifest.json` serves valid (standalone, cream theme, `any` + `maskable` icons all present on disk); install UX shipped in Phase 4. `[depends on: next-pwa]`
 
 ---
 

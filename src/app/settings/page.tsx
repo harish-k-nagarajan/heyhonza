@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { HonzaOrb } from "@/components/honza/HonzaOrb";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -23,6 +24,7 @@ import {
   resetUserData,
 } from "@/lib/client/context-actions";
 import { useSettingsHydrated } from "@/hooks/useSettingsHydrated";
+import { useMoodStore } from "@/stores/useMoodStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { useSyncStore } from "@/stores/useSyncStore";
 import type { LevelId, ModelId, TopicId } from "@/lib/constants";
@@ -32,6 +34,7 @@ export default function SettingsPage() {
   const localHydrated = useSettingsHydrated();
   const serverChecked = useSyncStore((s) => s.checked);
   const hydrated = localHydrated && serverChecked;
+  const mood = useMoodStore((s) => s.mood);
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
   const preferredModel = useSettingsStore((s) => s.preferredModel);
   const setPreferredModel = useSettingsStore((s) => s.setPreferredModel);
@@ -160,13 +163,22 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto flex max-w-app flex-col gap-6">
-      <header className="space-y-2">
-        <SectionLabel as="p">Settings</SectionLabel>
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-sm text-muted-foreground">
-          API keys live on the server (Vercel). The client never stores them.
-        </p>
+      {/* Settings was the one primary surface with no Honza on it at all, which
+          breaks DESIGN.md's "every screen leads with the character". Same
+          avatar-beside-the-label pattern the chat header uses, and his face
+          reads the shared mood store like everywhere else. */}
+      <header className="flex items-center gap-3">
+        <HonzaOrb state={mood} size="avatar" className="shrink-0" />
+        <div className="space-y-1">
+          <SectionLabel as="p">Settings</SectionLabel>
+          <h1 className="font-sans text-lg leading-tight tracking-[0.12em]">
+            How Honza talks to you
+          </h1>
+        </div>
       </header>
+      <p className="-mt-3 font-sans text-xs leading-relaxed tracking-[0.08em] text-muted-foreground">
+        Change your level, your topics, and what Honza knows about you.
+      </p>
 
       <Card className="space-y-2">
         <SectionLabel>Server status</SectionLabel>

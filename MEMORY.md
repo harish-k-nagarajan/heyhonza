@@ -40,6 +40,79 @@ _Last updated: 2026-05-12_
 | **Google Docs via public URL fetch, no OAuth for MVP** | Cuts integration scope; sufficient for “published” teaching content. |
 | **Dark-only MVP** | Superseded for product chrome by the **cream / dot-matrix** system in `DESIGN.md` (2026-05-12); keep dark tokens only if a legacy route still depends on them until migrated. |
 | **Mobile-first PWA** | Matches primary use case (daily pocket practice). |
+| **`/` is the front door: signed-out → `/welcome`, not `/signin`** (2026-07-15, BS Phase 9) | A stranger's first five seconds shouldn't be a login form. Deep links still route through `/signin?next=…`, so nothing is lost. `/welcome` also lives as a real URL so it stays reachable in local pass-through mode. |
+| **Marketing surfaces render from `lib/constants`, never hand-written copies** (2026-07-15) | `/welcome`'s topic + level chips are the real options. Keeps the landing page from drifting from the product and honors BUILD_SPEC §5's "no hardcoded data in components." |
+| **No font-weight utilities above 400 in product chrome** (2026-07-15) | Share Tech Mono ships weight 400 only, so `font-semibold`+ renders as browser-synthesized faux bold and breaks the dot-matrix voice. `font-medium` (500) is inert — it renders identically to 400 — so it's tolerated where it already exists. Use size, tracking, and color for hierarchy instead. |
+
+---
+
+## Current entry — 2026-07-15 (BS Phase 9: landing page + DESIGN.md polish pass)
+
+Branch `claude/phase-9-landing-polish` off `main` (PR #4 squash-merged as `f007331`).
+
+### The session opened on a false premise — check env, don't trust the brief
+
+The session brief said live Supabase was done (migrations applied, `NEXT_PUBLIC_SUPABASE_*`
+set, redirect configured). **It wasn't.** `.env.local` was 131 bytes holding only
+`OPENROUTER_API_KEY` + `HONZA_DEFAULT_MODEL`; no Supabase vars in any env file or exported
+in the shell. So the DB gates for Phases 1/4/5/6 **still can't be walked** and stay 🟡 —
+flipping them green would have been claiming a gate nobody walked.
+
+**The trap to avoid next time:** the migration SQL living in `supabase/migrations/` proves
+nothing about whether it was ever run in the SQL editor. Only `.env.local` (or a real
+round-trip) tells you Supabase is live. Check it *first*, before planning any DB work.
+
+Phase 8 (voice) also skipped: no `ELEVENLABS_API_KEY`/`TTS_API_KEY` present and the OK was
+a "[maybe]", not an OK.
+
+### What was built (Phase 9) — all verified live at 390px
+
+- **`/welcome` front door.** Hero orb, three-step loop, and topic/level chips rendered from
+  the same `lib/constants` the product uses — so the marketing page can't drift, and there's
+  no invented sample data (BUILD_SPEC §5 forbids it). Deliberately worded around the one
+  honest seam: "a message is already waiting **when you open the app**," never "Honza texts
+  your phone" — there's no push infrastructure. Prerenders static, 1.77 kB.
+- **Middleware front-door routing.** Signed-out `/` used to dump strangers on a bare login
+  form; now `/`→`/welcome`, while deep links keep `/signin?next=…`. Signed-in users bounce
+  off `/welcome` (added to `AUTH_ROUTES`). `AppShell` hides the tab bar there.
+- **Settings got a face.** It was the only primary surface with no Honza on it at all —
+  a straight DESIGN.md rule-7 miss. Now leads with an avatar orb on the shared mood store,
+  matching the chat header.
+
+### What was wrong and got fixed (polish pass)
+
+| Found | Fix |
+|---|---|
+| `Card` had `shadow-black/40` — a dark-mode leftover reading as grime on cream | → `shadow-black/[0.04]` |
+| Onboarding's first line: *"The API key stays on the server (Vercel env)"*; Settings': *"API keys live on the server (Vercel)"* | Build notes leaked onto **learner** screens → rewritten in Honza's voice |
+| Onboarding led with a 64px `avatar` orb (every other primary surface uses `hero`) + `tracking-tight` | → `hero`, system tracking |
+| Two `font-semibold` headings | Share Tech Mono ships **weight 400 only** → 600 was browser-synthesized faux bold |
+| Settings header read `// SETTINGS` then `<h1>Settings</h1>` | Deduped → "How Honza talks to you" |
+
+### Verification notes worth keeping
+
+- **Synthetic bold is real here, and measuring width won't catch it.** Chrome fakes bold by
+  thickening strokes *without changing advance width* — both canvas `measureText` and DOM
+  `getBoundingClientRect` reported 400/500/600/700 as identical. Only a screenshot showed it.
+  Empirically: **400 and 500 are pixel-identical, 600+ visibly thickens.** So `font-medium`
+  (500) is a harmless no-op — left alone rather than churning 8 files; only `font-semibold`
+  actually broke the type.
+- **Dummy Supabase values do let you test middleware redirects** (it doesn't 500 on an
+  unreachable project) — that's how the front-door table was verified. Restore `.env.local`
+  afterwards; dummy values lock every screen to `/signin`. See §3 decision.
+- **Don't run `npm run build` while the dev server is up** — it overwrites `.next` and the
+  running dev server loses its CSS chunks, rendering unstyled serif pages. Looks exactly like
+  a catastrophic style regression; it's an artifact. Restart the dev server.
+- **Screenshots can miss the `HonzaOrb` paint** right after navigation (it appeared blank on
+  Home and Settings while the DOM showed a visible 206px/64px SVG with 227 rects). Re-shoot
+  before believing the orb is missing.
+
+### Live gates that did pass this session
+
+`npm run lint` + `npm run build` clean. Honza initiated in Czech unprompted on Home; a chat
+turn with deliberately missing diacritics came back corrected (`dekuji` → `děkuji`) and the
+**whole app tinted green** for `speaking` (background + accent + composer + nav + orb),
+re-confirming BS Phase 2/3/7. `manifest.json` serves valid with all icons on disk.
 
 ---
 

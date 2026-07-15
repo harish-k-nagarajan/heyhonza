@@ -15,8 +15,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const mood = useMoodStore((s) => s.mood);
   const palette = HONZA_STATE_COLORS[mood];
 
+  // Pre-app surfaces: no tab bar. On `/welcome` the visitor isn't signed in at
+  // all, so nav would only offer links that bounce straight back to sign-in.
   const hideNav =
-    pathname.startsWith(ROUTES.onboarding) || pathname.startsWith(ROUTES.signin);
+    pathname.startsWith(ROUTES.onboarding) ||
+    pathname.startsWith(ROUTES.signin) ||
+    pathname.startsWith(ROUTES.welcome);
 
   return (
     // The app-wide mood tint (DESIGN.md: "Background tints are applied app-wide
