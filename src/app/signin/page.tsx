@@ -36,8 +36,7 @@ export default async function SignInPage({
           Ahoj! I&apos;m Honza.
         </h1>
         <p className="mx-auto max-w-[min(300px,100%)] font-sans text-xs leading-relaxed tracking-[0.08em] text-muted-foreground">
-          Enter your email and I&apos;ll send you a magic link — no password to
-          remember.
+          Sign in and we&apos;ll pick up your Czech where you left off.
         </p>
       </div>
 

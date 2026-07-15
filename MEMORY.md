@@ -40,6 +40,195 @@ _Last updated: 2026-05-12_
 | **Google Docs via public URL fetch, no OAuth for MVP** | Cuts integration scope; sufficient for “published” teaching content. |
 | **Dark-only MVP** | Superseded for product chrome by the **cream / dot-matrix** system in `DESIGN.md` (2026-05-12); keep dark tokens only if a legacy route still depends on them until migrated. |
 | **Mobile-first PWA** | Matches primary use case (daily pocket practice). |
+| **`/` is the front door: signed-out → `/welcome`, not `/signin`** (2026-07-15, BS Phase 9) | A stranger's first five seconds shouldn't be a login form. Deep links still route through `/signin?next=…`, so nothing is lost. `/welcome` also lives as a real URL so it stays reachable in local pass-through mode. |
+| **Marketing surfaces render from `lib/constants`, never hand-written copies** (2026-07-15) | `/welcome`'s topic + level chips are the real options. Keeps the landing page from drifting from the product and honors BUILD_SPEC §5's "no hardcoded data in components." |
+| **No font-weight utilities above 400 in product chrome** (2026-07-15) | Share Tech Mono ships weight 400 only, so `font-semibold`+ renders as browser-synthesized faux bold and breaks the dot-matrix voice. `font-medium` (500) is inert — it renders identically to 400 — so it's tolerated where it already exists. Use size, tracking, and color for hierarchy instead. |
+| **Auth is email+password with email confirmation. Not magic link, not Clerk, not Google SSO** (Harish, 2026-07-15) | Magic link costs an email on **every** sign-in, and Supabase's built-in sender caps at ~2/hr, which stalled verification. Password costs one email **once** (the confirmation), then sign-ins are unlimited and offline. Considered and **rejected: Clerk** — it's auth-only, so the DB stays Supabase either way, and Clerk users don't live in `auth.users`, which would mean rewriting all three FKs, all nine RLS policies (`auth.uid()`), and the signup trigger — a schema migration to solve a config problem. **Rejected Google SSO** for now (Harish: don't add vendors before testing the core product). Magic link stays **enabled at the Supabase project level but unexposed in the UI**, as Claude's dev sign-in path and a future feature. |
+| **Claude does not enter passwords or create accounts — even test ones** (2026-07-15) | Agreed with Harish. Consequence: Claude verifies DB gates via the magic-link SQL-token path; **Harish spot-checks the password sign-up/sign-in round-trip** himself. The same-email account-linking claim is verifiable without logging in at all — query `auth.identities` and count `user_id`s. |
+| **Email confirmation stays ON** (2026-07-15) | Turning it off would remove email entirely, but then anyone can sign up claiming any address without proving ownership — and combined with auto-linking that's an account-takeover vector. **Open item:** the built-in sender's ~2/hr cap is fine for testing but cannot serve real learners, so custom SMTP (Resend) is required before launch. |
+
+---
+
+## Current entry — 2026-07-15 (auth switched to email + password)
+
+Harish's call after the magic-link email cap stalled verification: **email+password with
+email confirmation, no magic link in the UI, no Google SSO, no Clerk.** Rationale and the
+rejected alternatives are in §3 — the short version is that magic link costs an email per
+sign-in while password costs one at signup, and Clerk would have meant rewriting the schema
+(FKs + 9 RLS policies + trigger all key off `auth.users`) to fix a config problem.
+
+**No dashboard change was needed** — Supabase enables email/password with "Confirm email"
+ON by default.
+
+### Built
+
+- `SignInForm` rebuilt: sign-in / sign-up modes, email + password, DESIGN.md pills,
+  `autocomplete` flips `current-password`↔`new-password` with the mode. Supabase's raw auth
+  errors are mapped to learner-readable copy (matching on message text — Supabase has no
+  stable codes for these — with a fallback that returns the original so nothing is swallowed).
+- Sign-up handles **both** confirmation-on (user, no session → "confirm your email") and
+  confirmation-off (session returned → straight in), so the project setting can change
+  without a code change.
+- `/auth/callback` **unchanged** — it already handled the code exchange, and the sign-up
+  confirmation link uses the identical path. Password sign-in never touches it.
+- **Stale copy fixed:** `/welcome` advertised "Start with a magic link / No password. Just
+  your email." and `/signin` said "I'll send you a magic link." Both would have been lies on
+  merge. Three code comments referencing magic links corrected too.
+
+### Verified (within the constraint that Claude doesn't authenticate)
+
+Form renders in-system at 390px; mode toggle flips button + `autocomplete`; the password
+guard rejects <6 chars **with zero network calls** (confirmed by wrapping `window.fetch`);
+malformed emails are caught by native HTML5 validation *before* the custom check, so that
+check is a backstop rather than the first line. `lint` + `build` green.
+
+**Not verified by Claude, by design:** the actual sign-up → confirm → sign-in round-trip.
+**Harish ran it end-to-end on `harishnokia@gmail.com` and reported it working** (created →
+confirmed via the emailed link → signed in). Recorded as reported, not Claude-observed.
+Claude's DB-gate verification continues via the magic-link SQL-token path.
+
+### State the next session inherits
+
+- **`iamharishnagarajan@gmail.com` (user A)** — created via magic link, **has no password**,
+  onboarding complete, holds 3 chat messages + the Google Doc context. Sign in to it via the
+  SQL-token path, not the UI.
+- **`harishnokia@gmail.com` (user B)** — created via password, confirmed, **pristine**
+  (expected: no history, no context, onboarding incomplete). That's the isolation fixture.
+- A **magic-link token for user A was requested and left unredeemed** (non-PKCE, via a direct
+  POST to `/auth/v1/otp` with `create_user:false`). It expires in ~1h — harmless, just
+  request a fresh one.
+- **Requesting the OTP via REST instead of the UI deliberately avoids PKCE**, which yields a
+  plain token that verifies server-side and can't be killed by being opened in the wrong
+  browser. This is now the preferred dev sign-in path; the UI no longer offers magic link.
+
+---
+
+## Current entry — 2026-07-15 (live Supabase connected — most DB gates walked)
+
+Supabase went live this session. Both migrations applied, all tables/columns confirmed,
+RLS enforced (anonymous insert → `42501`), and **`/api/state` returned `persisted:true`
+for the first time**. The app is on the DB, not the localStorage fallback.
+
+### Verified live (real Supabase, real OpenRouter, real Google Doc)
+
+- **Magic-link login → session** (Ph 1). Profile row auto-created by `0001`'s trigger.
+- **New user forced through onboarding from DB truth** (Ph 6) — and notably the DB's empty
+  profile **overrode stale localStorage values** on hydrate, proving `ServerSync` makes the
+  DB authoritative rather than merging.
+- **Onboarding → DB**: `level:'B1'`, `topics:['food']` persisted.
+- **Google Doc → DB → engine** (Ph 5): 2,902 chars of Czech vocab fetched server-side into
+  `user_context`; Honza then spontaneously quizzed *"Jak se řekne 'airport' česky?"* —
+  `Letiště – Airport` is line 1 of that doc. DB topics also steered the opener (chose
+  "food" → he asked about food).
+- **Chat turns → `messages`** (Ph 4), `kind:'chat'`; **hard refresh re-rendered the thread
+  from the DB**. Sign-out cleared the session (`persisted:false` → `/signin`).
+
+### Blocked, and it isn't code
+
+Supabase's **built-in email sender caps at ~2/hour** and can't be raised (it also locks
+template editing — that's why the `{{ .Token }}` plan died). Both were spent, so re-login
+persistence, returning-user-skips-onboarding, and second-user isolation are unwalked. Fix
+is **custom SMTP** (Resend), which is required for production anyway.
+
+### The headless sign-in technique (this is the reusable bit)
+
+Claude has no inbox, and magic links are single-use **and browser-bound**. The flow that
+works is documented step-by-step in `BUILD_SPEC_STATUS.md` → "How to sign in headlessly".
+The essentials:
+
+- **Claude must request the link from its own browser** — PKCE stores the code verifier in
+  a cookie there, and `@supabase/ssr` reads it server-side for `exchangeCodeForSession`.
+  If anyone else opens the link it's consumed *and* fails (`otp_expired`). That burned
+  email #1.
+- **The email is irrelevant.** The token lands in `auth.one_time_tokens` the instant the
+  link is requested — read it with SQL, skip the inbox entirely.
+- A magic-link token for an **existing** user is stored as `token_type=recovery_token` but
+  must be redeemed with **`type=magiclink`** (`type=recovery` → `otp_expired`). `type=signup`
+  is only for a brand-new unconfirmed user.
+- The Browser pane blocks navigating to the `supabase.co` origin, so resolve the verify
+  redirect with curl and hand the resulting `?code=` to the browser.
+
+### Browser-automation gotchas that cost real time
+
+- **`form_input` sets the DOM value without React seeing it** — the field looks filled, the
+  submit no-ops. Always click + `type`, then read `.value` back before submitting.
+- **The first click+type after a page load frequently doesn't register.** Verify the value
+  and retry; the second attempt lands.
+- **Screenshot pixels and the layout viewport can disagree** (a 390×844 viewport returned a
+  660×1428 image), so `coordinate` clicks silently miss. Prefer `ref` clicks, or drive the
+  real handler (`form.requestSubmit()`, Enter) — the Composer submits on Enter.
+- `querySelector` intermittently returns null mid-re-render; re-query before concluding
+  something is missing.
+
+---
+
+## Current entry — 2026-07-15 (BS Phase 9: landing page + DESIGN.md polish pass)
+
+Branch `claude/phase-9-landing-polish` off `main` (PR #4 squash-merged as `f007331`).
+
+### The session opened on a false premise — check env, don't trust the brief
+
+The session brief said live Supabase was done (migrations applied, `NEXT_PUBLIC_SUPABASE_*`
+set, redirect configured). **It wasn't.** `.env.local` was 131 bytes holding only
+`OPENROUTER_API_KEY` + `HONZA_DEFAULT_MODEL`; no Supabase vars in any env file or exported
+in the shell. So the DB gates for Phases 1/4/5/6 **still can't be walked** and stay 🟡 —
+flipping them green would have been claiming a gate nobody walked.
+
+**The trap to avoid next time:** the migration SQL living in `supabase/migrations/` proves
+nothing about whether it was ever run in the SQL editor. Only `.env.local` (or a real
+round-trip) tells you Supabase is live. Check it *first*, before planning any DB work.
+
+Phase 8 (voice) also skipped: no `ELEVENLABS_API_KEY`/`TTS_API_KEY` present and the OK was
+a "[maybe]", not an OK.
+
+### What was built (Phase 9) — all verified live at 390px
+
+- **`/welcome` front door.** Hero orb, three-step loop, and topic/level chips rendered from
+  the same `lib/constants` the product uses — so the marketing page can't drift, and there's
+  no invented sample data (BUILD_SPEC §5 forbids it). Deliberately worded around the one
+  honest seam: "a message is already waiting **when you open the app**," never "Honza texts
+  your phone" — there's no push infrastructure. Prerenders static, 1.77 kB.
+- **Middleware front-door routing.** Signed-out `/` used to dump strangers on a bare login
+  form; now `/`→`/welcome`, while deep links keep `/signin?next=…`. Signed-in users bounce
+  off `/welcome` (added to `AUTH_ROUTES`). `AppShell` hides the tab bar there.
+- **Settings got a face.** It was the only primary surface with no Honza on it at all —
+  a straight DESIGN.md rule-7 miss. Now leads with an avatar orb on the shared mood store,
+  matching the chat header.
+
+### What was wrong and got fixed (polish pass)
+
+| Found | Fix |
+|---|---|
+| `Card` had `shadow-black/40` — a dark-mode leftover reading as grime on cream | → `shadow-black/[0.04]` |
+| Onboarding's first line: *"The API key stays on the server (Vercel env)"*; Settings': *"API keys live on the server (Vercel)"* | Build notes leaked onto **learner** screens → rewritten in Honza's voice |
+| Onboarding led with a 64px `avatar` orb (every other primary surface uses `hero`) + `tracking-tight` | → `hero`, system tracking |
+| Two `font-semibold` headings | Share Tech Mono ships **weight 400 only** → 600 was browser-synthesized faux bold |
+| Settings header read `// SETTINGS` then `<h1>Settings</h1>` | Deduped → "How Honza talks to you" |
+
+### Verification notes worth keeping
+
+- **Synthetic bold is real here, and measuring width won't catch it.** Chrome fakes bold by
+  thickening strokes *without changing advance width* — both canvas `measureText` and DOM
+  `getBoundingClientRect` reported 400/500/600/700 as identical. Only a screenshot showed it.
+  Empirically: **400 and 500 are pixel-identical, 600+ visibly thickens.** So `font-medium`
+  (500) is a harmless no-op — left alone rather than churning 8 files; only `font-semibold`
+  actually broke the type.
+- **Dummy Supabase values do let you test middleware redirects** (it doesn't 500 on an
+  unreachable project) — that's how the front-door table was verified. Restore `.env.local`
+  afterwards; dummy values lock every screen to `/signin`. See §3 decision.
+- **Don't run `npm run build` while the dev server is up** — it overwrites `.next` and the
+  running dev server loses its CSS chunks, rendering unstyled serif pages. Looks exactly like
+  a catastrophic style regression; it's an artifact. Restart the dev server.
+- **Screenshots can miss the `HonzaOrb` paint** right after navigation (it appeared blank on
+  Home and Settings while the DOM showed a visible 206px/64px SVG with 227 rects). Re-shoot
+  before believing the orb is missing.
+
+### Live gates that did pass this session
+
+`npm run lint` + `npm run build` clean. Honza initiated in Czech unprompted on Home; a chat
+turn with deliberately missing diacritics came back corrected (`dekuji` → `děkuji`) and the
+**whole app tinted green** for `speaking` (background + accent + composer + nav + orb),
+re-confirming BS Phase 2/3/7. `manifest.json` serves valid with all icons on disk.
 
 ---
 

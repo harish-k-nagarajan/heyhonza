@@ -141,12 +141,12 @@ export default function OnboardingPage() {
   return (
     <div className="mx-auto flex max-w-app flex-col gap-6">
       <header className="flex flex-col items-center gap-4 text-center">
-        <HonzaOrb state="idle" size="avatar" />
+        <HonzaOrb state="idle" size="hero" className="shrink-0" />
         <SectionLabel as="p">WELCOME</SectionLabel>
-        <h1 className="text-2xl font-semibold tracking-tight">Ahoj! I&apos;m Honza</h1>
-        <p className="text-sm text-muted-foreground">
-          The API key stays on the server (Vercel env). Choose topics and context—
-          then Honza will message you in Czech in the chat.
+        <h1 className="font-sans text-lg tracking-[0.12em]">Ahoj! I&apos;m Honza</h1>
+        <p className="mx-auto max-w-[min(320px,100%)] font-sans text-xs leading-relaxed tracking-[0.08em] text-muted-foreground">
+          Tell me what you want to talk about and how much Czech you have — then
+          I&apos;ll write to you first.
         </p>
       </header>
 
@@ -206,8 +206,8 @@ export default function OnboardingPage() {
       <Card className="space-y-3">
         <SectionLabel>Context · Google Doc</SectionLabel>
         <p className="text-xs text-muted-foreground">
-          The doc must be public: Share → Anyone with the link → Viewer. The
-          server downloads plain text (no OAuth).
+          Notes, vocab, anything you&apos;re studying. Set the doc to Share →
+          Anyone with the link → Viewer so Honza can read it.
         </p>
         <Label htmlFor="doc-url">Document URL</Label>
         <Input
@@ -269,7 +269,7 @@ export default function OnboardingPage() {
           router.push(ROUTES.home);
         }}
       >
-        Continue to app
+        Start talking to Honza
       </Button>
 
       <p className="text-center text-xs text-muted-foreground">

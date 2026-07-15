@@ -8,9 +8,17 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 export const runtime = "nodejs";
 
 /**
- * Magic-link landing. Supabase sends the learner here after they click the
- * email link. We exchange the one-time code (PKCE) or token hash for a real
- * session cookie, then send them into the app.
+ * Email-link landing. Supabase sends the learner here after they click the
+ * confirmation link from sign-up; we exchange the one-time code (PKCE) or token
+ * hash for a real session cookie, then send them into the app.
+ *
+ * Password sign-in never touches this route — it gets a session directly. This
+ * also still serves magic links, which remain enabled at the Supabase project
+ * level (unexposed in the UI) as a dev sign-in path; see BUILD_SPEC_STATUS.md.
+ *
+ * Note the PKCE branch only works in the browser that *started* the flow — the
+ * code verifier lives in a cookie there. A link opened elsewhere consumes the
+ * token and fails.
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);

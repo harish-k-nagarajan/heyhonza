@@ -18,8 +18,8 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 - [x] **Supabase clients + config** — browser/server/middleware clients, `isSupabaseConfigured()` gate. `[done]`
 - [x] **`profiles` table + RLS + signup trigger** — `supabase/migrations/0001_profiles.sql`. `[done]`
 - [x] **Middleware session refresh + route protection** — `src/middleware.ts`; verified 307→/signin with dummy env. `[done]`
-- [x] **Magic-link sign-in screen + callback + signout** — `/signin`, `/auth/callback`, `/auth/signout`. `[done]`
-- [ ] **End-to-end gate (needs Harish's Supabase keys)** — real email link → authed; refresh persists; sign-out; second email = separate user. `[blocked on: Supabase provisioning]`
+- [x] **Sign-in screen + callback + signout** — `/signin`, `/auth/callback`, `/auth/signout`. **Switched from magic link to email+password with email confirmation (Harish, 2026-07-15)** — see MEMORY.md §3 for why. `/auth/callback` is unchanged and now serves the sign-up confirmation link. `[done]`
+- [~] **End-to-end gate** — **verified:** magic-link login → session, profile trigger fired, sign-out clears, RLS rejects anon writes, routing correct. **Password sign-up → confirm → sign-in verified by Harish** on `harishnokia@gmail.com` (2026-07-15). **Remaining:** second email = separate empty user. `[blocked on: Supabase built-in email cap ~2/hr]`
 
 ---
 
@@ -32,9 +32,9 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 - [x] **next-pwa** — `next.config.js`, manifest, generated worker in `public/`. `[independent]`
 - [x] **Base UI primitives** — `Button`, `Card`, `Input`, `Label`, `Textarea`. `[depends on: Tailwind + global dark tokens]`
 - [x] **Layout shell** — `AppShell`, `BottomNav`, mobile-first max width. `[depends on: Base UI primitives]`
-- [ ] **Toggle component** — a11y, keyboard, 999px pill track per `DESIGN.md`. `[depends on: Base UI primitives]`
+- [ ] **Toggle component** — a11y, keyboard, 999px pill track per `DESIGN.md`. **Deliberately deferred, not a gap:** no screen has an on/off toggle (level/topics are pills, model is a select), so building it now would be an unused component. Build it when a real toggle appears. `[depends on: Base UI primitives]`
 - [x] **HonzaOrb states** — idle / thinking / speaking / oops / excited motion + reduced-motion path; all five states render with per-state keyframes and a 200ms crossfade. `[depends on: Layout shell]`
-- [ ] **Token audit** — align implementation with `DESIGN.md` (e.g. muted vs surface roles). `[depends on: Tailwind + global dark tokens]`
+- [x] **Token audit** — done in the BS-Phase-9 polish pass. Swept for legacy dark-mode leftovers: no `dark:` classes, no Inter in product chrome, no stray palettes (remaining hard-coded hex are static `icon.tsx` / `themeColor` / BottomNav's canonical cream, which can't read CSS vars). Fixed: `Card`'s `shadow-black/40` → `shadow-black/[0.04]` (a 40%-black shadow read as grime on cream), and the two `font-semibold` headings — Share Tech Mono ships weight 400 only, so 600 was rendering as browser-synthesized faux bold (verified in-browser: 400 and 500 are pixel-identical, 600 visibly thickens). `font-medium` left alone deliberately: it renders identically to 400. `[depends on: Tailwind + global dark tokens]`
 
 ---
 
@@ -91,7 +91,7 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 - [x] **Chat reads context from DB + persists turns** — `/api/chat` overrides context/topics/level from the DB when signed in (BUILD_SPEC §3/§5) and inserts the user turn + reply. `[depends on: Server data layer]`
 - [x] **Client sync bridge** — `state-sync.ts` (`dbMode`, `fetchServerState`, `patchServerState`), `ServerSync` hydrates stores from DB, `useSyncStore.checked` gates onboarding redirects; `context-actions.ts` writes local + DB in one path. `[depends on: /api/state]`
 - [x] **Settings "last synced" + one data model** — Settings shows last-synced/source count; onboarding + settings write the same profile fields; reset clears chat+context and re-arms onboarding. **Fallback path verified live.** `[depends on: Client sync bridge]`
-- [ ] **DB gate (needs live Supabase)** — apply 0002, set `NEXT_PUBLIC_SUPABASE_*`, then verify: send→refresh→re-login history persists; second email = separate empty history; doc reflected across re-login. `[blocked on: Supabase provisioning — same as Phase 1 magic-link]`
+- [~] **DB gate** — Supabase live 2026-07-15; both migrations applied, RLS enforced, `/api/state` → `persisted:true`. **Verified:** magic-link login; new user forced through onboarding from DB truth; onboarding wrote `level:'B1'`/`topics:['food']`; Google Doc (2,902 chars) → `user_context` → engine (Honza quizzed "airport" = the doc's line 1); 3 turns written to `messages`; **hard refresh re-rendered the thread from the DB**; sign-out cleared the session. **Remaining:** re-login persistence · returning user skips onboarding · second email = separate empty history. `[blocked on: Supabase built-in email cap ~2/hr — needs custom SMTP; see BUILD_SPEC_STATUS.md for the headless sign-in technique]`
 
 ---
 
@@ -99,6 +99,16 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 
 - [x] **`buildOpenerPrompt`** — engine helper producing an ambient unprompted opener aware of time-of-day + time since last contact. `[independent]`
 - [x] **Home initiation** — on load, if the thread is empty, Home calls the engine and surfaces the opener (real Czech, "Honza wrote to you" card) instead of a blank screen; hero orb reads shared mood. Shared thread flows into Chat with no double-bootstrap. **Verified live at 375px.** `[depends on: BS Phase 2, Client sync bridge]`
+
+---
+
+## BUILD_SPEC Phase 9 — Landing page + polish pass
+
+- [x] **`/welcome` landing page** — unauthenticated front door: hero orb, the three-step loop, and real topic/level chips rendered from `lib/constants` (the marketing surface can't drift from the product, and nothing on it is invented sample data per BUILD_SPEC §5). Honest about the one seam — says a message is *waiting when you open the app*, never claims a phone notification fires. Prerenders static (1.77 kB). `[depends on: BS Phase 1]`
+- [x] **Front-door routing** — middleware sends signed-out `/` → `/welcome` (it used to dump strangers straight on a login form); deeper links still → `/signin?next=…`; signed-in users are bounced off `/welcome`. `AppShell` hides the tab bar there (a signed-out visitor's nav would only bounce back to sign-in). **Verified live** with throwaway Supabase values (env restored byte-identical after): `/`→307→`/welcome`, `/welcome`+`/signin`→200, `/chat`+`/settings`+`/onboarding`→307→`/signin?next=…`. `[depends on: BS Phase 1]`
+- [x] **DESIGN.md polish pass — every screen** — walked welcome/signin/onboarding/home/chat/settings live at 390px + desktop. Fixed: `Card`'s legacy `shadow-black/40`; faux-bold headings (see Token audit, Phase 1); onboarding's `avatar` orb → `hero` (it was the only primary surface leading with a 64px character, against DESIGN.md rule 7) and its `tracking-tight` heading; **Settings had no Honza on it at all** → now leads with an avatar orb reading the shared mood, like the chat header. `[depends on: all prior phases]`
+- [x] **Learner-facing copy** — onboarding's first line read *"The API key stays on the server (Vercel env)"* and Settings' read *"API keys live on the server (Vercel)"* — build notes leaked onto learner screens. Rewritten in Honza's voice; dropped "(no OAuth)" from the Google-Doc help while keeping the actionable Share → Anyone with the link → Viewer step. `[independent]`
+- [x] **PWA install confirmed** — `manifest.json` serves valid (standalone, cream theme, `any` + `maskable` icons all present on disk); install UX shipped in Phase 4. `[depends on: next-pwa]`
 
 ---
 
