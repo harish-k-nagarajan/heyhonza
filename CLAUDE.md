@@ -66,6 +66,14 @@ Before calling any task finished:
 4. No secrets in client code; any new AI behavior goes through a Route Handler.
 5. The completed task is checked off in `TASKS.md` and `MEMORY.md` is updated (what works / what broke / decisions).
 
-## Current State (as of MEMORY.md 2026-05-12)
+## Current State (as of MEMORY.md 2026-07-15)
 
-Scaffold, routes, stores, UI primitives, layout shell, and the three API handlers are built and confirmed running on localhost. Not yet done: HonzaOrb state motion, onboarding flow, chat wiring to the API, persona system prompt, PWA polish, Vercel deploy. See `TASKS.md` for exact status — trust the checkboxes there over this paragraph.
+The app runs on **live Supabase** end-to-end: auth (email+password + confirmation), per-user
+profiles, chat history, and Google Doc context all persist and survive re-login, with RLS
+isolating users. The conversation engine runs on **OpenRouter**. BUILD_SPEC rows 1–7 and 9
+are ✅. **Not yet done:** Phase 8 (voice — needs a TTS key + Harish's OK), the `Toggle`
+primitive (deliberately deferred — no screen has one), custom SMTP (pre-launch, for real
+learners), and the Vercel deploy. See `BUILD_SPEC_STATUS.md` / `TASKS.md` — trust the
+checkboxes there over this paragraph.
+
+To sign in locally without an inbox: `node scripts/dev-signin.mjs <email>` (sends no email).
