@@ -83,7 +83,23 @@ malformed emails are caught by native HTML5 validation *before* the custom check
 check is a backstop rather than the first line. `lint` + `build` green.
 
 **Not verified by Claude, by design:** the actual sign-up → confirm → sign-in round-trip.
-Harish does that. Claude's DB-gate verification continues via the magic-link SQL-token path.
+**Harish ran it end-to-end on `harishnokia@gmail.com` and reported it working** (created →
+confirmed via the emailed link → signed in). Recorded as reported, not Claude-observed.
+Claude's DB-gate verification continues via the magic-link SQL-token path.
+
+### State the next session inherits
+
+- **`iamharishnagarajan@gmail.com` (user A)** — created via magic link, **has no password**,
+  onboarding complete, holds 3 chat messages + the Google Doc context. Sign in to it via the
+  SQL-token path, not the UI.
+- **`harishnokia@gmail.com` (user B)** — created via password, confirmed, **pristine**
+  (expected: no history, no context, onboarding incomplete). That's the isolation fixture.
+- A **magic-link token for user A was requested and left unredeemed** (non-PKCE, via a direct
+  POST to `/auth/v1/otp` with `create_user:false`). It expires in ~1h — harmless, just
+  request a fresh one.
+- **Requesting the OTP via REST instead of the UI deliberately avoids PKCE**, which yields a
+  plain token that verifies server-side and can't be killed by being opened in the wrong
+  browser. This is now the preferred dev sign-in path; the UI no longer offers magic link.
 
 ---
 
