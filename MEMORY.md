@@ -49,7 +49,65 @@ _Last updated: 2026-05-12_
 
 ---
 
-## Current entry — 2026-07-15 (last three DB gates closed — rows 1/4/5/6 now ✅)
+## Current entry — 2026-07-15 (ship prep: DEPLOY env audit + SMTP runbook; voice still blocked)
+
+Docs-only pass. **No source changed, no phase status flipped.** Branched off `main` at
+`76b6ccb` (PR #6 already merged — nothing to merge).
+
+### Voice (Phase 8) is still blocked, and the blocker is bigger than "paste a key"
+
+Third independent env check, and the answer hasn't changed: **no TTS key anywhere** —
+not `.env.local`, `.env.development.local`, `.env.example`, the shell env, or the repo.
+**New and important: Harish confirmed he has no ElevenLabs account or project at all.**
+So the gap isn't a missing string, it's a missing provider account — creating it, picking
+a Czech-capable voice, and getting an API key are all human steps. Phase 8 remains
+double-gated (key + explicit go) and **nothing was scaffolded.** Don't half-build it.
+
+### PR #7 was closed, not merged — its work was NOT on main
+
+A prior session's ship-prep PR (#7, closed 2026-07-15) did roughly this same DEPLOY.md
+work and never landed. **Check `gh pr list --state all` before assuming a doc fix from a
+past session exists** — a PR body describing a change proves nothing about `main`. That's
+the same class of mistake as trusting a brief about env.
+
+### Two brief claims that were already false-alarms (verified, no action needed)
+
+- **BUILD_SPEC_STATUS row 8 was already corrected by PR #6.** It already said STT is not
+  missing. `VoiceReplyButton` independently re-confirmed as a real Web Speech integration
+  (`rec.lang = "cs-CZ"`, `onresult` → `sendUserTurn`) — **built but never verified live**,
+  not a stub. Don't rebuild it.
+- **CONTEXT.md "Out of scope" was already reconciled by PR #6** — real voice calls are
+  already removed with a note that they're phase-gated Phase 8. No contradiction with
+  CLAUDE.md Hard Rule 6 remains.
+
+### What actually shipped
+
+- **DEPLOY.md §1** — explicit ⚠️ that **`SUPABASE_SERVICE_ROLE_KEY` must never be a Vercel
+  var** (bypasses RLS; only `scripts/dev-signin.mjs` consumes it), plus a note that no TTS
+  key belongs there either and that when Phase 8 lands its key is server-only.
+- **DEPLOY.md §2** — names **both** migrations (`0001` + `0002`), not just `0001`; adds
+  custom SMTP as a required pre-deploy step.
+- **DEPLOY.md §3** — auth check rewritten from magic-link to **email+password +
+  confirmation**; adds an RLS two-user isolation check; adds a callout that
+  `dev-signin.mjs` (not SMTP) is the testing path.
+- **DEPLOY.md §4 (new)** — click-by-click Resend → Supabase SMTP runbook (verify domain
+  via SPF/DKIM DNS → `re_…` key as SMTP password → `smtp.resend.com:465`, username the
+  literal `resend` → **Authentication → Emails → SMTP Settings** → then **raise the email
+  rate limit under Authentication → Rate Limits**, which SMTP does *not* raise by itself).
+  Icons renumbered §4 → §5.
+- **TASKS.md** — new Phase-4 line for custom SMTP as a launch blocker, tagged with the
+  "not a testing blocker" warning; Vercel line now carries the service-role-key warning.
+
+### Verification honesty
+
+This change is **documentation only** — no runtime surface, so there is no gate to walk in
+the running app and none is claimed. `npm run lint` and `npm run build` pass (dev server
+confirmed down first; port 3000 free). The SMTP runbook itself is **unexecuted** — it
+needs Harish's Resend account and a domain, so it's written-and-reviewed, not verified.
+
+---
+
+## Previous entry — 2026-07-15 (last three DB gates closed — rows 1/4/5/6 now ✅)
 
 Walked the final three gates against live Supabase. **All passed.** BUILD_SPEC rows 1, 4, 5
 and 6 are ✅. The only non-green rows left are the two Harish explicitly excluded: Phase 8

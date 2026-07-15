@@ -19,10 +19,26 @@ Preview). Names only are documented in [`.env.example`](.env.example).
 | `NEXT_PUBLIC_SUPABASE_URL` | Public | ✅ (for auth) | Supabase project URL. When this + the anon key are unset, middleware runs **pass-through** (no auth gate). |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public | ✅ (for auth) | Supabase anon/publishable key. Public-safe (RLS protects data). |
 
+That table is the complete set. Anything not listed above does not belong in Vercel —
+in particular:
+
+> ### ⚠️ `SUPABASE_SERVICE_ROLE_KEY` must **never** be a Vercel env var
+>
+> It is **local-dev-only**. The service-role key **bypasses RLS entirely**, so a copy
+> of it in a deployed environment defeats the per-user isolation the whole data layer
+> rests on. Nothing under `src/` imports it; its only consumer is
+> [`scripts/dev-signin.mjs`](scripts/dev-signin.mjs), which never runs in production.
+> Keep it in `.env.local` (gitignored) and nowhere else. See CLAUDE.md Hard Rule 1.
+>
+> There is likewise **no TTS/voice key** in this table. Voice (BUILD_SPEC Phase 8) is
+> unbuilt and double-gated on a TTS key **and** Harish's go-ahead; as of 2026-07-15 no
+> TTS key exists in any environment. When Phase 8 lands, its key is **server-only** —
+> never `NEXT_PUBLIC_`.
+
 > **Pass-through vs configured:** with the two `NEXT_PUBLIC_SUPABASE_*` unset, every
 > screen renders without login (dev convenience — this was the Phase-2 blocker fix).
 > In production you want them **set** so `/`, `/onboarding`, `/chat`, `/settings`
-> are gated behind the magic-link sign-in.
+> are gated behind sign-in.
 
 ### Local dev
 
@@ -40,8 +56,15 @@ npm run dev                  # PWA/service worker disabled in dev by next-pwa
 3. Add the env vars from §1 to **Production** and **Preview**.
 4. In **Supabase → Authentication → URL Configuration**, add the redirect URL
    `https://<your-domain>/auth/callback` (and the Vercel preview domain if you use previews).
-5. Ensure `supabase/migrations/0001_profiles.sql` has been run on the Supabase project.
-6. Deploy.
+5. Ensure **both** migrations have been run on the Supabase project, in order:
+   `supabase/migrations/0001_profiles.sql`, then
+   `supabase/migrations/0002_conversations_and_context.sql` (this one creates
+   `messages` — including the `kind` column that tags `chat` vs `call` turns — and
+   `user_context`, with own-row RLS on each).
+6. Set up **custom SMTP — see §4. This is a launch blocker**, not an optional polish
+   step: without it the built-in sender caps at ~2 emails/hour and real learners
+   cannot sign up.
+7. Deploy.
 
 No `vercel.json` is required — Next.js is zero-config on Vercel, and `next-pwa`
 emits `public/sw.js` + `public/workbox-*.js` during `next build`.
@@ -66,12 +89,85 @@ green-check belongs on prod with the real key in place).
       cropped on Android adaptive-icon shapes.
 - [ ] **Service worker:** registers at scope `/`; a new deploy activates without a
       manual hard-refresh (`skipWaiting` + `clientsClaim`).
-- [ ] **Auth gate (if Supabase configured):** unauthenticated `/chat` → `/signin`;
-      magic-link login → authed; refresh persists; sign-out returns to `/signin`.
+- [ ] **Auth gate (if Supabase configured):** signed-out `/` → `/welcome` and
+      signed-out `/chat` → `/signin`; **email+password sign-up → confirmation email
+      arrives → the link authenticates**; refresh persists the session; sign-out
+      returns to `/welcome`. (Auth moved from magic-link to email+password with
+      confirmation on 2026-07-15.) The confirmation-email half of this check is
+      **only meaningful once custom SMTP (§4) is live** — on the built-in sender you
+      will hit the ~2/hour cap almost immediately.
+- [ ] **RLS isolation:** sign in as two different users; neither sees the other's
+      chat history or Google-Doc context.
+
+> **Local testing does not need email at all.** `node scripts/dev-signin.mjs <email>`
+> prints a redeemable `/auth/callback` URL, sends no mail, and is not rate-limited.
+> Reach for that, not SMTP, when you just need a session. SMTP is a *launch* blocker,
+> not a *testing* blocker — conflating the two has already cost one session.
 
 ---
 
-## 4. Regenerating icons
+## 4. Custom SMTP — production email (**LAUNCH BLOCKER**)
+
+Supabase's built-in email sender is explicitly **not for production**: it caps at
+roughly **2 emails per hour** and offers no deliverability guarantees. Since sign-up
+requires a confirmation email, real learners simply cannot register until a custom
+SMTP provider is attached. These steps need Harish's own accounts and a domain he
+controls — Claude cannot do them.
+
+Resend's free tier (3,000 emails/month, 100/day) is more than enough for launch.
+
+### 4.1 Resend — create the account and verify a domain
+
+1. Sign up at <https://resend.com> (free tier, no card).
+2. **Domains → Add Domain** → enter a domain you control (e.g. `heyhonza.app`).
+   *No domain yet?* You can test with Resend's `onboarding@resend.dev` sender, but it
+   **only delivers to your own Resend account address** — fine for a smoke test,
+   useless for real learners. A real domain is required for launch.
+3. Resend shows DNS records — typically an **MX** + **TXT (SPF)** pair and a
+   **TXT (DKIM)** record. Add each one at your DNS host (Namecheap / Cloudflare /
+   wherever the domain lives), copying values **exactly**.
+4. Back in Resend, click **Verify DNS Records**. Propagation is usually minutes; it
+   can take up to ~24h. Wait for **Verified** before continuing.
+5. **API Keys → Create API Key** → name it `honza-supabase-smtp`, permission
+   **Sending access**. Copy the `re_…` value **now** — it is shown exactly once.
+   This string is your SMTP *password*.
+
+### 4.2 Supabase — attach it
+
+6. Open your project → **Authentication → Emails → SMTP Settings**.
+7. Toggle **Enable Custom SMTP** on, and fill in:
+
+   | Field | Value |
+   |---|---|
+   | Host | `smtp.resend.com` |
+   | Port | `465` (implicit TLS; `587` for STARTTLS if 465 is blocked) |
+   | Username | `resend` (the literal word — not your email) |
+   | Password | the `re_…` API key from step 5 |
+   | Sender email | `honza@<your-verified-domain>` — **must** be on the domain verified in 4.1 |
+   | Sender name | `Honza` |
+
+8. **Save**.
+9. Still under **Authentication**, open **Rate Limits** and raise **"Rate limit for
+   sending emails"** above the built-in default (e.g. `100`/hour). Attaching SMTP does
+   **not** raise this by itself — miss this step and you keep the throttle you just
+   paid to escape.
+
+### 4.3 Verify it actually works
+
+10. In a fresh incognito window, sign up at `/welcome` with a **real inbox you own**
+    that has never been used on this project.
+11. Confirm: the email arrives within ~a minute, **From** is your domain (not
+    `supabase.io`), and the link lands you authenticated in the app.
+12. Repeat 3–4 sign-ups back to back. On the built-in sender the third would fail on
+    the ~2/hour cap; if all of them land, the cap is genuinely gone.
+13. Check **Resend → Emails** — the sends should be listed as `Delivered`.
+
+> The `re_…` key is a secret: it lives in the Supabase dashboard only. Never commit
+> it, never put it in `.env.local`, never expose it to the client.
+
+---
+
+## 5. Regenerating icons
 
 Icons are generated from the idle `HonzaOrb` face — keep them in sync if the face
 or palette changes:
