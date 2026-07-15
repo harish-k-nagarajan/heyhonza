@@ -131,6 +131,17 @@ Enter doesn't send, the send button does nothing, the dev mood cycler doesn't ti
 - **Everything green except Phase 8 (voice) and `Toggle`, both deliberate.** The remaining
   human-only item is the Vercel deploy (needs Harish's account + `SUPABASE_SERVICE_ROLE_KEY`
   must **not** be added there as a client-exposed var).
+- **Phase 8 is smaller than it looked — STT already exists.** Row 8 used to claim "no
+  STT/TTS — only a `VoiceReplyButton` stub." **That was wrong** and is now corrected:
+  `VoiceReplyButton` is a genuine Web Speech API integration (`lang: 'cs-CZ'`, `onresult` →
+  `sendUserTurn`), built but never verified live. **Don't rebuild it.** The missing half is
+  **TTS** (Honza audible, server-side only), the `/call` screen, and `kind:'call'` tagging.
+  Also worth knowing: **BUILD_SPEC §5's reset mechanism is already built** (Settings →
+  "Reset data and run onboarding again", via `/api/state`), which is easy to miss.
+- **Voice is the last *feature*.** Everything else outstanding is deploy/infra: the Vercel
+  project, production verification on the deployed URL, and **custom SMTP — a genuine launch
+  blocker**, since real learners can't sign up at ~2 emails/hour (it is *not* a testing
+  blocker; `dev-signin.mjs` covers that).
 
 ---
 
