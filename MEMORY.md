@@ -44,8 +44,104 @@ _Last updated: 2026-05-12_
 | **Marketing surfaces render from `lib/constants`, never hand-written copies** (2026-07-15) | `/welcome`'s topic + level chips are the real options. Keeps the landing page from drifting from the product and honors BUILD_SPEC §5's "no hardcoded data in components." |
 | **No font-weight utilities above 400 in product chrome** (2026-07-15) | Share Tech Mono ships weight 400 only, so `font-semibold`+ renders as browser-synthesized faux bold and breaks the dot-matrix voice. `font-medium` (500) is inert — it renders identically to 400 — so it's tolerated where it already exists. Use size, tracking, and color for hierarchy instead. |
 | **Auth is email+password with email confirmation. Not magic link, not Clerk, not Google SSO** (Harish, 2026-07-15) | Magic link costs an email on **every** sign-in, and Supabase's built-in sender caps at ~2/hr, which stalled verification. Password costs one email **once** (the confirmation), then sign-ins are unlimited and offline. Considered and **rejected: Clerk** — it's auth-only, so the DB stays Supabase either way, and Clerk users don't live in `auth.users`, which would mean rewriting all three FKs, all nine RLS policies (`auth.uid()`), and the signup trigger — a schema migration to solve a config problem. **Rejected Google SSO** for now (Harish: don't add vendors before testing the core product). Magic link stays **enabled at the Supabase project level but unexposed in the UI**, as Claude's dev sign-in path and a future feature. |
-| **Claude does not enter passwords or create accounts — even test ones** (2026-07-15) | Agreed with Harish. Consequence: Claude verifies DB gates via the magic-link SQL-token path; **Harish spot-checks the password sign-up/sign-in round-trip** himself. The same-email account-linking claim is verifiable without logging in at all — query `auth.identities` and count `user_id`s. |
+| **Claude does not enter passwords or create accounts — even test ones** (2026-07-15) | Agreed with Harish. Consequence: Claude signs in via `scripts/dev-signin.mjs` (admin `generate_link` → `token_hash` → `verifyOtp`), which needs no password and sends no email; **Harish spot-checks the password sign-up/sign-in round-trip** himself. Supersedes the old magic-link SQL-token path (2026-07-15) — that needed Harish to run a query by hand and broke if the link was opened in the wrong browser. The same-email account-linking claim is verifiable without logging in at all — query `auth.identities` and count `user_id`s. |
 | **Email confirmation stays ON** (2026-07-15) | Turning it off would remove email entirely, but then anyone can sign up claiming any address without proving ownership — and combined with auto-linking that's an account-takeover vector. **Open item:** the built-in sender's ~2/hr cap is fine for testing but cannot serve real learners, so custom SMTP (Resend) is required before launch. |
+
+---
+
+## Current entry — 2026-07-15 (last three DB gates closed — rows 1/4/5/6 now ✅)
+
+Walked the final three gates against live Supabase. **All passed.** BUILD_SPEC rows 1, 4, 5
+and 6 are ✅. The only non-green rows left are the two Harish explicitly excluded: Phase 8
+(voice — no TTS key, no go-ahead) and `Toggle` (deferred until a screen has one).
+
+### The email cap was never the real blocker — `generate_link` was the answer
+
+The last session concluded the ~2/hr sender cap was the blocker and that **custom SMTP was
+the fix**. That was wrong, and it cost a session. The cap applies to *sending mail*, but the
+one-time token exists in the DB whether or not mail is sent. **Supabase's admin
+`generate_link` endpoint returns that token directly and sends nothing**, so it has no cap.
+
+This is now `scripts/dev-signin.mjs`:
+
+```bash
+node scripts/dev-signin.mjs <email> [next]   # prints an /auth/callback URL, sends no email
+```
+
+Needs `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` (gitignored; never imported by `src/`).
+It requests `type=magiclink` and hands the `token_hash` to `/auth/callback`, which calls
+`verifyOtp` **server-side**.
+
+**This retires the old PKCE/SQL-token dance entirely.** Why the new path is strictly better:
+the `code` flow stores a verifier cookie in the browser that *started* it, so the link only
+worked there and was burned by opening it anywhere else. `token_hash` + `verifyOtp` has no
+verifier, so **any** browser can redeem it, no SQL query is needed, and a wasted token costs
+nothing — just rerun. **Don't reach for SMTP to unblock testing again.** (Custom SMTP is
+still a real pre-launch to-do for *learners*; it's just not a testing dependency.)
+
+### Verified live (the three gates)
+
+- **Re-login persistence (row 4).** Signed out, **cleared `localStorage` entirely**, signed
+  back in as user A → all 3 messages re-rendered. With local storage provably empty the
+  fallback can't explain it, so this is the DB. A new turn in that session persisted (3 → 5).
+  **Clearing `localStorage` before re-login is the move that makes this gate airtight** —
+  otherwise the fallback is a live alternative explanation for anything that renders.
+- **Doc survives re-login (row 5).** `/api/state` returned the same 2,902 chars (`Letiště –
+  Airport` / `Nádraží – Train station` / `Lékárna – Pharmacy`). Decisive bit: a **freshly
+  generated** turn quizzed *"Jak se česky řekne „restaurant"?"* — `Restaurace` is in the doc,
+  so that's new output from doc context, not replayed history.
+- **Returning user skips onboarding (row 6) + isolation (row 1).** User A
+  (`onboardingCompleted:true`) → `/`. User B → `/onboarding`, `persisted:true`, **0 messages,
+  0 context chars, no doc bleed**. Both directions in the same browser minutes apart, so the
+  routing is reading DB truth rather than passing by luck.
+
+### Browser-automation gotcha that cost real time — read this before debugging the UI
+
+**In this Browser pane, CDP mouse/keyboard events never reach the page.** A capture-phase
+`document` listener recorded **zero** clicks. Symptoms that look exactly like product bugs:
+Enter doesn't send, the send button does nothing, the dev mood cycler doesn't tint the app.
+**None of that is a real bug** — the events aren't arriving at all.
+
+- `computer type` *does* land (text appears, React state updates, `disabled` recomputes) —
+  which makes this extra misleading, since the input looks live while clicks are dead.
+- **Drive React from JS instead:** set the value via the native setter, dispatch `input`,
+  then call `.click()`:
+  ```js
+  const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+  set.call(input, text); input.dispatchEvent(new Event('input', { bubbles: true }));
+  btn.click();
+  ```
+- **Before blaming the product, install a capture listener and confirm the event arrives.**
+  Cheap, and it settles product-vs-harness in one call.
+
+### Non-bugs ruled out (don't re-investigate)
+
+- **Repeated `/api/state` calls in dev are not a render loop.** `reactStrictMode: true`
+  double-invokes effects in dev; the pairs are that, times several navigations.
+- **The dev mood cycler (I/T/S/O/E) overlaps the header at 375px.** Cosmetic, dev-only
+  (gated behind `NEXT_PUBLIC_HONZA_DEV_TOOLS`), never ships to learners. Left alone.
+
+### State the next session inherits
+
+- **Env is real:** `OPENROUTER_API_KEY`, `HONZA_DEFAULT_MODEL`, both `NEXT_PUBLIC_SUPABASE_*`,
+  and now `SUPABASE_SERVICE_ROLE_KEY`. **No TTS key. No SMTP.** Check, don't assume.
+- **Fixtures:** user A `iamharishnagarajan@gmail.com` — onboarded, now **5** messages, Google
+  Doc context. User B `harishnokia@gmail.com` — password-created, confirmed, still pristine
+  (0 messages) unless a later session onboards it. Don't recreate either.
+- **Everything green except Phase 8 (voice) and `Toggle`, both deliberate.** The remaining
+  human-only item is the Vercel deploy (needs Harish's account + `SUPABASE_SERVICE_ROLE_KEY`
+  must **not** be added there as a client-exposed var).
+- **Phase 8 is smaller than it looked — STT already exists.** Row 8 used to claim "no
+  STT/TTS — only a `VoiceReplyButton` stub." **That was wrong** and is now corrected:
+  `VoiceReplyButton` is a genuine Web Speech API integration (`lang: 'cs-CZ'`, `onresult` →
+  `sendUserTurn`), built but never verified live. **Don't rebuild it.** The missing half is
+  **TTS** (Honza audible, server-side only), the `/call` screen, and `kind:'call'` tagging.
+  Also worth knowing: **BUILD_SPEC §5's reset mechanism is already built** (Settings →
+  "Reset data and run onboarding again", via `/api/state`), which is easy to miss.
+- **Voice is the last *feature*.** Everything else outstanding is deploy/infra: the Vercel
+  project, production verification on the deployed URL, and **custom SMTP — a genuine launch
+  blocker**, since real learners can't sign up at ~2 emails/hour (it is *not* a testing
+  blocker; `dev-signin.mjs` covers that).
 
 ---
 
