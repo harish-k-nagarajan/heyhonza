@@ -49,6 +49,60 @@ _Last updated: 2026-05-12_
 
 ---
 
+## Current entry — 2026-07-15 (ship prep: DEPLOY audit + SMTP runbook · voice re-checked, still blocked)
+
+Branch `claude/honza-voice-ship-prep-mh2h5h` off the latest `main` (PR #6 already merged as
+`76b6ccb`; the branch was created at that exact SHA, so it *is* branched off the merged main —
+no re-branching needed).
+
+### Env re-checked first, per the "don't trust the brief" rule — and the brief was right to warn
+
+**There is no `.env.local` in this container at all** (fresh ephemeral clone; env is never
+committed). So: **no TTS key of any kind, no SMTP.** Earlier entries listing keys in
+`.env.local` describe *other* containers — env does not travel with the repo. The lesson from
+two prior misfires holds: a file existing in the repo proves nothing about what's configured,
+and here the env file doesn't even exist. **Voice (Phase 8) stays blocked** on both counts
+(no key *and* the go-ahead is still a "[maybe]", not a "go"). Did **not** scaffold any of it —
+scaffolding half of a double-gated phase is exactly the trap the brief called out.
+
+### What was already done by PR #6 (so this session correctly did NOT redo it)
+
+- **BUILD_SPEC_STATUS row 8 is already corrected** — it already states STT is *not* missing and
+  `VoiceReplyButton` is a real Web Speech (`cs-CZ`) integration, not a stub. The brief's "fix
+  row 8" was written against the pre-#6 snapshot. No-op.
+- **CONTEXT.md "Out of scope" already reconciled** — real voice calls are already removed and
+  there's an explicit note explaining they moved into v1 as phase-gated Phase 8. TASK 2a was
+  already satisfied. No-op.
+
+### What this session actually shipped (TASK 2b + 2c — the parts that need no account)
+
+- **DEPLOY.md env audit (2b).** Added an explicit **"⚠️ `SUPABASE_SERVICE_ROLE_KEY` is NOT in
+  the Vercel table — do not add it"** callout (it's local-dev-only and bypasses RLS, so
+  deploying it would defeat per-user isolation). Also fixed two stale spots the audit surfaced:
+  the setup step named only `0001` (now names **both** migrations, `0001` + `0002`), and the
+  verification checklist still said "magic-link login" (auth is **email+password + confirmation**
+  since 2026-07-15).
+- **Custom SMTP runbook (2c).** New DEPLOY.md **§4 "Custom SMTP — production email (LAUNCH
+  BLOCKER)"**: click-by-click Resend → Supabase. Resend side (verify domain via DNS SPF/DKIM,
+  create `re_…` API key = SMTP password, host `smtp.resend.com` : 465, user `resend`), then
+  Supabase side (**Authentication → Emails → SMTP Settings → Enable Custom SMTP**, sender at the
+  verified domain, then raise the email rate limit). Framed as the genuine launch blocker it is:
+  the built-in sender's ~2/hr cap can't serve real signups. Icons section renumbered §4→§5.
+
+### State the next session inherits
+
+- **Voice is still the only unbuilt *feature*, and still fully blocked.** To start it: put a TTS
+  key in `.env.local` **and** get an explicit "go" (not "[maybe]") from Harish. Row 8 already
+  lists the real remaining work (the `/call` screen, server-side TTS, `kind:'call'` persistence)
+  — STT already exists, don't rebuild `VoiceReplyButton`.
+- **Custom SMTP is documented but not executed** — it needs Harish's Resend account, a domain
+  he controls + DNS access, and his Supabase dashboard. Pure human step now; the runbook is
+  DEPLOY.md §4.
+- **Docs are consistent:** CONTEXT/CLAUDE already agree voice is in-scope-but-gated; DEPLOY now
+  matches the real env set and auth method.
+
+---
+
 ## Current entry — 2026-07-15 (last three DB gates closed — rows 1/4/5/6 now ✅)
 
 Walked the final three gates against live Supabase. **All passed.** BUILD_SPEC rows 1, 4, 5

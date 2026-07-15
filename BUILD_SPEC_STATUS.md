@@ -9,7 +9,9 @@ numbers — these differ from `TASKS.md`'s numbering).
 
 **Legend:** ✅ done & verified · 🟡 partial · ❌ not built
 
-_Last updated: 2026-07-15 (all three remaining DB gates closed — rows 1/4/5/6 now ✅)_
+_Last updated: 2026-07-15 (ship-prep docs pass: DEPLOY.md SMTP runbook + env audit. No phase
+status changed — rows 1/4/5/6 remain ✅; Phase 8 voice re-checked, still blocked: no TTS key
+in this container and no explicit go-ahead.)_
 
 > **✅ Every DB gate is now verified live.** The last three — re-login persistence,
 > returning-user-skips-onboarding, and second-user isolation — were walked end-to-end
@@ -60,9 +62,13 @@ _Last updated: 2026-07-15 (all three remaining DB gates closed — rows 1/4/5/6 
 
 - **Custom SMTP is still a production to-do, but no longer a testing blocker.** Supabase's
   built-in sender is capped at ~2 messages/hour, can't be raised, and locks template
-  editing; Supabase states it isn't for production use. Set up Resend (free tier →
-  Authentication → Emails → SMTP Settings) before the Vercel deploy. Local verification
-  doesn't need it — `scripts/dev-signin.mjs` sends no email at all.
+  editing; Supabase states it isn't for production use. **Click-by-click runbook now lives
+  in [`DEPLOY.md`](DEPLOY.md) §4** (Resend free tier → Supabase Authentication → Emails →
+  SMTP Settings). It needs Harish's Resend account + a domain he controls, so it's a human
+  step. Local verification doesn't need it — `scripts/dev-signin.mjs` sends no email at all.
+- **`SUPABASE_SERVICE_ROLE_KEY` must never be a Vercel var** — it bypasses RLS and is
+  local-dev-only (powers `scripts/dev-signin.mjs`). This is now called out explicitly in
+  `DEPLOY.md` §1 so a future deploy doesn't copy it in from `.env.example`.
 
 ### How to sign in headlessly (no inbox access)
 
