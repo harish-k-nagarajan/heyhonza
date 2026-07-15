@@ -43,6 +43,47 @@ _Last updated: 2026-05-12_
 | **`/` is the front door: signed-out → `/welcome`, not `/signin`** (2026-07-15, BS Phase 9) | A stranger's first five seconds shouldn't be a login form. Deep links still route through `/signin?next=…`, so nothing is lost. `/welcome` also lives as a real URL so it stays reachable in local pass-through mode. |
 | **Marketing surfaces render from `lib/constants`, never hand-written copies** (2026-07-15) | `/welcome`'s topic + level chips are the real options. Keeps the landing page from drifting from the product and honors BUILD_SPEC §5's "no hardcoded data in components." |
 | **No font-weight utilities above 400 in product chrome** (2026-07-15) | Share Tech Mono ships weight 400 only, so `font-semibold`+ renders as browser-synthesized faux bold and breaks the dot-matrix voice. `font-medium` (500) is inert — it renders identically to 400 — so it's tolerated where it already exists. Use size, tracking, and color for hierarchy instead. |
+| **Auth is email+password with email confirmation. Not magic link, not Clerk, not Google SSO** (Harish, 2026-07-15) | Magic link costs an email on **every** sign-in, and Supabase's built-in sender caps at ~2/hr, which stalled verification. Password costs one email **once** (the confirmation), then sign-ins are unlimited and offline. Considered and **rejected: Clerk** — it's auth-only, so the DB stays Supabase either way, and Clerk users don't live in `auth.users`, which would mean rewriting all three FKs, all nine RLS policies (`auth.uid()`), and the signup trigger — a schema migration to solve a config problem. **Rejected Google SSO** for now (Harish: don't add vendors before testing the core product). Magic link stays **enabled at the Supabase project level but unexposed in the UI**, as Claude's dev sign-in path and a future feature. |
+| **Claude does not enter passwords or create accounts — even test ones** (2026-07-15) | Agreed with Harish. Consequence: Claude verifies DB gates via the magic-link SQL-token path; **Harish spot-checks the password sign-up/sign-in round-trip** himself. The same-email account-linking claim is verifiable without logging in at all — query `auth.identities` and count `user_id`s. |
+| **Email confirmation stays ON** (2026-07-15) | Turning it off would remove email entirely, but then anyone can sign up claiming any address without proving ownership — and combined with auto-linking that's an account-takeover vector. **Open item:** the built-in sender's ~2/hr cap is fine for testing but cannot serve real learners, so custom SMTP (Resend) is required before launch. |
+
+---
+
+## Current entry — 2026-07-15 (auth switched to email + password)
+
+Harish's call after the magic-link email cap stalled verification: **email+password with
+email confirmation, no magic link in the UI, no Google SSO, no Clerk.** Rationale and the
+rejected alternatives are in §3 — the short version is that magic link costs an email per
+sign-in while password costs one at signup, and Clerk would have meant rewriting the schema
+(FKs + 9 RLS policies + trigger all key off `auth.users`) to fix a config problem.
+
+**No dashboard change was needed** — Supabase enables email/password with "Confirm email"
+ON by default.
+
+### Built
+
+- `SignInForm` rebuilt: sign-in / sign-up modes, email + password, DESIGN.md pills,
+  `autocomplete` flips `current-password`↔`new-password` with the mode. Supabase's raw auth
+  errors are mapped to learner-readable copy (matching on message text — Supabase has no
+  stable codes for these — with a fallback that returns the original so nothing is swallowed).
+- Sign-up handles **both** confirmation-on (user, no session → "confirm your email") and
+  confirmation-off (session returned → straight in), so the project setting can change
+  without a code change.
+- `/auth/callback` **unchanged** — it already handled the code exchange, and the sign-up
+  confirmation link uses the identical path. Password sign-in never touches it.
+- **Stale copy fixed:** `/welcome` advertised "Start with a magic link / No password. Just
+  your email." and `/signin` said "I'll send you a magic link." Both would have been lies on
+  merge. Three code comments referencing magic links corrected too.
+
+### Verified (within the constraint that Claude doesn't authenticate)
+
+Form renders in-system at 390px; mode toggle flips button + `autocomplete`; the password
+guard rejects <6 chars **with zero network calls** (confirmed by wrapping `window.fetch`);
+malformed emails are caught by native HTML5 validation *before* the custom check, so that
+check is a backstop rather than the first line. `lint` + `build` green.
+
+**Not verified by Claude, by design:** the actual sign-up → confirm → sign-in round-trip.
+Harish does that. Claude's DB-gate verification continues via the magic-link SQL-token path.
 
 ---
 

@@ -18,8 +18,8 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 - [x] **Supabase clients + config** — browser/server/middleware clients, `isSupabaseConfigured()` gate. `[done]`
 - [x] **`profiles` table + RLS + signup trigger** — `supabase/migrations/0001_profiles.sql`. `[done]`
 - [x] **Middleware session refresh + route protection** — `src/middleware.ts`; verified 307→/signin with dummy env. `[done]`
-- [x] **Magic-link sign-in screen + callback + signout** — `/signin`, `/auth/callback`, `/auth/signout`. `[done]`
-- [ ] **End-to-end gate (needs Harish's Supabase keys)** — real email link → authed; refresh persists; sign-out; second email = separate user. `[blocked on: Supabase provisioning]`
+- [x] **Sign-in screen + callback + signout** — `/signin`, `/auth/callback`, `/auth/signout`. **Switched from magic link to email+password with email confirmation (Harish, 2026-07-15)** — see MEMORY.md §3 for why. `/auth/callback` is unchanged and now serves the sign-up confirmation link. `[done]`
+- [~] **End-to-end gate** — **verified:** magic-link login → session, profile trigger fired, sign-out clears, RLS rejects anon writes, routing correct. **Remaining:** second email = separate user; plus password sign-up/sign-in round-trip (Harish verifies — Claude doesn't enter passwords). `[blocked on: Supabase built-in email cap ~2/hr for the confirmation email]`
 
 ---
 

@@ -61,10 +61,10 @@ export default function WelcomePage() {
         href={ROUTES.signin}
         className="w-full max-w-[min(320px,100%)] rounded-full bg-accent py-3.5 font-sans text-xs uppercase tracking-[0.2em] text-accent-foreground shadow-sm shadow-black/10 transition hover:opacity-90 active:scale-[0.98]"
       >
-        Start with a magic link
+        Start learning Czech
       </Link>
       <p className="-mt-5 font-sans text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-        No password. Just your email.
+        Free. Takes a minute.
       </p>
 
       <Card className="w-full space-y-4 text-left">

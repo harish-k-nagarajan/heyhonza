@@ -66,7 +66,7 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     // A stranger hitting the root gets the front door, not a login form
     // (BUILD_SPEC Phase 9). Deeper links still go to sign-in and return the
-    // visitor to where they were headed once the magic link lands.
+    // visitor to where they were headed once they've signed in.
     if (pathname === ROUTES.home) {
       url.pathname = ROUTES.welcome;
       url.search = "";
