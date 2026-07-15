@@ -4,6 +4,7 @@ export const ROUTES = {
   signin: "/signin",
   onboarding: "/onboarding",
   chat: "/chat",
+  call: "/call",
   settings: "/settings",
 } as const;
 

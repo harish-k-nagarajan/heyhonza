@@ -49,7 +49,93 @@ _Last updated: 2026-05-12_
 
 ---
 
-## Current entry — 2026-07-15 (ship prep: DEPLOY env audit + SMTP runbook; voice still blocked)
+## Current entry — 2026-07-15 (BUILD_SPEC Phase 8 — voice SHIPPED; row 8 🟡 pending Harish's ears)
+
+Harish provided an ElevenLabs key **and** the explicit go-ahead, clearing the double
+gate that had blocked Phase 8 across three sessions. Voice is built.
+
+### The env check paid off twice — check it even when told "I gave you what you need"
+
+The key was genuinely there this time (`ELEVENLABS_API_KEY` + `ELEVENLABS_VOICE_ID`).
+**But the voice id didn't work**, and only an API call revealed it. Two lessons:
+
+1. **ElevenLabs' free tier cannot use library ("professional") voices via the API.**
+   They return `402 paid_plan_required` — *even though* the dashboard lists them and
+   `GET /v1/voices/{id}` returns them happily with `locale: cs-CZ`. The voice Harish
+   picked ("Adam — Velvety and Conversational", `uYFJyGaibp4N2VwYQshk`) is one of
+   these. **Every Czech-native voice is a library voice**, so free tier = no native
+   Czech accent, full stop.
+2. **Premade voices work on every tier and speak Czech via `eleven_multilingual_v2`** —
+   with an English accent, because all 21 premades are `language: en`. That's the
+   current fallback (`iP95p4xoKVk53GoZ742B`, "Chris"). Verified: real MP3s, 200 OK.
+
+`lib/server/tts.ts` therefore **falls back on 402 and logs a loud warning** rather than
+leaving Honza mute, so a paid plan starts using the configured Czech voice with **no
+code change**. Don't "simplify" that fallback away without upgrading the plan first.
+
+Also: `GET /v1/models` 401s on this key (permission scope) while TTS works fine —
+**don't infer the key is broken from a 401 on a metadata endpoint.**
+
+### A real latent bug found: HonzaOrb was invisible, and it wasn't only a pane artifact
+
+`/call` rendered with **no Honza at all** — orb in the DOM, 200×200, 227 dots, animation
+running, `opacity: 0`. `/` had the identical bug, so it predated this work despite Home
+having been "verified live" before.
+
+Cause: `HonzaOrb`'s crossfade faded out, then restored opacity inside a
+`requestAnimationFrame`. **rAF never fires while a document is hidden** — the browser
+pane reports `document.visibilityState: "hidden"` permanently, so the face fell to 0 and
+stayed there. This is *not* purely a pane artifact: **rAF is paused in any backgrounded
+tab**, so a real user who switches away from the PWA during a mood change comes back to
+an invisible Honza until the next state change. Fixed by committing `renderState` and
+the opacity together — the element is already painted at 0 from the fade-out, so the CSS
+transition still carries 0 → 1. **Don't reintroduce rAF for visibility-critical state.**
+
+### Verified live (the server half — all of it)
+
+- **`/api/tts`** → 200, `audio/mpeg`, ~36–46KB, `Cache-Control: no-store, private`. The
+  strongest evidence available headlessly: **the browser's own `Audio` element decoded
+  the blob to a real 2.18s clip** — that's valid playable audio, not just bytes.
+- **`/api/health`** → `ttsConfigured: true`, `ttsProvider: "elevenlabs"` (booleans only,
+  never the key, not even the voice id — it's a public endpoint).
+- **`kind:'call'` persistence** — a real opener + a real user turn through `/api/chat`
+  with `kind:'call'` produced **3 `call` rows next to 5 existing `chat` rows in one
+  history** (user A: 5 → 8).
+- **Transcript renders from DB truth** — `localStorage` cleared to zero keys first, so
+  the local fallback provably cannot explain it. Renders in a `// CALL TRANSCRIPT` group.
+- **No key client-side** — against the **production build**: absent from all 26
+  `.next/static` files, present only in `.next/server/app/api/tts/route.js`. No
+  `api.elevenlabs.io` / `xi-api-key` in any client file. **Zero browser requests to
+  ElevenLabs.** (A page-context scan using the literal key was correctly refused by the
+  safety classifier — don't paste secrets into `javascript_tool`; grep server-side with
+  the value read from env instead. The env-sourced grep is a stronger test anyway.)
+
+### NOT verified — deliberately left 🟡
+
+Mic capture and audible playback. A headless pane can't hold a mic or hear a speaker,
+and **MEMORY's CDP-clicks-don't-reach-React warning still holds** — clicking "CALL
+HONZA" via `ref` left the button untouched, so the in-call UI could not be driven at
+all. Per the DoD ("if a gate can't be walked, leave it 🟡"), row 8 is **🟡, not ✅**,
+even though everything checkable is green. Checklist for Harish: `DEPLOY.md` §5.
+
+### Design/engine decisions worth keeping
+
+- **Engine gained a `mode: 'chat' | 'call'`.** A reply that reads well doesn't speak
+  well — the call prompt forces 1–3 sentences, bans markdown/emoji/parenthetical
+  glosses, and requires ending on a question. Confirmed working: the opener came back
+  as one speakable line, and the correction was spoken-style ("Správně je 'byl jsem'…").
+- **Transcripts group, not tag.** Consecutive `call` turns render inside one labeled
+  block — a call was a single event; a run of tagged bubbles would lose that.
+- **`/call` has no send button.** The cycle self-drives (speak → listen → reply), which
+  is what makes it a call rather than a mic-flavoured chat.
+- **TTS failure degrades, doesn't hang up** — Honza's line stays on screen as a caption
+  and the call continues readably.
+- **`ServerSync` was silently dropping `kind`** on hydration, which would have erased
+  call framing on every refresh. Fixed.
+
+---
+
+## Previous entry — 2026-07-15 (ship prep: DEPLOY env audit + SMTP runbook; voice still blocked)
 
 Docs-only pass. **No source changed, no phase status flipped.** Branched off `main` at
 `76b6ccb` (PR #6 already merged — nothing to merge).

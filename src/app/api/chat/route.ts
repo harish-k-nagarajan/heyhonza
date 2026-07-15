@@ -21,6 +21,11 @@ type ChatRequestBody = {
   /** Phase 7 — client hints so the unprompted opener feels ambient. */
   localHour?: number;
   lastContactAt?: number;
+  /**
+   * Phase 8 — where this turn came from. Spoken turns persist into the *same*
+   * history as typed ones, tagged so Chat can render them as a call transcript.
+   */
+  kind?: "chat" | "call";
 };
 
 export async function POST(req: Request) {
@@ -41,6 +46,7 @@ export async function POST(req: Request) {
   }
 
   const bootstrap = Boolean(body.bootstrap);
+  const kind = body.kind === "call" ? "call" : "chat";
   const messages = sanitizeMessages(body.messages, bootstrap);
   if (!messages) {
     return NextResponse.json(
@@ -65,6 +71,7 @@ export async function POST(req: Request) {
             localHour: typeof body.localHour === "number" ? body.localHour : undefined,
             lastContactAt:
               typeof body.lastContactAt === "number" ? body.lastContactAt : undefined,
+            mode: kind,
           }),
         },
       ]
@@ -72,6 +79,7 @@ export async function POST(req: Request) {
 
   try {
     const { text, model } = await generateReply({
+      mode: kind,
       requestedModel: serverContext?.preferredModel ?? body.model,
       topics: serverContext
         ? serverContext.topics
@@ -90,14 +98,17 @@ export async function POST(req: Request) {
     // Persist the just-sent user turn (not on bootstrap, which has no real user
     // message) plus Honza's reply, so history survives refresh / re-login.
     if (persisted) {
-      const turns: { role: "user" | "assistant"; content: string }[] = [];
+      const turns: { role: "user" | "assistant"; content: string; kind: "chat" | "call" }[] =
+        [];
       const lastUser = [...messages].reverse().find((m) => m.role === "user");
-      if (!bootstrap && lastUser) turns.push({ role: "user", content: lastUser.content });
-      turns.push({ role: "assistant", content: text });
+      if (!bootstrap && lastUser) {
+        turns.push({ role: "user", content: lastUser.content, kind });
+      }
+      turns.push({ role: "assistant", content: text, kind });
       await insertMessages(turns);
     }
 
-    return NextResponse.json({ message: text, model, persisted });
+    return NextResponse.json({ message: text, model, persisted, kind });
   } catch (e) {
     if (e instanceof EngineError) {
       return NextResponse.json({ error: e.message }, { status: e.status });

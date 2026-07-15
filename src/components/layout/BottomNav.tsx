@@ -9,6 +9,7 @@ import { cn } from "@/lib/cn";
 const items = [
   { href: ROUTES.home, label: "Home" },
   { href: ROUTES.chat, label: "Chat" },
+  { href: ROUTES.call, label: "Call" },
   { href: ROUTES.settings, label: "Settings" },
 ] as const;
 

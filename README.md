@@ -34,17 +34,19 @@ src/
     auth/                 # Callback + sign-out routes
     page.tsx              # Home — Honza's presence and entry to practice
     onboarding/           # First-run setup (level, topics, context)
-    chat/                 # Main practice surface
+    chat/                 # Main practice surface (typed)
+    call/                 # Live voice call — you speak Czech, Honza speaks back
     settings/             # Preferences, learner context, reset
     api/
       chat/               # LLM proxy — all AI calls go through here
+      tts/                # Voice proxy — returns audio bytes, key never client-side
       state/              # Per-user hydrate + persist (profile, messages, context)
       context/google-doc/ # Fetches published Google Doc content server-side
       health/             # Health check endpoint
   middleware.ts           # Session refresh + route guards (must live under src/)
   components/
     honza/                # HonzaOrb (dot-matrix character), StatusPill
-    chat/                 # MessageList, MessageBubble, Composer, VoiceReplyButton
+    chat/                 # MessageList (groups call transcripts), MessageBubble, Composer, VoiceReplyButton
     layout/               # AppShell, BottomNav, ServerSync
     ui/                   # Button, Card, Input, Label, Textarea primitives
     pwa/                  # InstallPrompt
@@ -104,10 +106,10 @@ Deploy to Vercel and set environment variables in the project dashboard. The `ne
 
 ## Scope
 
-- Welcome, Sign-in, Onboarding, Home, Chat, Settings
+- Welcome, Sign-in, Onboarding, Home, Chat, **Call**, Settings
 - Text conversation with Honza, persisted per learner
 - Google Doc context ingestion (public URLs, no OAuth)
 - PWA install support
-- **Voice calls — planned, not built.** Spoken replies are next up; see `BUILD_SPEC_STATUS.md`.
+- **Voice calls — built (2026-07-15).** `/call` is a live-call screen: speech-to-text on your spoken Czech (Web Speech API, `cs-CZ`) and ElevenLabs text-to-speech for Honza's replies, proxied server-side so the key never reaches the browser. The transcript persists into the same history as chat. *Mic + audible playback still need a human spot-check, and on ElevenLabs' free tier Honza speaks Czech with an English accent — see `BUILD_SPEC_STATUS.md` row 8.*
 
 **Out of scope:** scheduling, social features.

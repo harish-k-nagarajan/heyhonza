@@ -104,6 +104,21 @@ Use this file as the **session checklist**: work top to bottom within a phase un
 
 ---
 
+## BUILD_SPEC Phase 8 — Voice call (STT + TTS)
+
+Unblocked 2026-07-15: Harish provided an ElevenLabs key **and** the explicit go-ahead,
+clearing the long-standing double gate.
+
+- [x] **Server-side TTS** — `lib/server/tts.ts` (the only place that talks to the voice provider, mirroring `conversation-engine`) + `POST /api/tts` returning audio bytes. Key is server-only. Provider-swap guidance (OpenAI / Azure) is in the module header. **Verified live:** 200 / `audio/mpeg` / ~36–46KB, and the browser's own `Audio` element decoded it to a real **2.18s** clip. `[depends on: ELEVENLABS_API_KEY]`
+- [x] **No key client-side** — **verified against the production build:** the key is absent from all 26 files in `.next/static`, present only in `.next/server/app/api/tts/route.js`; no `api.elevenlabs.io` hostname or `xi-api-key` header in any client file; **zero browser requests to ElevenLabs**. `[depends on: /api/tts]`
+- [x] **`/call` screen** — framed as a live call, not a text thread: hero `HonzaOrb` leads, call-duration timer, single-line live caption, mic + hang-up controls, and a self-driving turn cycle (he speaks → you speak → repeat) with no send button. Hanging up routes to Chat, where the transcript is waiting. `[depends on: /api/tts, useSpeechRecognition]`
+- [x] **STT reused, not rebuilt** — `VoiceReplyButton` was already a real `cs-CZ` Web Speech integration. Extracted into a shared `useSpeechRecognition` hook (plus real error mapping: permissions, no-speech, unsupported browser) so `/call` and the composer share one implementation. `[independent]`
+- [x] **`kind:'call'` persistence + transcript rendering** — call turns take the same `/api/chat` path tagged `call`, land in the same `messages` table, and render in Chat inside a labeled `// CALL TRANSCRIPT` group. Engine gained a `call` mode so spoken replies are 1–3 sentences with no markdown or parenthetical glosses. **Verified live:** 3 `call` rows alongside 5 `chat` rows in one history; transcript rendered **with `localStorage` cleared**, so the DB is provably the source. Also fixed `ServerSync` silently dropping `kind` on hydration. `[depends on: BS Phases 4/5/6]`
+- [ ] **Mic + audible playback confirmed by Harish** — the one half Claude cannot verify: a headless pane can't hold a mic or hear a speaker (and reports `visibilityState: hidden`, so audio/mic APIs misbehave). **This is why BUILD_SPEC row 8 is 🟡 and not ✅.** Two-minute checklist in `DEPLOY.md` §5. `[blocked on: Harish — needs a real mic, speakers, and Chrome/Edge/Safari]`
+- [ ] **Czech-native voice (accent fix)** — ElevenLabs' free tier can't use library voices via the API (`402 paid_plan_required`), and every Czech-native voice is a library voice. The server falls back to a premade voice that speaks Czech **with an English accent** and warns in the log. For a product teaching pronunciation this matters. A paid plan uses the configured voice automatically, **no code change**. `[blocked on: Harish's ElevenLabs plan]`
+
+---
+
 ## BUILD_SPEC Phase 9 — Landing page + polish pass
 
 - [x] **`/welcome` landing page** — unauthenticated front door: hero orb, the three-step loop, and real topic/level chips rendered from `lib/constants` (the marketing surface can't drift from the product, and nothing on it is invented sample data per BUILD_SPEC §5). Honest about the one seam — says a message is *waiting when you open the app*, never claims a phone notification fires. Prerenders static (1.77 kB). `[depends on: BS Phase 1]`

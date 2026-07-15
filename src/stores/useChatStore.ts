@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import type { ChatMessage } from "@/types";
+import type { ChatMessage, MessageKind } from "@/types";
 
 function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -11,8 +11,8 @@ export type ChatState = {
   messages: ChatMessage[];
   status: "idle" | "loading" | "error";
   lastError: string | null;
-  addUserMessage: (content: string) => void;
-  addAssistantMessage: (content: string) => void;
+  addUserMessage: (content: string, kind?: MessageKind) => void;
+  addAssistantMessage: (content: string, kind?: MessageKind) => void;
   setMessages: (messages: ChatMessage[]) => void;
   setStatus: (s: ChatState["status"]) => void;
   setError: (msg: string | null) => void;
@@ -25,7 +25,7 @@ export const useChatStore = create<ChatState>()(
       messages: [],
       status: "idle",
       lastError: null,
-      addUserMessage: (content) =>
+      addUserMessage: (content, kind = "chat") =>
         set((s) => ({
           messages: [
             ...s.messages,
@@ -33,11 +33,12 @@ export const useChatStore = create<ChatState>()(
               id: id(),
               role: "user",
               content,
+              kind,
               createdAt: Date.now(),
             },
           ],
         })),
-      addAssistantMessage: (content) =>
+      addAssistantMessage: (content, kind = "chat") =>
         set((s) => ({
           messages: [
             ...s.messages,
@@ -45,6 +46,7 @@ export const useChatStore = create<ChatState>()(
               id: id(),
               role: "assistant",
               content,
+              kind,
               createdAt: Date.now(),
             },
           ],

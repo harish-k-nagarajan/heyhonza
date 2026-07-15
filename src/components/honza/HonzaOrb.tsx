@@ -175,6 +175,17 @@ export function HonzaOrb({ state = "idle", size = "hero", className }: HonzaOrbP
   const isFirstMount = useRef(true);
   const [speakingTick, setSpeakingTick] = useState(0);
 
+  // ~200ms crossfade between expressions (DESIGN.md: swaps must not pop): fade
+  // out, swap the face while it's invisible, fade back in.
+  //
+  // Both halves of the swap are committed together on purpose. This used to fade
+  // back in inside a `requestAnimationFrame`, which stranded Honza at opacity 0
+  // whenever no frame ever arrived — rAF is paused while a document is hidden,
+  // so backgrounding the PWA mid-mood-change (or any tab switch) brought you
+  // back to an invisible character until the *next* state change. Setting
+  // `renderState` and the opacity in one commit is enough: the element is
+  // already painted at 0 from the fade-out, so the CSS transition still carries
+  // the new face from 0 → 1.
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
@@ -183,9 +194,7 @@ export function HonzaOrb({ state = "idle", size = "hero", className }: HonzaOrbP
     setCrossOpacity(0);
     const t = window.setTimeout(() => {
       setRenderState(state);
-      window.requestAnimationFrame(() => {
-        setCrossOpacity(1);
-      });
+      setCrossOpacity(1);
     }, 200);
     return () => window.clearTimeout(t);
   }, [state]);

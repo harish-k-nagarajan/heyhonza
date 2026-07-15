@@ -18,6 +18,8 @@ Preview). Names only are documented in [`.env.example`](.env.example).
 | `NEXT_PUBLIC_SITE_URL` | Public | recommended | Canonical prod URL (e.g. `https://heyhonza.vercel.app`). Used for OpenRouter attribution headers + `metadataBase`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Public | ✅ (for auth) | Supabase project URL. When this + the anon key are unset, middleware runs **pass-through** (no auth gate). |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public | ✅ (for auth) | Supabase anon/publishable key. Public-safe (RLS protects data). |
+| `ELEVENLABS_API_KEY` | **Server only** | ✅ (for voice) | Honza's voice (Phase 8). From elevenlabs.io → Profile → API Keys. Never `NEXT_PUBLIC_`. Read only by `src/lib/server/tts.ts`; the browser only ever receives audio bytes from `/api/tts`. Without it `/call` still loads but Honza is mute and `/api/health` reports `ttsConfigured:false`. |
+| `ELEVENLABS_VOICE_ID` | Server | optional | Defaults to a free-tier-safe premade voice. **Free tier can't use library voices via the API** — see §5's accent note. |
 
 That table is the complete set. Anything not listed above does not belong in Vercel —
 in particular:
@@ -30,10 +32,9 @@ in particular:
 > [`scripts/dev-signin.mjs`](scripts/dev-signin.mjs), which never runs in production.
 > Keep it in `.env.local` (gitignored) and nowhere else. See CLAUDE.md Hard Rule 1.
 >
-> There is likewise **no TTS/voice key** in this table. Voice (BUILD_SPEC Phase 8) is
-> unbuilt and double-gated on a TTS key **and** Harish's go-ahead; as of 2026-07-15 no
-> TTS key exists in any environment. When Phase 8 lands, its key is **server-only** —
-> never `NEXT_PUBLIC_`.
+> Note the voice key **is** in the table above as of 2026-07-15 (Phase 8 shipped), but
+> `ELEVENLABS_API_KEY` is **server-only** — never `NEXT_PUBLIC_`. Verified: it appears
+> in no client bundle file and in no browser network request.
 
 > **Pass-through vs configured:** with the two `NEXT_PUBLIC_SUPABASE_*` unset, every
 > screen renders without login (dev convenience — this was the Phase-2 blocker fix).
@@ -167,7 +168,51 @@ Resend's free tier (3,000 emails/month, 100/day) is more than enough for launch.
 
 ---
 
-## 5. Regenerating icons
+## 5. Voice / the call screen — manual checklist (**Harish only**)
+
+Phase 8 shipped with an honest split. Everything that can be checked headlessly
+**was** checked and is green (see `BUILD_SPEC_STATUS.md` row 8): `/api/tts` returns
+real decodable audio, `kind:'call'` rows persist into the shared history, the
+transcript renders from DB truth with `localStorage` cleared, and the ElevenLabs key
+appears in **no** client bundle and in **no** browser network request.
+
+What Claude **cannot** do is hold a microphone or hear a speaker — and a headless pane
+reports `document.visibilityState: "hidden"`, so audio and mic APIs don't behave
+normally there. **Row 8 stays 🟡 until you walk this list.** It should take two minutes.
+
+Use **Chrome, Edge or Safari** (Web Speech API needs one of them) with the sound on.
+
+- [ ] Open `/call`. Honza's dot-matrix face fills the screen and the button reads
+      **CALL HONZA**.
+- [ ] Tap **CALL HONZA**. Within a couple of seconds Honza's opener appears as a
+      caption **and you hear him say it out loud** in Czech. ← *the load-bearing one*
+- [ ] The call timer starts counting, and the mic ring pulses when he stops speaking.
+- [ ] Say something in Czech (e.g. *"Ahoj Honzo, mám se dobře."*). Your words appear
+      in the caption under **// YOU** — that's STT working live.
+- [ ] Honza replies **audibly**, gently correcting if you slipped, and ends with a
+      question. His reply is 1–3 sentences — short enough to speak.
+- [ ] Tap the red **✕**. Audio cuts immediately, the mic goes cold, and you land in
+      **Chat** with the whole exchange inside a `// CALL TRANSCRIPT` block.
+- [ ] Open devtools → Network during a call: requests go to **`/api/tts`** on your own
+      origin and **never** to `api.elevenlabs.io`. No key appears anywhere.
+
+If the mic never activates, it's almost always browser permissions rather than the
+app — check the address-bar mic icon. If Honza is silent but his text still appears,
+that's the deliberate degradation: the call keeps working as a readable call, and the
+reason is in the server log.
+
+> **Known limitation — Honza's accent.** ElevenLabs' **free tier cannot use library
+> ("professional") voices via the API**; those return `402 paid_plan_required` even
+> though the dashboard lists them. Every Czech-native voice is a library voice. So the
+> configured `ELEVENLABS_VOICE_ID` currently 402s, and the server falls back to a
+> premade voice that speaks Czech **with an English accent**, logging a warning. The
+> loop is real either way, but for a product that teaches pronunciation this is worth
+> fixing: upgrade to a paid plan and the configured Czech voice is used automatically,
+> **with no code change**.
+
+---
+
+## 6. Regenerating icons
 
 Icons are generated from the idle `HonzaOrb` face — keep them in sync if the face
 or palette changes:
