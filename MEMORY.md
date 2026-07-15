@@ -46,6 +46,65 @@ _Last updated: 2026-05-12_
 
 ---
 
+## Current entry — 2026-07-15 (live Supabase connected — most DB gates walked)
+
+Supabase went live this session. Both migrations applied, all tables/columns confirmed,
+RLS enforced (anonymous insert → `42501`), and **`/api/state` returned `persisted:true`
+for the first time**. The app is on the DB, not the localStorage fallback.
+
+### Verified live (real Supabase, real OpenRouter, real Google Doc)
+
+- **Magic-link login → session** (Ph 1). Profile row auto-created by `0001`'s trigger.
+- **New user forced through onboarding from DB truth** (Ph 6) — and notably the DB's empty
+  profile **overrode stale localStorage values** on hydrate, proving `ServerSync` makes the
+  DB authoritative rather than merging.
+- **Onboarding → DB**: `level:'B1'`, `topics:['food']` persisted.
+- **Google Doc → DB → engine** (Ph 5): 2,902 chars of Czech vocab fetched server-side into
+  `user_context`; Honza then spontaneously quizzed *"Jak se řekne 'airport' česky?"* —
+  `Letiště – Airport` is line 1 of that doc. DB topics also steered the opener (chose
+  "food" → he asked about food).
+- **Chat turns → `messages`** (Ph 4), `kind:'chat'`; **hard refresh re-rendered the thread
+  from the DB**. Sign-out cleared the session (`persisted:false` → `/signin`).
+
+### Blocked, and it isn't code
+
+Supabase's **built-in email sender caps at ~2/hour** and can't be raised (it also locks
+template editing — that's why the `{{ .Token }}` plan died). Both were spent, so re-login
+persistence, returning-user-skips-onboarding, and second-user isolation are unwalked. Fix
+is **custom SMTP** (Resend), which is required for production anyway.
+
+### The headless sign-in technique (this is the reusable bit)
+
+Claude has no inbox, and magic links are single-use **and browser-bound**. The flow that
+works is documented step-by-step in `BUILD_SPEC_STATUS.md` → "How to sign in headlessly".
+The essentials:
+
+- **Claude must request the link from its own browser** — PKCE stores the code verifier in
+  a cookie there, and `@supabase/ssr` reads it server-side for `exchangeCodeForSession`.
+  If anyone else opens the link it's consumed *and* fails (`otp_expired`). That burned
+  email #1.
+- **The email is irrelevant.** The token lands in `auth.one_time_tokens` the instant the
+  link is requested — read it with SQL, skip the inbox entirely.
+- A magic-link token for an **existing** user is stored as `token_type=recovery_token` but
+  must be redeemed with **`type=magiclink`** (`type=recovery` → `otp_expired`). `type=signup`
+  is only for a brand-new unconfirmed user.
+- The Browser pane blocks navigating to the `supabase.co` origin, so resolve the verify
+  redirect with curl and hand the resulting `?code=` to the browser.
+
+### Browser-automation gotchas that cost real time
+
+- **`form_input` sets the DOM value without React seeing it** — the field looks filled, the
+  submit no-ops. Always click + `type`, then read `.value` back before submitting.
+- **The first click+type after a page load frequently doesn't register.** Verify the value
+  and retry; the second attempt lands.
+- **Screenshot pixels and the layout viewport can disagree** (a 390×844 viewport returned a
+  660×1428 image), so `coordinate` clicks silently miss. Prefer `ref` clicks, or drive the
+  real handler (`form.requestSubmit()`, Enter) — the Composer submits on Enter.
+- `querySelector` intermittently returns null mid-re-render; re-query before concluding
+  something is missing.
+
+---
+
 ## Current entry — 2026-07-15 (BS Phase 9: landing page + DESIGN.md polish pass)
 
 Branch `claude/phase-9-landing-polish` off `main` (PR #4 squash-merged as `f007331`).
