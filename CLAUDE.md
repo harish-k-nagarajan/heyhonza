@@ -55,7 +55,7 @@ No test framework is configured. Verification is lint + build + manual check on 
 3. **Google Doc ingestion uses public URLs, no OAuth** (`/api/context/google-doc` fetches server-side).
 4. **Mobile-first installable PWA** is the product; design desktop as a centered ~430px phone stage.
 5. **The design system is the cream / dot-matrix system in `DESIGN.md`** (Share Tech Mono, `#F5F2EE` canvas, state-tinted backgrounds, HonzaOrb square dot-matrix face). This **superseded** the original "dark mode only" decision on 2026-05-12. If you find dark tokens or Inter font in product chrome, they are legacy — migrate them per DESIGN.md, don't extend them.
-6. **Still out of scope:** scheduling and social features. Don't build toward them. **Voice is no longer out of scope** — it's BUILD_SPEC Phase 8, adopted 2026-07-14, but **double-gated: needs a TTS key *and* Harish's explicit go-ahead.** Neither exists as of 2026-07-15, so don't start it. *(`CONTEXT.md`'s "Out of scope for MVP" still lists real voice calls; that line predates the BUILD_SPEC adoption and is pending reconciliation. Everything else in CONTEXT.md still governs.)*
+6. **Still out of scope:** scheduling and social features. Don't build toward them. **Voice is no longer out of scope** — it's BUILD_SPEC Phase 8, adopted 2026-07-14, but **double-gated: needs a TTS key *and* Harish's explicit go-ahead.** Neither exists as of 2026-07-15, so don't start it. (`CONTEXT.md` was reconciled to match on 2026-07-15.)
 7. **The character is the app.** Honza is never a small decorative icon on primary surfaces; every screen leads with the character (see DESIGN.md).
 
 ## Architecture Notes
