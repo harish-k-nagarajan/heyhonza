@@ -20,14 +20,15 @@ const config: Config = {
         "accent-foreground": "var(--accent-foreground)",
       },
       borderRadius: {
-        card: "16px",
+        card: "var(--radius-card)",
       },
       fontFamily: {
-        sans: [
-          "var(--font-share-tech-mono)",
-          "ui-monospace",
-          "monospace",
-        ],
+        // Body + display are a design-selectable axis (Design Lab). Both resolve
+        // to a `--f-*` face via `--font-body` / `--font-display`, set by the
+        // pre-paint script and DesignRoot. Classic maps both to Share Tech Mono,
+        // so `font-sans` stays byte-for-byte on the shipped app.
+        sans: ["var(--font-body)"],
+        display: ["var(--font-display)"],
       },
       animation: {
         honza: "honza 4s ease-in-out infinite",
