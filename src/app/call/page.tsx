@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import CallClient from "./CallClient";
+import { CallScreen } from "@/components/screens/call/CallScreen";
 
 export const metadata: Metadata = {
   title: "Call Honza",
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function CallPage() {
-  return <CallClient />;
+  return <CallScreen />;
 }
