@@ -224,6 +224,16 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
         >
           Smazat data a projít onboarding znovu
         </button>
+        {/* Hmat Home leads with the character, not chrome — so sign-out lives
+            here (Classic keeps it on Home). No dead ends. */}
+        <form action="/auth/signout" method="post">
+          <button
+            type="submit"
+            className="w-full py-1 font-display text-[10px] uppercase tracking-[0.18em] text-muted-foreground underline"
+          >
+            Odhlásit se
+          </button>
+        </form>
       </section>
     </div>
   );
