@@ -46,6 +46,86 @@ _Last updated: 2026-05-12_
 | **Auth is email+password with email confirmation. Not magic link, not Clerk, not Google SSO** (Harish, 2026-07-15) | Magic link costs an email on **every** sign-in, and Supabase's built-in sender caps at ~2/hr, which stalled verification. Password costs one email **once** (the confirmation), then sign-ins are unlimited and offline. Considered and **rejected: Clerk** — it's auth-only, so the DB stays Supabase either way, and Clerk users don't live in `auth.users`, which would mean rewriting all three FKs, all nine RLS policies (`auth.uid()`), and the signup trigger — a schema migration to solve a config problem. **Rejected Google SSO** for now (Harish: don't add vendors before testing the core product). Magic link stays **enabled at the Supabase project level but unexposed in the UI**, as Claude's dev sign-in path and a future feature. |
 | **Claude does not enter passwords or create accounts — even test ones** (2026-07-15) | Agreed with Harish. Consequence: Claude signs in via `scripts/dev-signin.mjs` (admin `generate_link` → `token_hash` → `verifyOtp`), which needs no password and sends no email; **Harish spot-checks the password sign-up/sign-in round-trip** himself. Supersedes the old magic-link SQL-token path (2026-07-15) — that needed Harish to run a query by hand and broke if the link was opened in the wrong browser. The same-email account-linking claim is verifiable without logging in at all — query `auth.identities` and count `user_id`s. |
 | **Email confirmation stays ON** (2026-07-15) | Turning it off would remove email entirely, but then anyone can sign up claiming any address without proving ownership — and combined with auto-linking that's an account-takeover vector. **Open item:** the built-in sender's ~2/hr cap is fine for testing but cannot serve real learners, so custom SMTP (Resend) is required before launch. |
+| **The design system is plural: Classic + Hmat Metal + Hmat Ceramic, switchable in Settings → Design Lab** (2026-07-16) | Harish locked **Hmat** (tactile material) after rounds 2–4. Sklo (glass) + Náboj (poppy) are archived in `design-lab/`, not built. **Classic is preserved byte-for-byte** (Share Tech Mono + the F0 bug) as the Lab's baseline. Source of truth: `design-lab/round4-hmat.html`. Metal vs Ceramic are one component tree, two token blocks (grain + warmth). |
+| **Fix idle-vs-excited with energy, never re-hueing** (2026-07-16) | idle and excited share `#E8432D` on purpose (DESIGN.md). The distinguisher is the `--energy` scalar (0.35 vs 1.0) driving the Hmat lit channel + orb backlight brightness + motion. Accent hues stay locked. Verified dramatic in a still. |
+| **Switching design in the Lab resets fonts to that design's defaults** (2026-07-16) | Fonts are an independent axis, BUT "choose Classic → the shipped app exactly" requires Classic to come back on Share Tech Mono. So `setDesign` re-applies the design's default faces; the user can still override either face afterward, or reset. |
+
+---
+
+## Current entry — 2026-07-16 (Design Lab rebuild — Hmat, three selectable designs)
+
+Built the locked **Hmat** direction into the app as **three switchable designs**
+(Classic + Hmat Metal + Hmat Ceramic), Settings → Design Lab. Branch
+`design/hmat-rebuild` off `main` at `2af8e6f`. Primitives-before-features, six
+phases, every gate walked in the browser. Spec: `DESIGN.md` § Design Lab; build
+log: `TASKS.md` § Design Lab rebuild.
+
+### What was built (all gates walked live)
+
+- **P1 — token contract + no-flash runtime.** `data-design` on `<html>` selects a
+  token block; `:root` = Classic (no attribute). Fonts are a separate axis
+  (`--font-display`/`--font-body`). `useDesignStore` (persisted, validating
+  `merge`), a **pre-paint inline `DesignScript`** (first child of `<body>`) that
+  applies the saved design before first paint, `DesignRoot` for live switching.
+  Geist Sans/Mono + 5 Geist Pixel faces via `next/font` — **F0 is fixed for Hmat**
+  (Czech renders full diacritics in Geist Sans). Classic keeps Share Tech Mono +
+  the bug on purpose.
+- **P2 — mood expression engine.** `mood + design → { background, accent, energy,
+  czLabel, caption }`; AppShell sets `--energy` app-wide. **idle vs excited is now
+  obviously distinct** (dim vs bright channel/backlight), same hue.
+- **P3 — behaviour hooks.** `useScreenReady` (gates on the design store too, or Home
+  flashes Classic), `useHomeScreen`/`useChatScreen`/`useCallScreen`/`useSettingsScreen`/
+  `useOnboardingScreen`. **Classic refactored onto them byte-for-byte.**
+- **P4 — system kit + Hmat surfaces.** `HardwareIcon` set (Hovor = phone, not mic),
+  `HmatOrb` (round-4 maps + energy backlight + blink), `HmatDock`, material CSS
+  (`.mat*`/`.fdock`). All four surfaces in Hmat, Metal + Ceramic via tokens only.
+- **P5 — pre-app in Hmat.** Welcome/Signin/Onboarding design-aware. Sign-out moved to
+  Hmat Settings (Hmat Home leads with the character, so no sign-out there).
+- **P6 — Design Lab.** Picker + independent font selects + reset + live Czech specimen
+  + display-as-body warning. Switching restyles the page you're on; Classic returns the
+  shipped app exactly; choice persists with no flash.
+
+### Verified live (browser, 430px)
+
+Classic Home/Chat/Call/Settings render identically to base; a typed reply returned a
+real correction. Hmat all four surfaces: no horizontal overflow (stage+dock fill 430,
+`scrollWidth==clientWidth`), 4 tabs w/ icons, character-first, Czech full diacritics.
+Metal↔Ceramic toggles surface only (grain 0.5→0, layout/fonts identical). idle vs
+excited dramatically distinct via energy. Full signed-out flow walked end-to-end in
+Hmat. Design Lab: font switch live-updates the specimen + shows the warning; choosing
+Classic → `data-design:null` + Share Tech Mono + BottomNav; reload keeps the choice
+with the pre-paint inline `--font-*` present (no flash). `lint` + `build` green,
+`ƒ Middleware` printed.
+
+### Gotchas re-confirmed (the memory index was right)
+
+- **CDP clicks/keys don't reach React** — drove every control via in-page `el.click()`
+  and native value setters + `dispatchEvent`.
+- **The pane never advances CSS transitions/animations** (document is permanently
+  `hidden`): the mood-background `transition-colors` reads stale in `getComputedStyle`
+  while the **inline** style is correct. Verified via inline values; injected
+  `transition-duration:0s` for clean mood screenshots. The Hmat orb's blink is built so
+  the **base** state shows the open face (blink layer opacity 0), so it never strands.
+- **`navigate` resets the pane viewport to ~800px and mood to idle** — re-`resize_window`
+  to 430 after every navigation before screenshotting.
+
+### Not verified — inherits BUILD_SPEC row 8's 🟡
+
+The Hmat `/call` screen + `CALL HONZA`/`ZAVOLAT` render and wire, but the
+speak→listen→speak turn cycle needs a real mic + speakers — headless can't. Same
+`DEPLOY.md` §5 gap as row 8.
+
+### State the next session inherits
+
+- Branch `design/hmat-rebuild`; **one PR for the whole rebuild** (not opened yet — the
+  prompt said open one PR for the design work).
+- **I ran Settings → "Reset data" on `hn@harishnagarajan.com`** to walk the real
+  onboarding flow (the only non-destructive way in against a live DB profile). That
+  wiped that account's chat history + re-defaulted topics/level, then I completed
+  onboarding again. It's a dev test account, but note the reset if history looks empty.
+- `.env.development.local` still sets `NEXT_PUBLIC_HONZA_DEV_TOOLS=1`, so the MoodCycler
+  pill shows in **your** dev (it's gitignored, null in prod / a fresh checkout). The
+  mood engine makes it redundant; I didn't remove your local flag.
 
 ---
 

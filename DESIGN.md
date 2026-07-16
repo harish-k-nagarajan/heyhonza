@@ -1,5 +1,13 @@
 # Honza — design system
 
+> **The design system is now plural (2026-07-16).** There are **three selectable
+> designs**, switched live in Settings → Design Lab: **Classic** (the original,
+> documented in the body of this file), **Hmat Metal**, and **Hmat Ceramic**.
+> Classic is preserved **byte-for-byte** — it keeps Share Tech Mono and the F0
+> font bug on purpose, as the baseline the Lab compares against. The Hmat spec,
+> the re-authored orb maps, and the icon set are in **§ Design Lab** at the end
+> of this file. Everything above that section describes **Classic**.
+
 ## Identity
 
 The app is **Honza**. The character **is** the app: Nothing OS dot matrix meets a friendly Czech tutor. Every screen leads with the character. He is never treated as a small decorative icon on primary surfaces.
@@ -127,3 +135,89 @@ Design screenshots and exports:
 `/Users/harishnagarajan/Documents/Cursor/Honza/Design Reference`
 
 Use this folder for reviews so Figma / exports stay traceable.
+
+---
+
+# Design Lab (multiple designs)
+
+Since 2026-07-16 the app ships **three designs**, switchable live in **Settings →
+Design Lab**. Everything above is **Classic**. This section documents the
+architecture and the **Hmat** design (Metal + Ceramic).
+
+## The three designs
+
+| Design | Family | Surface | Display font | Body font |
+|---|---|---|---|---|
+| **Classic** | classic | cream, flat cards | Share Tech Mono | Share Tech Mono (F0 bug kept on purpose) |
+| **Hmat Metal** | hmat | brushed cream-metal, visible grain | Geist Pixel Square | Geist Sans |
+| **Hmat Ceramic** | hmat | warm matte ceramic, grain off | Geist Pixel Square | Geist Sans |
+
+Metal and Ceramic are the **same layout and component tree** — they differ only
+in a token block (material gradient, grain, warmth). Do not fork components for
+them.
+
+## Token contract + theme runtime
+
+- `data-design` on `<html>` selects a token block in `globals.css`. `:root` holds
+  **Classic**, so Classic renders with **no attribute** — on the server, JS off,
+  before any script. Non-Classic designs stamp `data-design="hmat-metal|hmat-ceramic"`.
+- **Fonts are a separate axis:** `--font-display` / `--font-body`, chosen
+  independently in the Lab. Tailwind: `font-display → var(--font-display)`,
+  `font-sans → var(--font-body)`, `rounded-card → var(--radius-card)`.
+- Registry: `src/lib/design/registry.ts` (designs, fonts, per-design defaults).
+  Persisted store: `useDesignStore` (`localStorage` `honza-design`). A **pre-paint
+  inline script** (`DesignScript`, first child of `<body>`) applies the saved
+  design before first paint — **no flash**; falls back to Classic in a `try/catch`.
+  `DesignRoot` keeps `<html>` in sync after hydration for live switching.
+- **F0 is fixed for Hmat:** Czech body copy uses Geist Sans (full diacritics —
+  `ě š č ř ž ů ď ť ň`). Pixel faces are **display-only**; the Lab **warns** when a
+  display face is chosen for body. Classic deliberately keeps Share Tech Mono and
+  the mid-word fallback.
+
+## Mood expression engine
+
+`src/lib/mood/expression.ts` — one `mood + design → expression` map:
+`{ background, accent, energy, czLabel, caption }`. Every surface reads it via
+`useMoodExpression`; `AppShell` sets `--accent`, `--energy`, and `--bg` app-wide.
+**Accent hues are locked** (idle/excited `#E8432D`, thinking `#3A7BD5`, speaking
+`#2E7D32`, oops `#C2185B`). idle and excited **share the hue** — the difference is
+the **energy** channel (0.35 → 1.0), which drives the Hmat lit channel + orb
+backlight brightness + motion amplitude. Never fix idle-vs-excited by re-hueing.
+
+## Hmat — the tactile-material spec
+
+Source of truth: `design-lab/round4-hmat.html`. CSS lives in `globals.css`
+(the `.mat*` / `.fdock` / `.hmat-orb` utilities).
+
+- **Recess (`mat-recess`)** — the signature move: the character leads every screen
+  from inside an inset well (inner top shadow + bottom highlight).
+- **Cards** — `mat` (outset: inset top-light + bottom-shadow + soft warm drop) and
+  `mat-metal` (brushed-gradient variant).
+- **Deep keys (`mat-key`)** — 6px mechanical travel (`box-shadow: 0 6px 0 …` →
+  `translateY(5px)` on `:active`). Send / call controls are keys.
+- **Lit channel (`mat-channel`)** — recessed channel whose inner glow is the mood
+  accent, brightness × `--energy`.
+- **Floating dock (`fdock`)** — detached from the bottom edge, rounded, material
+  (not glass), the four tabs, active tab accent-tinted. Content is padded to clear
+  it; nothing overlaps.
+- **Metal vs Ceramic** — tokens only: `--mat-grain-opacity` (Metal `0.5`, Ceramic
+  `0`) and the warmth mixes (`--mat-surface-warm`, `--mat-metal-warm`,
+  `--mat-recess-warm`).
+
+## The orb, re-authored (Hmat)
+
+`HmatOrb` keeps the 15×15 dot matrix but adds an energy-scaled backlight,
+emissive drop-shadow, specular dome, a **blink loop** (~5s, faster with energy),
+and a `react-pop`. It uses the **round-4 pixel maps** (MLUVÍ = open-mouth "O",
+MYSLÍ = up-looking eyes + thought bubble; every state a readable 2×2 eye pair +
+distinct mouth). **Classic keeps its original maps** in `HonzaOrb` — the two map
+sets are design-dependent, never merged.
+
+## Icon set (system kit)
+
+`src/components/icons/HardwareIcons.tsx` — geometric, square-cap, **embossed**
+glyphs inheriting `currentColor` (→ the mood accent): `home` (2×2 dot-matrix
+window), `chat` (3 square dots), `call` (**phone handset, not a mic**),
+`settings` (machined sliders), `send`, `mic` (in-call mute only), `hang`. Built
+once; used by both Hmat variants. Classic keeps its own minimal iconography.
+Type scale: `src/lib/design/typography.ts` (`TYPE` roles).
