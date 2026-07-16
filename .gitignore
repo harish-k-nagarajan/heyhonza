@@ -42,3 +42,7 @@ public/worker-*.js.map
 
 # accidental RTF export of local env (contains secrets)
 env.local.rtf
+
+# agent-local project notes (not for the repo)
+cursor.md
+CURSOR.md
