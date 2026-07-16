@@ -23,17 +23,17 @@ import {
   removeContext,
   resetUserData,
 } from "@/lib/client/context-actions";
-import { useSettingsHydrated } from "@/hooks/useSettingsHydrated";
+import { useScreenReady } from "@/hooks/useScreenReady";
 import { useMoodStore } from "@/stores/useMoodStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
-import { useSyncStore } from "@/stores/useSyncStore";
 import type { LevelId, ModelId, TopicId } from "@/lib/constants";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const localHydrated = useSettingsHydrated();
-  const serverChecked = useSyncStore((s) => s.checked);
-  const hydrated = localHydrated && serverChecked;
+  // Gate on the same readiness as every other screen — including the design
+  // store, so Settings (which will host the Design Lab) never paints before the
+  // active design resolves.
+  const hydrated = useScreenReady();
   const mood = useMoodStore((s) => s.mood);
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
   const preferredModel = useSettingsStore((s) => s.preferredModel);
