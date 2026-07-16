@@ -9,7 +9,16 @@ numbers — these differ from `TASKS.md`'s numbering).
 
 **Legend:** ✅ done & verified · 🟡 partial · ❌ not built
 
-_Last updated: 2026-07-15 (Phase 8 voice built — `/call` + server-side TTS + `kind:'call'` transcripts; row 8 🟡 pending Harish's mic/audio check)_
+_Last updated: 2026-07-16 (Design Lab rebuild — the design system is now **plural**: Classic + Hmat Metal + Hmat Ceramic, switchable live in Settings → Design Lab)_
+
+> **The design system went plural on 2026-07-16 (Hmat rebuild).** Three
+> selectable designs — **Classic** (preserved byte-for-byte), **Hmat Metal**,
+> **Hmat Ceramic** — switched live in Settings → Design Lab, choice persisted
+> with no flash. All BUILD_SPEC feature phases below still hold (the rebuild is
+> presentation: behaviour was refactored onto shared hooks, the engine / auth /
+> API were not touched). Spec + build log: `DESIGN.md` § Design Lab and
+> `TASKS.md` § Design Lab rebuild. **The Hmat `/call` turn-cycle inherits row 8's
+> 🟡** — mic/audio still can't be verified headlessly.
 
 > **✅ Every DB gate is now verified live.** The last three — re-login persistence,
 > returning-user-skips-onboarding, and second-user isolation — were walked end-to-end

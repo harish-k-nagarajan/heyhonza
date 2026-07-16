@@ -129,6 +129,49 @@ clearing the long-standing double gate.
 
 ---
 
+## Design Lab rebuild — Hmat (multiple designs) — 2026-07-16
+
+Built the locked **Hmat** direction into the app as **three selectable designs**
+(Classic + Hmat Metal + Hmat Ceramic), switchable live in Settings → Design Lab.
+Full spec in `DESIGN.md` § Design Lab; the source of truth is
+`design-lab/round4-hmat.html`. Every gate below was walked in the browser.
+
+- [x] **P1 — token contract + no-flash theme runtime** — `src/lib/design/registry.ts`
+  (designs + fonts + per-design defaults), `useDesignStore` (persisted, validating
+  `merge`), pre-paint `DesignScript` + `DesignRoot`, `globals.css` `--f-*` stacks +
+  `:root`(Classic)/`[data-design=hmat-*]` token blocks, Tailwind `font-sans →
+  var(--font-body)` / `font-display` / `rounded-card → var(--radius-card)`, Geist
+  Sans/Mono + 5 Geist Pixel faces via `next/font`. **Gate walked:** data-design +
+  font resolution; CSSOM `.font-sans=var(--font-body)`; non-Classic reload = no
+  Classic flash; corrupt blob → Classic; build prints `ƒ Middleware`. `[done]`
+- [x] **P2 — mood expression engine** — `src/lib/mood/expression.ts` +
+  `useMoodExpression`; AppShell sets `--energy` app-wide. idle vs excited perceptible
+  via energy (dim vs bright), accent hues unchanged. Debug pill untouched/env-gated. `[done]`
+- [x] **P3 — behaviour/presentation hooks** — `useScreenReady` (gates on the design
+  store too), `useHomeScreen` / `useChatScreen` / `useCallScreen` / `useSettingsScreen`
+  / `useOnboardingScreen`. Classic refactored onto them **byte-for-byte** (verified
+  Home/Chat/Call/Settings identical; opener fires, reply sends a real correction). `[done]`
+- [x] **P4 — system kit + Hmat across the four surfaces** — `HardwareIcon` set
+  (Hovor = phone), `TYPE` scale, `HmatOrb` (round-4 maps + energy backlight + blink),
+  `HmatDock`, material CSS. HmatHome/Chat/Call/Settings, both Metal + Ceramic via
+  tokens. **Gate walked at 430px:** no horizontal overflow, no dock overlap, 4 tabs,
+  character-first, Czech full diacritics, real reply in Hmat, Metal↔Ceramic = surface
+  only. `[done]`
+- [x] **P5 — pre-app surfaces in Hmat** — Welcome / Signin / Onboarding design-aware
+  (Classic verbatim + Hmat presentations + selectors). Sign-out added to Hmat Settings
+  (no dead end). **Gate walked:** signed-out → Hmat welcome → signin → onboarding →
+  Home, no unstyled screen. `[done]`
+- [x] **P6 — the Design Lab (Settings)** — shared `DesignLab`: picker w/ swatches,
+  independent display/body font selects, reset, live Czech specimen, display-as-body
+  warning. **Gate walked:** switching design restyles the page you're on; font switch
+  updates specimen + warns; Classic returns the shipped app exactly; reload persists
+  with no flash; reachable via the Settings tab, no dev tools. `[done]`
+- [ ] **Hmat mic/audible call turn-cycle** — the `/call` screen + `CALL HONZA` render
+  and wire in Hmat, but the speak→listen→speak loop can't be verified headlessly
+  (mic/audio; DEPLOY.md §5) — same 🟡 as BUILD_SPEC row 8. `[blocked on: Harish — real mic + speakers]`
+
+---
+
 ## How to use in each session
 
 1. Pick the **lowest phase** with an unchecked task.
