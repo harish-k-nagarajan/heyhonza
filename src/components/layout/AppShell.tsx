@@ -10,7 +10,6 @@ import { useDesignStore } from "@/stores/useDesignStore";
 
 import { BottomNav } from "./BottomNav";
 import { HmatDock } from "./HmatDock";
-import { MoodCycler } from "./MoodCycler";
 import { ServerSync } from "./ServerSync";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -42,8 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // frame with the machined material background. Signed-in surfaces get the
   // floating dock and clear it with bottom padding; pre-app surfaces (hideNav)
   // get the same material stage without the dock. Gated on design hydration so
-  // neither design's chrome flashes on a cold load (before that, the neutral
-  // padded container below shows the screen's own "Loading…").
+  // neither design's chrome flashes on a cold load.
   if (family === "hmat" && designHydrated) {
     return (
       <div
@@ -54,7 +52,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="relative mx-auto flex min-h-dvh max-w-app flex-col">
           <div className="mat-bg" aria-hidden />
           <div
-            className="relative z-10 flex min-h-dvh flex-1 flex-col px-5"
+            className="relative z-10 flex flex-1 flex-col px-5"
             style={{
               paddingTop: "max(20px, env(safe-area-inset-top))",
               paddingBottom: hideNav
@@ -66,7 +64,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         {!hideNav ? <HmatDock /> : null}
-        <MoodCycler />
         <ServerSync />
       </div>
     );
@@ -85,7 +82,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </div>
       {!hideNav && designHydrated ? <BottomNav /> : null}
-      <MoodCycler />
       <ServerSync />
     </div>
   );

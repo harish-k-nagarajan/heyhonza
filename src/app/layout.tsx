@@ -79,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={FONT_VARS}>
+    <html lang="en" className={FONT_VARS} suppressHydrationWarning>
       <body className="font-sans">
         {/* First child of <body>: paints the saved design onto <html> before
             any content renders, so a non-Classic design never flashes Classic. */}
