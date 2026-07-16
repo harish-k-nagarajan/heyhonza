@@ -104,3 +104,242 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================================
+ * Hmat — the tactile-material system (used only by the hmat-* designs).
+ *
+ * Ported from the locked round-4 reference. Everything tints off two app-wide
+ * mood vars set by AppShell: `--bg` (the mood background) and `--accent`, plus
+ * the `--energy` scalar. Metal vs Ceramic differ ONLY through the per-design
+ * tokens (--mat-*-warm, --mat-grain-opacity) declared in the [data-design]
+ * blocks above — one component tree, two token sets.
+ * ==========================================================================*/
+
+/* Brushed/ceramic base with an optional fine grain. */
+.mat-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, 0.4), transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 60%, #fff), var(--bg));
+}
+.mat-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  opacity: var(--mat-grain-opacity, 0);
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0 1px,
+    rgba(140, 120, 105, 0.05) 1px 2px
+  );
+}
+
+/* Outset material card (inset top-light + bottom-shadow + soft warm drop). */
+.mat {
+  position: relative;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: linear-gradient(150deg, #fff, color-mix(in srgb, var(--bg) var(--mat-surface-warm, 50%), #fff));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -2px 6px rgba(120, 90, 70, 0.1) inset,
+    0 12px 24px var(--mat-warm-shadow, rgba(90, 60, 45, 0.14)),
+    0 2px 5px rgba(90, 60, 45, 0.1);
+}
+
+/* Brushed-metal variant of the card. */
+.mat-metal {
+  position: relative;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background:
+    linear-gradient(180deg, #fbf8f4, color-mix(in srgb, var(--bg) var(--mat-metal-warm, 45%), #efe8df)),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, calc(0.3 * var(--mat-grain-opacity, 0) * 2)) 0 1px, rgba(150, 128, 110, calc(0.05 * var(--mat-grain-opacity, 0) * 2)) 1px 2px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 1) inset,
+    0 -3px 7px rgba(120, 90, 70, 0.12) inset,
+    0 14px 28px var(--mat-warm-shadow, rgba(90, 60, 45, 0.18)),
+    0 3px 7px rgba(90, 60, 45, 0.12);
+}
+
+/* Machined inset well — the signature Hmat recess the character leads from. */
+.mat-recess {
+  border-radius: 24px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bg) var(--mat-recess-warm, 40%), #e7ded3), #fff);
+  box-shadow:
+    inset 0 4px 10px rgba(120, 90, 70, 0.22),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.75);
+}
+
+/* Deep mechanical key — 6px travel, collapses on :active. */
+.mat-key {
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--bg) 48%, #f0e8df));
+  box-shadow:
+    0 6px 0 color-mix(in srgb, var(--bg) 26%, var(--mat-key-lip, #b3a496)),
+    0 10px 16px rgba(90, 60, 45, 0.2),
+    inset 0 1px 0 #fff;
+  transition: transform 0.09s ease, box-shadow 0.09s ease;
+}
+.mat-key:active {
+  transform: translateY(5px);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--bg) 26%, var(--mat-key-lip, #b3a496)),
+    0 3px 8px rgba(90, 60, 45, 0.22),
+    inset 0 1px 0 #fff;
+}
+
+/* Lit accent channel — inner glow is the mood accent, brightness × --energy. */
+.mat-channel {
+  height: 6px;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #d6ccc1, #efe7dd, #d6ccc1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+.mat-channel::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: calc(0.35 + var(--energy, 0.35) * 0.6);
+  box-shadow: 0 0 calc(4px + var(--energy, 0.35) * 10px) var(--accent);
+}
+
+/* Small press feedback shared by tappable material chrome. */
+.press {
+  transition: transform 0.13s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.press:active {
+  transform: scale(0.965) translateY(1px);
+}
+
+/* Hmat orb — depth (backlight + emissive + specular dome) all scaled by --energy,
+ * which is what makes idle (dim) vs excited (bright) read in a still. Two stacked
+ * face layers drive the blink; base state (no animation, or in a paused/hidden
+ * tab) shows the open face and hides the blink face, so the orb never strands. */
+.hmat-orb {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  isolation: isolate;
+}
+.hmat-orb::before {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  z-index: 0;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 55%, transparent), transparent 66%);
+  filter: blur(calc(5px + var(--energy, 0.35) * 16px));
+  opacity: calc(0.14 + var(--energy, 0.35) * 0.5);
+}
+.hmat-orb .stack {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+.hmat-orb .stack svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  filter: drop-shadow(0 0 calc(1px + var(--energy, 0.35) * 4px) color-mix(in srgb, var(--accent) 55%, transparent));
+}
+.hmat-orb::after {
+  content: "";
+  position: absolute;
+  inset: 7%;
+  border-radius: 24%;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(115% 85% at 32% 16%, rgba(255, 255, 255, 0.5), transparent 46%);
+  mix-blend-mode: screen;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hmat-orb .breathe {
+    animation: hmat-breathe calc(4.2s - var(--energy, 0.35) * 2.4s) ease-in-out infinite;
+  }
+  .hmat-orb .blink-layer {
+    animation: hmat-blink calc(5.5s - var(--energy, 0.35) * 1.5s) ease-in-out infinite;
+  }
+  .hmat-orb .open-layer {
+    animation: hmat-unblink calc(5.5s - var(--energy, 0.35) * 1.5s) ease-in-out infinite;
+  }
+}
+@keyframes hmat-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(calc(1 + var(--energy, 0.35) * 0.045)); }
+}
+@keyframes hmat-blink {
+  0%, 90%, 100% { opacity: 0; }
+  93%, 97% { opacity: 1; }
+}
+@keyframes hmat-unblink {
+  0%, 90%, 100% { opacity: 1; }
+  93%, 97% { opacity: 0; }
+}
+.hmat-orb .react-pop {
+  animation: hmat-pop 0.55s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+@keyframes hmat-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* Floating material dock (the Hmat nav). Positioned by its fixed wrapper; this
+ * is just the bar material + tabs. Active tab is tinted with the mood accent. */
+.fdock {
+  border-radius: 24px;
+  display: flex;
+  gap: 2px;
+  padding: 9px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--bg) 52%, #fff));
+  box-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -2px 5px rgba(120, 90, 70, 0.1) inset,
+    0 12px 26px rgba(90, 60, 45, 0.2),
+    0 2px 6px rgba(90, 60, 45, 0.14);
+}
+.hmat-tab {
+  flex: 1;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+  padding: 4px 0;
+  color: #9c9089;
+  transition: color 0.15s ease;
+}
+.hmat-tab.on {
+  color: var(--accent);
+}
+.hmat-tab.on::before {
+  content: "";
+  position: absolute;
+  inset: 2px 6px;
+  border-radius: 13px;
+  z-index: -1;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* Chat pill field used in the Hmat composer. */
+.mat-field {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: linear-gradient(150deg, #fff, color-mix(in srgb, var(--bg) 55%, #fff));
+  box-shadow:
+    inset 0 2px 5px rgba(120, 90, 70, 0.12),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.9);
+}

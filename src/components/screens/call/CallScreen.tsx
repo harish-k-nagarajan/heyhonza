@@ -3,12 +3,14 @@
 import { useCallScreen } from "@/hooks/useCallScreen";
 
 import { ClassicCall } from "./ClassicCall";
+import { HmatCall } from "./HmatCall";
 
 /**
  * Call selector. Behaviour from `useCallScreen`; picks presentation by design
- * family. Phase 4 adds the Hmat branch.
+ * family.
  */
 export function CallScreen() {
   const screen = useCallScreen();
+  if (screen.family === "hmat") return <HmatCall screen={screen} />;
   return <ClassicCall screen={screen} />;
 }
