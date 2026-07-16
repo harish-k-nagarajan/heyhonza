@@ -63,7 +63,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+    <div className="flex flex-1 flex-col gap-4">
       <header className="flex shrink-0 items-center justify-between">
         <div className="flex items-center gap-3">
           <HmatOrb state={expression.mood} size={44} breathe={false} />
