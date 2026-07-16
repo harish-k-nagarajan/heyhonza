@@ -2,7 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Font faces (two axes, resolved by the Design Lab). Each `--f-*` chains into a
+ * `next/font` CSS variable that the root <html> carries, with a matching
+ * fallback stack. `--font-display` / `--font-body` point at one of these; the
+ * pre-paint script and DesignRoot set them per the saved design + font choice.
+ */
 :root {
+  --f-share-tech-mono: var(--font-share-tech-mono), ui-monospace, "Courier New", monospace;
+  --f-geist-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-geist-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+  --f-geist-pixel-square: var(--font-geist-pixel-square), var(--font-geist-mono), ui-monospace, monospace;
+  --f-geist-pixel-grid: var(--font-geist-pixel-grid), var(--font-geist-mono), ui-monospace, monospace;
+  --f-geist-pixel-circle: var(--font-geist-pixel-circle), var(--font-geist-mono), ui-monospace, monospace;
+  --f-geist-pixel-line: var(--font-geist-pixel-line), var(--font-geist-mono), ui-monospace, monospace;
+  --f-geist-pixel-triangle: var(--font-geist-pixel-triangle), var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/*
+ * :root == Classic. Classic renders with NO `data-design` attribute — on the
+ * server, with JS off, and before the pre-paint script runs — which is what
+ * keeps the shipped app byte-for-byte the default. Design axis overrides live in
+ * the `[data-design=…]` blocks below.
+ */
+:root {
+  --font-display: var(--f-share-tech-mono);
+  --font-body: var(--f-share-tech-mono);
+  --radius-card: 16px;
+
   --background: #f5f2ee;
   --foreground: #1a1a1a;
   --muted: #ebe8e4;
@@ -12,6 +39,48 @@
   --border: rgba(0, 0, 0, 0.07);
   --accent: #e8432d;
   --accent-foreground: #ffffff;
+}
+
+/*
+ * Hmat — the tactile-material world. Metal and Ceramic are ONE layout and ONE
+ * component tree; they differ only in the surface token block below (material
+ * gradient, grain, warmth). The font defaults here are a safety net — the
+ * pre-paint script sets --font-display/--font-body inline per the saved choice,
+ * which always wins.
+ */
+[data-design="hmat-metal"],
+[data-design="hmat-ceramic"] {
+  --font-display: var(--f-geist-pixel-square);
+  --font-body: var(--f-geist-sans);
+  --radius-card: 18px;
+
+  /* Shared Hmat ink/scale on the cream base. */
+  --foreground: #1a1714;
+  --muted-foreground: #8a8079;
+  --border: rgba(0, 0, 0, 0.08);
+  --hair: rgba(0, 0, 0, 0.08);
+
+  /* Material surface tokens (consumed by the .mat* utilities, Phase 4). */
+  --mat-warm-shadow: rgba(90, 60, 45, 0.16);
+  --mat-warm-shadow-soft: rgba(120, 90, 70, 0.1);
+  --mat-inset-light: rgba(255, 255, 255, 0.95);
+  --mat-key-lip: #b3a496;
+}
+
+/* Metal — cool cream-metal with a fine brushed grain switched on. */
+[data-design="hmat-metal"] {
+  --mat-surface-warm: 55%; /* how much --bg tints the surface white */
+  --mat-metal-warm: 48%;
+  --mat-grain-opacity: 0.5;
+  --mat-recess-warm: 42%;
+}
+
+/* Ceramic — warmer, smoother matte; grain off. */
+[data-design="hmat-ceramic"] {
+  --mat-surface-warm: 42%;
+  --mat-metal-warm: 40%;
+  --mat-grain-opacity: 0;
+  --mat-recess-warm: 34%;
 }
 
 html {
