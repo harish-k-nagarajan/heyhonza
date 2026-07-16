@@ -38,12 +38,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     ["--bg" as string]: expression.background,
   };
 
-  // Hmat, signed-in, once the design has resolved: the tactile stage — a
-  // centered phone frame with the machined material background and the floating
-  // dock. Gated on design hydration so neither design's chrome flashes on a cold
-  // load (before that, a neutral padded container shows the screen's own
-  // "Loading…").
-  if (family === "hmat" && designHydrated && !hideNav) {
+  // Hmat, once the design has resolved: the tactile stage — a centered phone
+  // frame with the machined material background. Signed-in surfaces get the
+  // floating dock and clear it with bottom padding; pre-app surfaces (hideNav)
+  // get the same material stage without the dock. Gated on design hydration so
+  // neither design's chrome flashes on a cold load (before that, the neutral
+  // padded container below shows the screen's own "Loading…").
+  if (family === "hmat" && designHydrated) {
     return (
       <div
         className="min-h-dvh transition-colors duration-[400ms] ease-out"
@@ -56,13 +57,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="relative z-10 flex min-h-dvh flex-1 flex-col px-5"
             style={{
               paddingTop: "max(20px, env(safe-area-inset-top))",
-              paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
+              paddingBottom: hideNav
+                ? "calc(28px + env(safe-area-inset-bottom))"
+                : "calc(88px + env(safe-area-inset-bottom))",
             }}
           >
             {children}
           </div>
         </div>
-        <HmatDock />
+        {!hideNav ? <HmatDock /> : null}
         <MoodCycler />
         <ServerSync />
       </div>
