@@ -7,6 +7,7 @@ import { LEVEL_OPTIONS, ROUTES, TOPIC_OPTIONS } from "@/lib/constants";
 import type { LevelId } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import type { OnboardingScreen } from "@/hooks/useOnboardingScreen";
+import { HmatFileInput } from "@/components/screens/hmat/HmatChrome";
 
 /** Hmat onboarding — the same flow in tactile material. */
 function Chip({
@@ -126,15 +127,10 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
 
       <section className="mat space-y-3 px-4 py-4">
         <Heading>Soubor nebo text</Heading>
-        <label className="font-sans text-xs text-muted-foreground">
-          Soubor (.txt, .md)
-          <input
-            type="file"
-            accept=".txt,.md,text/plain"
-            onChange={(e) => screen.onFile(e.target.files?.[0] ?? null)}
-            className="mt-1 block w-full font-sans text-xs text-muted-foreground"
-          />
-        </label>
+        <div className="space-y-1.5">
+          <p className="font-sans text-xs text-muted-foreground">Soubor (.txt, .md)</p>
+          <HmatFileInput onFile={screen.onFile} />
+        </div>
         <textarea
           value={screen.paste}
           onChange={(e) => screen.setPaste(e.target.value)}

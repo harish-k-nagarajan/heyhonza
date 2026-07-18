@@ -52,14 +52,21 @@ export function SignInScreen({
               : "font-sans text-lg tracking-[0.12em] text-foreground"
           }
         >
-          Ahoj! I&apos;m Honza.
+          {isHmat ? "Ahoj! Já jsem Honza." : "Ahoj! I'm Honza."}
         </h1>
         <p className="mx-auto max-w-[min(300px,100%)] font-sans text-xs leading-relaxed tracking-[0.08em] text-muted-foreground">
-          Sign in and we&apos;ll pick up your Czech where you left off.
+          {isHmat
+            ? "Přihlas se a navážeme s češtinou tam, kde jsi skončil."
+            : "Sign in and we'll pick up your Czech where you left off."}
         </p>
       </div>
 
-      <SignInForm configured={configured} next={next} initialError={initialError} />
+      <SignInForm
+        configured={configured}
+        next={next}
+        initialError={initialError}
+        isHmat={isHmat}
+      />
     </div>
   );
 }

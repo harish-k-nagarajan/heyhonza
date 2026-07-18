@@ -166,6 +166,23 @@ Full spec in `DESIGN.md` § Design Lab; the source of truth is
   warning. **Gate walked:** switching design restyles the page you're on; font switch
   updates specimen + warns; Classic returns the shipped app exactly; reload persists
   with no flash; reachable via the Settings tab, no dev tools. `[done]`
+- [x] **P8 — language + material polish pass** (2026-07-18) — closed the Hmat
+  English leaks and two UI gaps from the audit. **Language (Hmat only; Classic left
+  English byte-for-byte):** Welcome "how it works" steps (new `WELCOME_STEPS_CS`), Call
+  subtitle/status line (local `czStatusLine` in `HmatCall`; shared hook's English
+  `statusLine` untouched for Classic), Design Lab `Display`/`Body (Czech)`/`Reset` labels
+  + display-as-body warning (design-aware in `DesignLab`), and the shared
+  `SignInForm`/`SignInScreen` (heading, subtitle, placeholders, buttons, validation +
+  auth errors, confirm-email screen) — all full Czech under an `isHmat` flag. Topic/level
+  chips deliberately kept English (shared constants; short category nouns — confirmed
+  acceptable in context). **UI:** Hmat file picker rebuilt as a shared `HmatFileInput`
+  `mat-key` "Vybrat soubor" control showing the Czech filename ("Žádný soubor") — the
+  native `::file-selector-button` label is browser-locale text CSS can't change; used in
+  Hmat Settings + Onboarding, Classic file input untouched. Hmat sign-in fields/submit
+  given tactile controls (`mat-field` / `mat-key`) — the P5 "left unchanged" call, done
+  with Harish's OK. **Gate walked** at 430px across Hmat Metal, Hmat Ceramic, and Classic:
+  welcome, signin, settings, call. Classic signin + Design Lab verified byte-for-byte
+  English. `lint` + `build` green (`ƒ Middleware` present). `[done]`
 - [ ] **Hmat mic/audible call turn-cycle** — the `/call` screen + `CALL HONZA` render
   and wire in Hmat, but the speak→listen→speak loop can't be verified headlessly
   (mic/audio; DEPLOY.md §5) — same 🟡 as BUILD_SPEC row 8. `[blocked on: Harish — real mic + speakers]`

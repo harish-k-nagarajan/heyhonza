@@ -1,10 +1,53 @@
 "use client";
 
+import { useRef, useState } from "react";
+
 /**
  * Shared Hmat chrome — the header row, the mood badge, and the per-screen
  * loading placeholder. Built once so Home / Chat / Call / Settings stay
  * consistent and both material variants inherit the same structure.
  */
+
+/**
+ * File picker in Hmat material + full Czech. The native `::file-selector-button`
+ * can be styled but its label ("Choose File") is browser-locale text CSS can't
+ * touch — so we hide the input and drive it from a `mat-key` label, showing the
+ * chosen filename ourselves. `.txt`/`.md` only, same `onFile` as everywhere.
+ */
+export function HmatFileInput({
+  onFile,
+}: {
+  onFile: (file: File | null) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [name, setName] = useState<string | null>(null);
+
+  return (
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="mat-key press shrink-0 rounded-full px-4 py-2 font-display text-[11px] uppercase tracking-[0.14em] text-accent"
+      >
+        Vybrat soubor
+      </button>
+      <span className="min-w-0 flex-1 truncate font-sans text-xs text-muted-foreground">
+        {name ?? "Žádný soubor"}
+      </span>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".txt,.md,text/plain"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0] ?? null;
+          setName(file?.name ?? null);
+          onFile(file);
+        }}
+      />
+    </div>
+  );
+}
 
 export function HmatHeader({
   brand,

@@ -49,6 +49,51 @@ _Last updated: 2026-05-12_
 | **The design system is plural: Classic + Hmat Metal + Hmat Ceramic, switchable in Settings → Design Lab** (2026-07-16) | Harish locked **Hmat** (tactile material) after rounds 2–4. Sklo (glass) + Náboj (poppy) are archived in `design-lab/`, not built. **Classic is preserved byte-for-byte** (Share Tech Mono + the F0 bug) as the Lab's baseline. Source of truth: `design-lab/round4-hmat.html`. Metal vs Ceramic are one component tree, two token blocks (grain + warmth). |
 | **Fix idle-vs-excited with energy, never re-hueing** (2026-07-16) | idle and excited share `#E8432D` on purpose (DESIGN.md). The distinguisher is the `--energy` scalar (0.35 vs 1.0) driving the Hmat lit channel + orb backlight brightness + motion. Accent hues stay locked. Verified dramatic in a still. |
 | **Switching design in the Lab resets fonts to that design's defaults** (2026-07-16) | Fonts are an independent axis, BUT "choose Classic → the shipped app exactly" requires Classic to come back on Share Tech Mono. So `setDesign` re-applies the design's default faces; the user can still override either face afterward, or reset. |
+| **Hmat chrome is full Czech; Classic chrome stays as shipped (mostly English)** (2026-07-18) | The character is the app and Hmat leads with him — mixing Czech chrome with English strings broke the illusion. So Hmat surfaces are fully Czech-ified (welcome, call, Design Lab, sign-in) via `isHmat` branches, while **Classic is preserved byte-for-byte** (its English is the shipped baseline). This *narrows* DESIGN.md §"English for navigation/settings" to Classic only. |
+| **Topic/level chips stay English in Hmat** (2026-07-18) | They come from shared `lib/constants` (used by Classic + onboarding + settings) and read as short category nouns ("Travel", "A2 · Elementary"). Czech-ifying only Hmat would mean a parallel label map for marginal gain; confirmed in-browser they don't look out of place under the Czech headings. Revisit if a Czech-first copy deck lands. |
+| **Hmat file picker is a wrapped `mat-key` control, not the native input** (2026-07-18) | The browser's `::file-selector-button` accepts CSS but its label ("Choose File") + status ("No file chosen") are locale text CSS can't set. To get both material styling *and* Czech ("Vybrat soubor" / "Žádný soubor") we hide the input and drive it from a labelled `mat-key` (`HmatFileInput`). Classic keeps its native `Input type=file` (byte-for-byte). |
+
+---
+
+## Current entry — 2026-07-18 (Hmat polish pass — language consistency + material controls)
+
+Follow-up audit of `design/hmat-rebuild` found Hmat largely complete but leaking
+English chrome, plus two UI gaps. Closed them **Hmat-only**; Classic stayed
+byte-for-byte. All gates walked at 430px across Hmat Metal, Hmat Ceramic, Classic.
+
+### What was fixed (all Hmat surfaces; Classic untouched)
+
+- **Welcome steps** — added `WELCOME_STEPS_CS` (Czech) beside the shipped English
+  `WELCOME_STEPS`; `HmatWelcome` uses the Czech set, `ClassicWelcome` keeps English.
+- **Call subtitle/status** — the shared `useCallScreen` returns Classic's English
+  `statusLine`; `HmatCall` now derives its own Czech line (`czStatusLine`) from the
+  same `phase`/`listening`, so the hook stays untouched and Classic is unaffected.
+- **Design Lab labels** — `Display` / `Body (Czech)` / `Reset to design default`, the
+  `· display` option suffix, and the display-as-body warning are now design-aware in
+  the shared `DesignLab` (Czech under `isHmat`, English for Classic).
+- **Sign-in** — `SignInScreen` heading + subtitle and the whole `SignInForm`
+  (placeholders, aria labels, submit/toggle buttons, validation + Supabase error copy,
+  confirm-email screen) go full Czech via an `isHmat` prop. **B6 done (with Harish's
+  OK):** Hmat sign-in fields are `mat-field` pills and the submit is a `mat-key` — the
+  P5 "left unchanged" call is now resolved. Classic keeps its accent-outline pills +
+  solid accent button and English copy verbatim.
+- **File upload** — replaced the native "Choose File" chrome with a shared
+  `HmatFileInput`: a `mat-key` "Vybrat soubor" button + our own Czech filename
+  ("Žádný soubor"). Reason: `::file-selector-button` can be *styled* but its label is
+  browser-locale text CSS can't set, so a wrapped control was the only way to get Czech.
+  Used in Hmat Settings + Onboarding. Classic's `Input type=file` left untouched.
+
+### Verified live (browser, 430px)
+
+Hmat Metal + Ceramic: welcome steps Czech, call subtitle Czech, Design Lab labels
+Czech, sign-in Czech + material fields/key, file picker = "Vybrat soubor" / "Žádný
+soubor". Classic: sign-in still `Ahoj! I'm Honza.` / `Sign in` on accent pills, Design
+Lab still `DISPLAY` / `BODY (CZECH)` / `RESET TO DESIGN DEFAULT` — byte-for-byte.
+`npm run lint` clean; `npm run build` green with `ƒ Middleware` present.
+
+### Still open
+
+Row 8 (mic + audible call turn-cycle) unchanged — can't be verified headlessly.
 
 ---
 

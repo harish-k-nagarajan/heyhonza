@@ -9,7 +9,7 @@ numbers — these differ from `TASKS.md`'s numbering).
 
 **Legend:** ✅ done & verified · 🟡 partial · ❌ not built
 
-_Last updated: 2026-07-16 (Design Lab rebuild — the design system is now **plural**: Classic + Hmat Metal + Hmat Ceramic, switchable live in Settings → Design Lab)_
+_Last updated: 2026-07-18 (Hmat polish pass — language consistency + material controls; Classic still byte-for-byte)_
 
 > **The design system went plural on 2026-07-16 (Hmat rebuild).** Three
 > selectable designs — **Classic** (preserved byte-for-byte), **Hmat Metal**,
@@ -19,6 +19,18 @@ _Last updated: 2026-07-16 (Design Lab rebuild — the design system is now **plu
 > API were not touched). Spec + build log: `DESIGN.md` § Design Lab and
 > `TASKS.md` § Design Lab rebuild. **The Hmat `/call` turn-cycle inherits row 8's
 > 🟡** — mic/audio still can't be verified headlessly.
+>
+> **Polish pass 2026-07-18 (Hmat only; Classic untouched).** Closed the Hmat
+> English leaks and two UI gaps found in a follow-up audit: Welcome "how it works"
+> steps, the Call subtitle/status, the Design Lab `Display`/`Body`/`Reset` labels,
+> and the shared sign-in (`SignInScreen` + `SignInForm`) are now full Czech under
+> an `isHmat` flag; the native file picker became a material `mat-key` "Vybrat
+> soubor" control (`HmatFileInput`, Hmat Settings + Onboarding); and the Hmat
+> sign-in form got tactile `mat-field`/`mat-key` controls (the P5 deferral, done
+> with Harish's OK). Topic/level chips deliberately kept English (shared constants).
+> Verified at 430px across Metal, Ceramic, and Classic; Classic sign-in + Design
+> Lab confirmed byte-for-byte English. `lint` + `build` green. No engine/auth/DB
+> logic changed. See `TASKS.md` § Design Lab rebuild P8 and `MEMORY.md` (2026-07-18).
 
 > **✅ Every DB gate is now verified live.** The last three — re-login persistence,
 > returning-user-skips-onboarding, and second-user isolation — were walked end-to-end

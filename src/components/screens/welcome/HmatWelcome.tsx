@@ -5,7 +5,7 @@ import Link from "next/link";
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { LEVEL_OPTIONS, ROUTES, TOPIC_OPTIONS } from "@/lib/constants";
 
-import { WELCOME_STEPS } from "./welcome-content";
+import { WELCOME_STEPS_CS } from "./welcome-content";
 
 /** Hmat Welcome — the front door in tactile material. */
 export function HmatWelcome() {
@@ -46,7 +46,7 @@ export function HmatWelcome() {
           Jak to funguje
         </p>
         <ol className="space-y-4">
-          {WELCOME_STEPS.map((s) => (
+          {WELCOME_STEPS_CS.map((s) => (
             <li key={s.n} className="flex gap-3">
               <span className="shrink-0 font-display text-[11px] tracking-[0.14em] text-accent" aria-hidden>
                 {s.n}
