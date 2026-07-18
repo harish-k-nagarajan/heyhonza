@@ -64,12 +64,15 @@ function FontSelect({
   value,
   onChange,
   warn,
+  displaySuffix,
 }: {
   id: string;
   label: string;
   value: FontId;
   onChange: (f: FontId) => void;
   warn?: string;
+  /** Suffix shown after display-only faces (localized per design). */
+  displaySuffix: string;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -85,7 +88,7 @@ function FontSelect({
         {FONT_IDS.map((f) => (
           <option key={f} value={f}>
             {FONTS[f].label}
-            {FONTS[f].displayOnly ? " · display" : ""}
+            {FONTS[f].displayOnly ? displaySuffix : ""}
           </option>
         ))}
       </select>
@@ -105,6 +108,23 @@ export function DesignLab() {
 
   const isHmat = DESIGNS[design].family === "hmat";
   const bodyIsDisplayFace = FONTS[bodyFont].displayOnly;
+
+  // Hmat leads in full Czech; Classic keeps its shipped English chrome.
+  const t = isHmat
+    ? {
+        display: "Nadpisy",
+        body: "Text (čeština)",
+        reset: "Zpět na výchozí písmo",
+        displaySuffix: " · nadpisové",
+        warn: "Nadpisové písmo jako text — pixelové řezy se v odstavcích čtou špatně. Sleduj ukázku.",
+      }
+    : {
+        display: "Display",
+        body: "Body (Czech)",
+        reset: "Reset to design default",
+        displaySuffix: " · display",
+        warn: "Display face as body — pixel faces are hard to read in prose. Watch the specimen.",
+      };
 
   return (
     <section
@@ -167,20 +187,18 @@ export function DesignLab() {
       <div className="grid grid-cols-2 gap-3">
         <FontSelect
           id="dl-display"
-          label="Display"
+          label={t.display}
           value={displayFont}
           onChange={setDisplayFont}
+          displaySuffix={t.displaySuffix}
         />
         <FontSelect
           id="dl-body"
-          label="Body (Czech)"
+          label={t.body}
           value={bodyFont}
           onChange={setBodyFont}
-          warn={
-            bodyIsDisplayFace
-              ? "Display face as body — pixel faces are hard to read in prose. Watch the specimen."
-              : undefined
-          }
+          displaySuffix={t.displaySuffix}
+          warn={bodyIsDisplayFace ? t.warn : undefined}
         />
       </div>
 
@@ -189,7 +207,7 @@ export function DesignLab() {
         onClick={resetFonts}
         className="font-display text-[10px] uppercase tracking-[0.18em] text-muted-foreground underline"
       >
-        Reset to design default
+        {t.reset}
       </button>
 
       {/* Live specimen — full Czech diacritics. */}

@@ -13,6 +13,26 @@ import { HmatScreenLoading } from "@/components/screens/hmat/HmatChrome";
  * deep keys (mic = in-call mute, hang = red). Behaviour + the speak→listen→send
  * turn cycle come from `useCallScreen`; hanging up drops you into the transcript.
  */
+/**
+ * Czech status line for the Hmat call. The shared `useCallScreen` hook returns
+ * an English `statusLine` (Classic's copy — left byte-for-byte); Hmat leads with
+ * the character in full Czech, so it derives its own from the same phase.
+ */
+function czStatusLine(phase: CallScreen["phase"], listening: boolean): string {
+  switch (phase) {
+    case "ready":
+      return "Klepni a zavolej — budeš mluvit česky, Honza ti odpoví nahlas.";
+    case "connecting":
+      return "Vyzvání…";
+    case "speaking":
+      return "Honza mluví…";
+    case "listening":
+      return listening ? "Poslouchám… mluv česky" : "Klepni na mikrofon a odpověz";
+    case "thinking":
+      return "Honza přemýšlí…";
+  }
+}
+
 export function HmatCall({ screen }: { screen: CallScreen }) {
   const { phase, inCall, orbState, caption, captionWho, error, listening, supported } =
     screen;
@@ -52,7 +72,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
           role="status"
           aria-live="polite"
         >
-          {screen.statusLine}
+          {czStatusLine(phase, listening)}
         </p>
       </div>
 

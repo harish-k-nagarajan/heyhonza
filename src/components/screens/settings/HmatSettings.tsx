@@ -5,7 +5,7 @@ import { LEVEL_OPTIONS, MODEL_OPTIONS, TOPIC_OPTIONS } from "@/lib/constants";
 import type { LevelId, ModelId } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import type { SettingsScreen } from "@/hooks/useSettingsScreen";
-import { HmatBadge } from "@/components/screens/hmat/HmatChrome";
+import { HmatBadge, HmatFileInput } from "@/components/screens/hmat/HmatChrome";
 
 import { DesignLab } from "./DesignLab";
 
@@ -178,15 +178,10 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
         >
           Přidat text
         </button>
-        <label className="font-sans text-xs text-muted-foreground">
-          Soubor (.txt, .md)
-          <input
-            type="file"
-            accept=".txt,.md,text/plain"
-            onChange={(e) => screen.onFile(e.target.files?.[0] ?? null)}
-            className="mt-1 block w-full font-sans text-xs text-muted-foreground"
-          />
-        </label>
+        <div className="space-y-1.5">
+          <p className="font-sans text-xs text-muted-foreground">Soubor (.txt, .md)</p>
+          <HmatFileInput onFile={screen.onFile} />
+        </div>
         <ul className="space-y-2">
           {contextChunks.map((c) => (
             <li
