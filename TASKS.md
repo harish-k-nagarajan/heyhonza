@@ -126,6 +126,7 @@ clearing the long-standing double gate.
 - [x] **DESIGN.md polish pass — every screen** — walked welcome/signin/onboarding/home/chat/settings live at 390px + desktop. Fixed: `Card`'s legacy `shadow-black/40`; faux-bold headings (see Token audit, Phase 1); onboarding's `avatar` orb → `hero` (it was the only primary surface leading with a 64px character, against DESIGN.md rule 7) and its `tracking-tight` heading; **Settings had no Honza on it at all** → now leads with an avatar orb reading the shared mood, like the chat header. `[depends on: all prior phases]`
 - [x] **Learner-facing copy** — onboarding's first line read *"The API key stays on the server (Vercel env)"* and Settings' read *"API keys live on the server (Vercel)"* — build notes leaked onto learner screens. Rewritten in Honza's voice; dropped "(no OAuth)" from the Google-Doc help while keeping the actionable Share → Anyone with the link → Viewer step. `[independent]`
 - [x] **PWA install confirmed** — `manifest.json` serves valid (standalone, cream theme, `any` + `maskable` icons all present on disk); install UX shipped in Phase 4. `[depends on: next-pwa]`
+- [x] **Hmat marketing landing redesign** (2026-07-19) — `/welcome` rebuilt as distinct Hmat marketing surface (`welcome/landing/`): demo chat, topic tiles, level rail, icon timeline, return-visitor hero copy, sticky mobile CTA. Always Hmat on welcome (`AppShell` welcome mode + `max-w-landing`). Topic/level ids still from `lib/constants`. `[independent]`
 
 ---
 

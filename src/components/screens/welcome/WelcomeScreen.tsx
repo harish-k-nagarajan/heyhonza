@@ -1,18 +1,12 @@
 "use client";
 
-import { DESIGNS } from "@/lib/design/registry";
-import { useDesignStore } from "@/stores/useDesignStore";
-
-import { ClassicWelcome } from "./ClassicWelcome";
-import { HmatWelcome } from "./HmatWelcome";
+import { HmatLanding } from "./landing/HmatLanding";
 
 /**
- * Welcome selector — picks the front door for the active design family. A
- * returning user keeps their saved design even signed out (the pre-paint script
- * has already themed the page), so Hmat users land on the Hmat welcome.
+ * Welcome — always the Hmat marketing landing for signed-out visitors. Product
+ * copy is English (learners may not read Czech yet); Czech appears only in
+ * showcase samples (demo chat, topic lines).
  */
 export function WelcomeScreen() {
-  const design = useDesignStore((s) => s.design);
-  if (DESIGNS[design].family === "hmat") return <HmatWelcome />;
-  return <ClassicWelcome />;
+  return <HmatLanding />;
 }

@@ -9,9 +9,10 @@ import { SignInScreen } from "./SignInScreen";
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: { next?: string; error?: string };
+  searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const configured = isSupabaseConfigured();
+  const params = await searchParams;
 
   if (configured) {
     const user = await getCurrentUser();
@@ -19,11 +20,11 @@ export default async function SignInPage({
   }
 
   const next =
-    typeof searchParams.next === "string" && searchParams.next.startsWith("/")
-      ? searchParams.next
+    typeof params.next === "string" && params.next.startsWith("/")
+      ? params.next
       : ROUTES.home;
 
   return (
-    <SignInScreen configured={configured} next={next} initialError={searchParams.error} />
+    <SignInScreen configured={configured} next={next} initialError={params.error} />
   );
 }

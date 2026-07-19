@@ -18,7 +18,7 @@ export type Profile = {
  */
 export async function getCurrentUser() {
   if (!isSupabaseConfigured()) return null;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -31,7 +31,7 @@ export async function getCurrentUser() {
  */
 export async function getCurrentProfile(): Promise<Profile | null> {
   if (!isSupabaseConfigured()) return null;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
