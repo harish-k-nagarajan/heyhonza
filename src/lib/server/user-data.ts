@@ -38,7 +38,7 @@ export type UserState = {
 /** The current auth user's id, or null when unconfigured / signed out. */
 export async function getUserId(): Promise<string | null> {
   if (!isSupabaseConfigured()) return null;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -73,7 +73,7 @@ function refForMeta(meta: ContextSource): string {
 /** Full hydration payload for the signed-in user, or null (use local fallback). */
 export async function loadUserState(): Promise<UserState | null> {
   if (!isSupabaseConfigured()) return null;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -168,7 +168,7 @@ export async function insertMessages(
 ): Promise<boolean> {
   const userId = await getUserId();
   if (!userId || turns.length === 0) return false;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const rows = turns.map((t) => ({
     user_id: userId,
     role: t.role,
@@ -190,7 +190,7 @@ export type ProfilePatch = Partial<{
 export async function updateProfile(patch: ProfilePatch): Promise<boolean> {
   const userId = await getUserId();
   if (!userId) return false;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const row: Record<string, unknown> = {};
   if ("name" in patch) row.name = patch.name;
   if ("level" in patch) row.level = patch.level;
@@ -210,7 +210,7 @@ export async function addContextChunk(
 ): Promise<{ id: string; syncedAt: number } | null> {
   const userId = await getUserId();
   if (!userId) return null;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("user_context")
     .insert({
@@ -228,7 +228,7 @@ export async function addContextChunk(
 export async function removeContextChunk(id: string): Promise<boolean> {
   const userId = await getUserId();
   if (!userId) return false;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("user_context")
     .delete()
@@ -241,7 +241,7 @@ export async function removeContextChunk(id: string): Promise<boolean> {
 export async function resetUserData(): Promise<boolean> {
   const userId = await getUserId();
   if (!userId) return false;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   await supabase.from("messages").delete().eq("user_id", userId);
   await supabase.from("user_context").delete().eq("user_id", userId);
   await supabase

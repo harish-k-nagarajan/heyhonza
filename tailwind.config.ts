@@ -38,6 +38,7 @@ const config: Config = {
         "honza-oops": "honza-oops 3.5s ease-in-out infinite",
         "honza-excited": "honza-excited 2.6s ease-in-out infinite",
         blink: "blink 1.1s step-end infinite",
+        "landing-fade-in": "landing-fade-in 0.5s ease-out forwards",
       },
       keyframes: {
         honza: {
@@ -69,9 +70,14 @@ const config: Config = {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0" },
         },
+        "landing-fade-in": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       maxWidth: {
         app: "430px",
+        landing: "860px",
       },
     },
   },

@@ -52,6 +52,25 @@ _Last updated: 2026-05-12_
 | **Hmat chrome is full Czech; Classic chrome stays as shipped (mostly English)** (2026-07-18) | The character is the app and Hmat leads with him — mixing Czech chrome with English strings broke the illusion. So Hmat surfaces are fully Czech-ified (welcome, call, Design Lab, sign-in) via `isHmat` branches, while **Classic is preserved byte-for-byte** (its English is the shipped baseline). This *narrows* DESIGN.md §"English for navigation/settings" to Classic only. |
 | **Topic/level chips stay English in Hmat** (2026-07-18) | They come from shared `lib/constants` (used by Classic + onboarding + settings) and read as short category nouns ("Travel", "A2 · Elementary"). Czech-ifying only Hmat would mean a parallel label map for marginal gain; confirmed in-browser they don't look out of place under the Czech headings. Revisit if a Czech-first copy deck lands. |
 | **Hmat file picker is a wrapped `mat-key` control, not the native input** (2026-07-18) | The browser's `::file-selector-button` accepts CSS but its label ("Choose File") + status ("No file chosen") are locale text CSS can't set. To get both material styling *and* Czech ("Vybrat soubor" / "Žádný soubor") we hide the input and drive it from a labelled `mat-key` (`HmatFileInput`). Classic keeps its native `Input type=file` (byte-for-byte). |
+| **`/welcome` is always the Hmat marketing landing, not the in-app UI** (2026-07-19) | Signed-out front door forces Hmat material shell + wider `max-w-landing` stage even when Classic is saved. Landing uses its own component tree under `welcome/landing/` (demo chat, topic tiles, level rail, icon timeline) — not onboarding chips or home recess clone. Return visitors get rotating hero copy via `localStorage`. **Landing chrome is English; Czech appears only in showcase samples** (demo chat, topic sample lines). In-app Hmat stays full Czech. |
+
+---
+
+## Current entry — 2026-07-19 (Hmat landing redesign)
+
+Branch `design/hmat-landing` off `main`.
+
+### What changed
+
+- **`/welcome` rebuilt as marketing landing** — `HmatLanding` composes hero (mood-cycling orb + return-visitor copy), animated demo chat preview, horizontal topic tiles / desktop grid, level ladder rail, icon timeline, sticky mobile CTA. Topic/level data still keyed to `TOPIC_OPTIONS` / `LEVEL_OPTIONS` ids. **English for all product copy; Czech only in showcase samples** (demo chat bubbles, topic sample lines).
+- **`AppShell` welcome mode** — forces Hmat material on `/welcome`, `#E9E4DD` outer canvas, `max-w-landing` (860px), `--energy` 0.85. Classic users see Hmat on welcome only.
+- **`WelcomeScreen`** — always renders `HmatLanding`; `ClassicWelcome` / `HmatWelcome` preserved but unused on this route.
+- **Taste skill installed** — `npx skills add Leonxlnx/taste-skill` (design audit applied during build: distinct marketing hierarchy, no app-chip reuse, motion gated on `prefers-reduced-motion`).
+
+### Verified
+
+- `npm run lint` + `npm run build` pass.
+- `/welcome` prerenders at ~6.9 kB (up from prior static landing — richer surface).
 
 ---
 
@@ -810,10 +829,12 @@ Stack: **Supabase** (Auth magic links + Postgres) via `@supabase/ssr`, per Haris
 
 ---
 
-## Current entry — 2026-05-12
+## Current entry — 2026-07-19 (Welcome landing fix + Next 15 + sign-out hero)
 
-- Scaffold built with **Next.js 14**, **Tailwind**, **Zustand**, **next-pwa**.
-- **localhost** run confirmed; repository files created as expected.
-- **API key architecture:** environment variables on Vercel (and local env for development); **Route Handlers** as the only LLM proxy.
-- **Google Doc strategy:** fetch from **public URL**; **no OAuth** in MVP.
-- **Design system rebuilt:** Nothing OS dot matrix style, **Share Tech Mono** font, cream background, character-first layout, full-screen mood shifts with Honza’s `state` (`idle` / `thinking` / `speaking` / `oops` / `excited`); see `DESIGN.md` and `HONZA_STATE_COLORS` in `HonzaOrb.tsx`.
+**Fixed:** `Cannot find module './948.js'` on `/welcome` — stale `.next` webpack chunks from an old dev server (often after `npm run build` while `next dev` was running). Fix: kill old dev processes, `rm -rf .next`, restart `npm run dev`.
+
+**Upgraded:** Next.js **14.2.35 → 15.5.20** (`eslint-config-next` matched). Required fixes: async `searchParams` on `/signin`, `await cookies()` in `createSupabaseServerClient()` + all callers. `lint` + `build` green on 15.5.20.
+
+**Welcome flow:** Sign-out now redirects to `/welcome?signedOut=1` (not `/signin`) with dedicated hero copy (`LANDING_HERO_SIGNED_OUT` — "See you soon!", "Sign back in" CTA). Return visitors (localStorage) still get rotating nudge copy; first visit gets `LANDING_HERO_FIRST`. Sticky CTA follows the same signed-out vs first-visit label.
+
+**Try it:** `http://localhost:3000/welcome` (signed out) → Sign in → use app → Settings → Sign out → welcome send-off.
