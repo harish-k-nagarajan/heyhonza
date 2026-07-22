@@ -150,7 +150,7 @@ export const DESIGNS: Record<DesignId, DesignMeta> = {
 export const DESIGN_IDS = Object.keys(DESIGNS) as DesignId[];
 export const FONT_IDS = Object.keys(FONTS) as FontId[];
 
-export const DEFAULT_DESIGN: DesignId = "classic";
+export const DEFAULT_DESIGN: DesignId = "hmat-metal";
 
 export function isDesignId(v: unknown): v is DesignId {
   return typeof v === "string" && v in DESIGNS;

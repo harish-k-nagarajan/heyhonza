@@ -16,7 +16,7 @@ var KEY="honza-design";
 var DESIGNS=["classic","hmat-metal","hmat-ceramic"];
 var FV={"share-tech-mono":"--f-share-tech-mono","geist-sans":"--f-geist-sans","geist-mono":"--f-geist-mono","geist-pixel-square":"--f-geist-pixel-square","geist-pixel-grid":"--f-geist-pixel-grid","geist-pixel-circle":"--f-geist-pixel-circle","geist-pixel-line":"--f-geist-pixel-line","geist-pixel-triangle":"--f-geist-pixel-triangle"};
 var DEF={"classic":["share-tech-mono","share-tech-mono"],"hmat-metal":["geist-pixel-square","geist-sans"],"hmat-ceramic":["geist-pixel-square","geist-sans"]};
-var design="classic",df="share-tech-mono",bf="share-tech-mono";
+var design="hmat-metal",df="geist-pixel-square",bf="geist-sans";
 var raw=localStorage.getItem(KEY);
 if(raw){var s=(JSON.parse(raw)||{}).state||{};
 if(DESIGNS.indexOf(s.design)!==-1)design=s.design;

@@ -12,7 +12,7 @@ import { LandingStickyCta } from "./LandingStickyCta";
 import { LandingTopics } from "./LandingTopics";
 import { useLandingVisitor } from "./useLandingVisitor";
 
-/** Hmat marketing landing — distinct from in-app screens, always on `/welcome`. */
+/** Hmat marketing landing — shown on `/welcome` when the saved design is Hmat. */
 export function HmatLanding() {
   const visitor = useLandingVisitor();
 

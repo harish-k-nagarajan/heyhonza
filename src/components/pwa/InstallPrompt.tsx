@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { cn } from "@/lib/cn";
+import { DESIGNS } from "@/lib/design/registry";
+import { useDesignStore } from "@/stores/useDesignStore";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -56,7 +59,41 @@ function isIosSafari(): boolean {
   return iOS && !otherBrowser;
 }
 
+function copy(isHmat: boolean) {
+  return isHmat
+    ? {
+        label: "Instalace",
+        dismiss: "Teď ne",
+        body: "Nainstaluj Honzu pro rychlejší každodenní procvičování.",
+        install: "Instalovat",
+        ios: (
+          <>
+            Přidej Honzu na plochu: klepni na{" "}
+            <span className="text-accent">Sdílet</span>, pak{" "}
+            <span className="text-accent">Přidat na plochu</span>.
+          </>
+        ),
+      }
+    : {
+        label: "INSTALL",
+        dismiss: "Not now",
+        body: "Install Honza for quicker daily practice.",
+        install: "Install",
+        ios: (
+          <>
+            Add Honza to your home screen: tap{" "}
+            <span className="text-accent">Share</span>, then{" "}
+            <span className="text-accent">Add to Home Screen</span>.
+          </>
+        ),
+      };
+}
+
 export function InstallPrompt() {
+  const design = useDesignStore((s) => s.design);
+  const isHmat = DESIGNS[design].family === "hmat";
+  const c = copy(isHmat);
+
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
   const [iosHint, setIosHint] = useState(false);
@@ -120,32 +157,56 @@ export function InstallPrompt() {
 
   return (
     <div className="fixed inset-x-0 bottom-24 z-50 flex justify-center px-4">
-      <div className="w-full max-w-app rounded-card border border-border bg-card px-4 py-3 shadow-lg shadow-black/10">
+      <div
+        className={cn(
+          "w-full max-w-app px-4 py-3",
+          isHmat
+            ? "mat shadow-lg shadow-black/10"
+            : "rounded-card border border-border bg-card shadow-lg shadow-black/10",
+        )}
+      >
         <div className="flex items-center justify-between gap-3">
-          <SectionLabel as="p">INSTALL</SectionLabel>
+          {isHmat ? (
+            <p className="font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {c.label}
+            </p>
+          ) : (
+            <SectionLabel as="p">{c.label}</SectionLabel>
+          )}
           <button
             type="button"
-            className="font-sans text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
+            className={cn(
+              "text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground",
+              isHmat ? "font-display" : "font-sans",
+            )}
             onClick={dismiss}
           >
-            Not now
+            {c.dismiss}
           </button>
         </div>
 
         {iosHint ? (
-          <p className="mt-2 text-sm text-foreground">
-            Add Honza to your home screen: tap{" "}
-            <span className="text-accent">Share</span>, then{" "}
-            <span className="text-accent">Add to Home Screen</span>.
+          <p className={cn("mt-2 text-sm text-foreground", isHmat ? "font-sans" : undefined)}>
+            {c.ios}
           </p>
         ) : (
           <div className="mt-2 flex items-center justify-between gap-3">
-            <p className="text-sm text-foreground">
-              Install Honza for quicker daily practice.
+            <p className={cn("text-sm text-foreground", isHmat ? "font-sans" : undefined)}>
+              {c.body}
             </p>
-            <Button type="button" className="shrink-0" onClick={install}>
-              Install
-            </Button>
+            {isHmat ? (
+              <button
+                type="button"
+                className="mat-key press shrink-0 rounded-full px-4 py-2 font-display text-[10px] uppercase tracking-[0.2em] text-accent"
+                onClick={install}
+              >
+                {c.install}
+              </button>
+            ) : (
+              <Button type="button" className="shrink-0" onClick={install}>
+                {c.install}
+              </Button>
+            )}
           </div>
         )}
       </div>
