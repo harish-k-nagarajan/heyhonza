@@ -838,3 +838,17 @@ Stack: **Supabase** (Auth magic links + Postgres) via `@supabase/ssr`, per Haris
 **Welcome flow:** Sign-out now redirects to `/welcome?signedOut=1` (not `/signin`) with dedicated hero copy (`LANDING_HERO_SIGNED_OUT` — "See you soon!", "Sign back in" CTA). Return visitors (localStorage) still get rotating nudge copy; first visit gets `LANDING_HERO_FIRST`. Sticky CTA follows the same signed-out vs first-visit label.
 
 **Try it:** `http://localhost:3000/welcome` (signed out) → Sign in → use app → Settings → Sign out → welcome send-off.
+
+---
+
+## Current entry — 2026-07-22 (Unified design funnel)
+
+**Fixed:** Public funnel no longer forced Hmat on `/welcome` while `/signin` followed the saved design (default Classic). Welcome, sign-in, install prompt, and the signed-in app now all follow the Design Lab choice in `honza-design` (`localStorage`).
+
+**Changed:**
+- `WelcomeScreen` branches on design family: Classic → `ClassicWelcome`, Hmat → `HmatLanding`.
+- `AppShell` removed the `isWelcome` Hmat override; shell follows design family everywhere.
+- `DEFAULT_DESIGN` → `hmat-metal` so first-time visitors get a consistent Hmat funnel; Classic remains selectable in Settings → Design Lab.
+- `InstallPrompt` is design-aware (Classic flat card vs Hmat `.mat` chrome).
+
+**Test:** Sign in → Settings → Design Lab → pick Classic or Hmat → sign out → `/welcome` → `/signin` — entire path matches. To drop a design family later: remove its `DesignId` from `registry.ts`, delete its `Classic*` / `Hmat*` screen trees, collapse `*Screen.tsx` selectors.
