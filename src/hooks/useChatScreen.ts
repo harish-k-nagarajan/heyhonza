@@ -1,12 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { useScreenReady } from "@/hooks/useScreenReady";
-import { initiateOpener, sendUserTurn } from "@/lib/client/chat-actions";
-import { ROUTES } from "@/lib/constants";
+import {
+  endChatSessionAction,
+  initiateOpener,
+  sendUserTurn,
+  startChatSession,
+} from "@/lib/client/chat-actions";
+import { chatHistoryRoute, ROUTES } from "@/lib/constants";
 import { DESIGNS } from "@/lib/design/registry";
 import type { DesignFamily, DesignId } from "@/lib/design/registry";
 import type { MoodExpression } from "@/lib/mood/expression";
@@ -14,28 +19,27 @@ import { useChatStore } from "@/stores/useChatStore";
 import { useDesignStore } from "@/stores/useDesignStore";
 import { useMoodStore } from "@/stores/useMoodStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
-import type { ChatMessage } from "@/types";
+import type { ChatMessage, ChatSessionMeta } from "@/types";
 
-/**
- * Behaviour for the Chat surface (P3): hydration gating, onboarding redirect,
- * opener kick-off (shared with Home), the typed-reply action, and thread
- * derivation. Honza's face reads the one shared mood store; leaving chat resets
- * it so a stale mood doesn't strand on other screens.
- */
 export type ChatScreen = {
   ready: boolean;
   design: DesignId;
   family: DesignFamily;
   expression: MoodExpression;
-  /** User + assistant turns only (system/tool turns filtered out). */
   threadMessages: ChatMessage[];
+  endedSessions: ChatSessionMeta[];
   status: ReturnType<typeof useChatStore.getState>["status"];
   lastError: string | null;
   loading: boolean;
+  chatPhase: "idle" | "active";
   showEmptyState: boolean;
+  historyOpen: boolean;
+  setHistoryOpen: (open: boolean) => void;
+  startChat: () => void;
+  endChat: () => void;
   send: (text: string) => void;
   retryOpener: () => void;
-  clearThread: () => void;
+  openHistorySession: (sessionId: string) => void;
 };
 
 export function useChatScreen(): ChatScreen {
@@ -46,23 +50,20 @@ export function useChatScreen(): ChatScreen {
   const messages = useChatStore((s) => s.messages);
   const status = useChatStore((s) => s.status);
   const lastError = useChatStore((s) => s.lastError);
-  const clearThread = useChatStore((s) => s.clearThread);
+  const chatPhase = useChatStore((s) => s.chatPhase);
+  const activeSessionId = useChatStore((s) => s.activeSessionId);
+  const endedSessions = useChatStore((s) => s.endedSessions);
 
   const design = useDesignStore((s) => s.design);
   const expression = useMoodExpression();
   const setMood = useMoodStore((s) => s.setMood);
 
+  const [historyOpen, setHistoryOpen] = useState(false);
+
   useEffect(() => {
     if (ready && !onboardingComplete) router.replace(ROUTES.onboarding);
   }, [ready, onboardingComplete, router]);
 
-  useEffect(() => {
-    if (!ready || !onboardingComplete) return;
-    if (messages.length > 0) return;
-    void initiateOpener();
-  }, [ready, onboardingComplete, messages.length]);
-
-  // Leaving chat shouldn't strand a stale mood on other screens.
   useEffect(() => {
     return () => setMood("idle");
   }, [setMood]);
@@ -73,7 +74,35 @@ export function useChatScreen(): ChatScreen {
   );
 
   const showEmptyState =
-    threadMessages.length === 0 && status !== "loading" && !lastError;
+    chatPhase === "active" &&
+    threadMessages.length === 0 &&
+    status !== "loading" &&
+    !lastError;
+
+  const startChat = useCallback(() => {
+    void (async () => {
+      const chat = useChatStore.getState();
+      if (!chat.activeSessionId) {
+        await startChatSession();
+      }
+      if (useChatStore.getState().messages.length === 0) {
+        await initiateOpener();
+      }
+    })();
+  }, []);
+
+  const endChat = useCallback(() => {
+    void endChatSessionAction();
+    setHistoryOpen(false);
+  }, []);
+
+  const openHistorySession = useCallback(
+    (sessionId: string) => {
+      setHistoryOpen(false);
+      router.push(chatHistoryRoute(sessionId));
+    },
+    [router],
+  );
 
   return {
     ready: ready && onboardingComplete,
@@ -81,12 +110,18 @@ export function useChatScreen(): ChatScreen {
     family: DESIGNS[design].family,
     expression,
     threadMessages,
+    endedSessions,
     status,
     lastError,
     loading: status === "loading",
+    chatPhase,
     showEmptyState,
+    historyOpen,
+    setHistoryOpen,
+    startChat,
+    endChat,
     send: (text) => void sendUserTurn(text),
     retryOpener: () => void initiateOpener(),
-    clearThread,
+    openHistorySession,
   };
 }

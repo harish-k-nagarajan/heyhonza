@@ -5,16 +5,17 @@ import { usePathname } from "next/navigation";
 
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 const items = [
-  { href: ROUTES.home, label: "Home" },
-  { href: ROUTES.chat, label: "Chat" },
-  { href: ROUTES.call, label: "Call" },
-  { href: ROUTES.settings, label: "Settings" },
-] as const;
+  { href: ROUTES.chat, labelKey: "chat" as const },
+  { href: ROUTES.call, labelKey: "call" as const },
+  { href: ROUTES.settings, labelKey: "settings" as const },
+];
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { t } = useLocale();
 
   return (
     <nav
@@ -23,10 +24,7 @@ export function BottomNav() {
     >
       <div className="mx-auto flex max-w-app justify-around px-2 pt-2 font-sans">
         {items.map((item) => {
-          const active =
-            item.href === ROUTES.home
-              ? pathname === ROUTES.home
-              : pathname.startsWith(item.href);
+          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}
@@ -43,7 +41,9 @@ export function BottomNav() {
                 )}
                 aria-hidden
               />
-              <span className="text-[9px] uppercase tracking-[0.2em]">{item.label}</span>
+              <span className="text-[9px] uppercase tracking-[0.2em]">
+                {t.nav[item.labelKey]}
+              </span>
             </Link>
           );
         })}

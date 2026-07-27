@@ -22,7 +22,8 @@ export type IconName =
   | "settings"
   | "send"
   | "mic"
-  | "hang";
+  | "hang"
+  | "history";
 
 type IconProps = {
   name: IconName;
@@ -129,6 +130,29 @@ const PATHS: Record<IconName, React.ReactNode> = {
       d="M3.5 13.6c4.7-4.2 12.3-4.2 17 0l1.5-2.4C17 5.6 7 5.6 2 11.2z"
       fill="currentColor"
     />
+  ),
+  history: (
+    <>
+      <path
+        d="M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15z"
+        stroke="currentColor"
+        strokeWidth={2.1}
+      />
+      <path
+        d="M12 8v4.2l2.8 1.6"
+        stroke="currentColor"
+        strokeWidth={2.1}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7.5 4.5 5 7l2.5 2"
+        stroke="currentColor"
+        strokeWidth={2.1}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>
   ),
 };
 

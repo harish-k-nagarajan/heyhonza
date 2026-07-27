@@ -16,13 +16,13 @@ export default async function SignInPage({
 
   if (configured) {
     const user = await getCurrentUser();
-    if (user) redirect(ROUTES.home);
+    if (user) redirect(ROUTES.chat);
   }
 
   const next =
     typeof params.next === "string" && params.next.startsWith("/")
       ? params.next
-      : ROUTES.home;
+      : ROUTES.chat;
 
   return (
     <SignInScreen configured={configured} next={next} initialError={params.error} />

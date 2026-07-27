@@ -80,7 +80,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && AUTH_ROUTES.includes(pathname as (typeof AUTH_ROUTES)[number])) {
     const url = request.nextUrl.clone();
-    url.pathname = ROUTES.home;
+    url.pathname = ROUTES.chat;
     url.search = "";
     return NextResponse.redirect(url);
   }

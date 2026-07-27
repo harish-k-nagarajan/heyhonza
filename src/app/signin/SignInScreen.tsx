@@ -3,16 +3,11 @@
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
 import { DESIGNS } from "@/lib/design/registry";
+import { useLocale } from "@/lib/i18n/useLocale";
 import { useDesignStore } from "@/stores/useDesignStore";
 
 import { SignInForm } from "./SignInForm";
 
-/**
- * Sign-in chrome, design-aware. The form itself (`SignInForm`) is token-based
- * and adapts to either design; this swaps the character + heading so the whole
- * screen reads as Hmat when Hmat is the active design. Auth state is resolved on
- * the server; these props are passed straight through.
- */
 export function SignInScreen({
   configured,
   next,
@@ -24,6 +19,7 @@ export function SignInScreen({
 }) {
   const design = useDesignStore((s) => s.design);
   const isHmat = DESIGNS[design].family === "hmat";
+  const { t } = useLocale();
 
   return (
     <div className="flex min-h-[calc(100dvh-4rem)] flex-col items-center justify-center gap-8 text-center">
@@ -43,7 +39,7 @@ export function SignInScreen({
               : "font-sans text-[10px] uppercase tracking-[0.25em] text-muted-foreground"
           }
         >
-          {isHmat ? "Přihlášení" : "// SIGN IN"}
+          {t.signin.title}
         </p>
         <h1
           className={
@@ -52,21 +48,14 @@ export function SignInScreen({
               : "font-sans text-lg tracking-[0.12em] text-foreground"
           }
         >
-          {isHmat ? "Ahoj! Já jsem Honza." : "Ahoj! I'm Honza."}
+          {t.signin.heading}
         </h1>
         <p className="mx-auto max-w-[min(300px,100%)] font-sans text-xs leading-relaxed tracking-[0.08em] text-muted-foreground">
-          {isHmat
-            ? "Přihlas se a navážeme s češtinou tam, kde jsi skončil."
-            : "Sign in and we'll pick up your Czech where you left off."}
+          {t.signin.subtitle}
         </p>
       </div>
 
-      <SignInForm
-        configured={configured}
-        next={next}
-        initialError={initialError}
-        isHmat={isHmat}
-      />
+      <SignInForm configured={configured} next={next} initialError={initialError} />
     </div>
   );
 }

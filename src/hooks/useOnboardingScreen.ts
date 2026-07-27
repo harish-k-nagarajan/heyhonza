@@ -62,7 +62,7 @@ export function useOnboardingScreen(): OnboardingScreen {
   const [fileError, setFileError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (ready && onboardingComplete) router.replace(ROUTES.home);
+    if (ready && onboardingComplete) router.replace(ROUTES.chat);
   }, [ready, onboardingComplete, router]);
 
   const toggleTopic = (id: TopicId) => {
@@ -148,7 +148,7 @@ export function useOnboardingScreen(): OnboardingScreen {
     // Persist the full onboarding payload as one data model: onboarding flag +
     // the same Settings fields (topics, level).
     persistProfile({ onboardingCompleted: true, topics: selectedTopics, level });
-    router.push(ROUTES.home);
+    router.push(ROUTES.chat);
   };
 
   return {

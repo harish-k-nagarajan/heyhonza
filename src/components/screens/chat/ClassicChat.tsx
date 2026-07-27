@@ -1,19 +1,33 @@
 "use client";
 
-import { Composer } from "@/components/chat/Composer";
+import { useEffect, useRef } from "react";
+
+import { ChatActionBar } from "@/components/chat/ChatActionBar";
+import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
 import { MessageList } from "@/components/chat/MessageList";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { SectionLabel } from "@/components/ui/SectionLabel";
 import type { ChatScreen } from "@/hooks/useChatScreen";
+import { useLocale } from "@/lib/i18n/useLocale";
 
-/**
- * Classic Chat presentation — the shipped app, byte-for-byte. Behaviour comes
- * from `useChatScreen` (via `screen`); the markup is unchanged.
- */
 export function ClassicChat({ screen }: { screen: ChatScreen }) {
-  const { expression, threadMessages, loading, lastError, showEmptyState } = screen;
+  const { t } = useLocale();
+  const {
+    expression,
+    threadMessages,
+    loading,
+    lastError,
+    showEmptyState,
+    chatPhase,
+    endedSessions,
+    historyOpen,
+    setHistoryOpen,
+  } = screen;
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [threadMessages.length]);
 
   if (!screen.ready) {
     return (
@@ -24,53 +38,79 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-7rem)] flex-col gap-3">
-      {/* Character-first header: Honza leads, and his face reacts to state. */}
-      <header className="flex shrink-0 items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <HonzaOrb state={expression.mood} size="avatar" />
-          <div className="flex flex-col gap-1">
-            <SectionLabel>Chat with Honza</SectionLabel>
-            <span className="font-sans text-xs text-muted-foreground">
-              {loading ? "Honza is typing…" : "Reply in Czech, get corrected."}
-            </span>
-          </div>
+    <>
+      <div className="flex h-[calc(100dvh-7rem)] flex-col gap-3">
+        <div className="flex shrink-0 items-center justify-end">
+          <button
+            type="button"
+            onClick={() => setHistoryOpen(true)}
+            aria-label={t.chat.history}
+            className="rounded-full border border-border px-3 py-1.5 font-sans text-[10px] uppercase tracking-[0.16em] text-muted-foreground transition hover:border-accent/40 hover:text-foreground"
+          >
+            {t.chat.history}
+          </button>
         </div>
-        <Button type="button" variant="ghost" className="text-xs" onClick={screen.clearThread}>
-          New chat
-        </Button>
-      </header>
 
-      {lastError ? (
-        <Card className="border-accent/40 bg-muted">
-          <p className="text-sm text-accent">{lastError}</p>
-          {threadMessages.length === 0 ? (
-            <Button
-              type="button"
-              variant="secondary"
-              className="mt-3"
-              onClick={screen.retryOpener}
-            >
-              Try again
-            </Button>
+        <div className="flex shrink-0 flex-col items-center gap-2 py-2 text-center">
+          <HonzaOrb state={expression.mood} size="hero" className="shrink-0" />
+          <span className="font-sans text-xs text-muted-foreground">
+            {loading ? t.chat.thinking : "Reply in Czech, get corrected."}
+          </span>
+        </div>
+
+        <Card className="flex min-h-0 flex-1 flex-col gap-3 p-3">
+          {lastError ? (
+            <div className="shrink-0 border border-accent/40 bg-muted px-3 py-2">
+              <p className="text-sm text-accent">{lastError}</p>
+              {threadMessages.length === 0 ? (
+                <button
+                  type="button"
+                  onClick={screen.retryOpener}
+                  className="mt-2 font-sans text-[11px] uppercase tracking-[0.2em] text-muted-foreground underline"
+                >
+                  {t.chat.tryAgain}
+                </button>
+              ) : null}
+            </div>
           ) : null}
-        </Card>
-      ) : null}
 
-      <Card className="flex min-h-0 flex-1 flex-col gap-3 p-3">
-        {showEmptyState ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-            <HonzaOrb state="idle" size="avatar" />
-            <p className="font-sans text-sm leading-relaxed text-muted-foreground">
-              Honza will open the conversation in Czech. Reply below and he&apos;ll
-              keep it going.
-            </p>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            {chatPhase === "idle" ? (
+              <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+                <p className="font-sans text-sm leading-relaxed text-muted-foreground">
+                  {t.chat.emptyHint}
+                </p>
+              </div>
+            ) : showEmptyState ? (
+              <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+                <p className="font-sans text-sm leading-relaxed text-muted-foreground">
+                  {t.chat.thinking}
+                </p>
+              </div>
+            ) : (
+              <>
+                <MessageList messages={threadMessages} />
+                <div ref={bottomRef} />
+              </>
+            )}
           </div>
-        ) : (
-          <MessageList messages={threadMessages} />
-        )}
-        <Composer onSend={screen.send} disabled={loading} />
-      </Card>
-    </div>
+        </Card>
+
+        <ChatActionBar
+          chatPhase={chatPhase}
+          onStartChat={screen.startChat}
+          onSend={screen.send}
+          onEndChat={screen.endChat}
+          disabled={loading}
+        />
+      </div>
+
+      <ChatHistoryDrawer
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        sessions={endedSessions}
+        onSelect={screen.openHistorySession}
+      />
+    </>
   );
 }

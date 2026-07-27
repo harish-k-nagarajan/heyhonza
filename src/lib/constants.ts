@@ -8,6 +8,10 @@ export const ROUTES = {
   settings: "/settings",
 } as const;
 
+export function chatHistoryRoute(id: string) {
+  return `/chat/history/${id}`;
+}
+
 export const TOPIC_OPTIONS = [
   { id: "daily", label: "Daily life" },
   { id: "travel", label: "Travel" },
