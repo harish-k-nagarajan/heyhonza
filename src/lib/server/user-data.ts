@@ -16,7 +16,16 @@ export type PersistedMessage = {
   role: "user" | "assistant";
   content: string;
   kind: "chat" | "call";
+  sessionId?: string;
   createdAt: number;
+};
+
+export type PersistedSession = {
+  id: string;
+  startedAt: number;
+  endedAt?: number;
+  preview: string;
+  messageCount: number;
 };
 
 export type PersistedProfile = {
@@ -32,6 +41,8 @@ export type UserState = {
   profile: PersistedProfile;
   contextChunks: ContextChunk[];
   contextText: string;
+  activeSessionId: string | null;
+  endedSessions: PersistedSession[];
   messages: PersistedMessage[];
 };
 
@@ -70,6 +81,60 @@ function refForMeta(meta: ContextSource): string {
   return meta.label;
 }
 
+function previewFromMessages(messages: PersistedMessage[]): string {
+  const firstUser = messages.find((m) => m.role === "user");
+  const firstAssistant = messages.find((m) => m.role === "assistant");
+  const text = (firstUser ?? firstAssistant)?.content ?? "";
+  return text.length > 80 ? `${text.slice(0, 77)}…` : text;
+}
+
+/** One-time backfill: orphan chat rows become a single ended session. */
+async function migrateOrphanMessages(
+  userId: string,
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+): Promise<void> {
+  const { data: orphans } = await supabase
+    .from("messages")
+    .select("id, role, content, kind, created_at")
+    .eq("user_id", userId)
+    .is("session_id", null)
+    .eq("kind", "chat")
+    .order("created_at", { ascending: true });
+
+  if (!orphans?.length) return;
+
+  const startedAt = orphans[0]!.created_at as string;
+  const endedAt = orphans[orphans.length - 1]!.created_at as string;
+  const mapped: PersistedMessage[] = orphans.map((m) => ({
+    id: m.id as string,
+    role: m.role as "user" | "assistant",
+    content: m.content as string,
+    kind: "chat",
+    createdAt: new Date(m.created_at as string).getTime(),
+  }));
+
+  const { data: session, error } = await supabase
+    .from("chat_sessions")
+    .insert({
+      user_id: userId,
+      started_at: startedAt,
+      ended_at: endedAt,
+      preview: previewFromMessages(mapped),
+      message_count: mapped.length,
+    })
+    .select("id")
+    .single();
+
+  if (error || !session) return;
+
+  await supabase
+    .from("messages")
+    .update({ session_id: session.id })
+    .eq("user_id", userId)
+    .is("session_id", null)
+    .eq("kind", "chat");
+}
+
 /** Full hydration payload for the signed-in user, or null (use local fallback). */
 export async function loadUserState(): Promise<UserState | null> {
   if (!isSupabaseConfigured()) return null;
@@ -79,7 +144,9 @@ export async function loadUserState(): Promise<UserState | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [profileRes, contextRes, messagesRes] = await Promise.all([
+  await migrateOrphanMessages(user.id, supabase);
+
+  const [profileRes, contextRes, sessionsRes, messagesRes] = await Promise.all([
     supabase
       .from("profiles")
       .select("name, level, topics, preferred_model, onboarding_completed")
@@ -91,8 +158,13 @@ export async function loadUserState(): Promise<UserState | null> {
       .eq("user_id", user.id)
       .order("synced_at", { ascending: true }),
     supabase
+      .from("chat_sessions")
+      .select("id, started_at, ended_at, preview, message_count")
+      .eq("user_id", user.id)
+      .order("started_at", { ascending: false }),
+    supabase
       .from("messages")
-      .select("id, role, content, kind, created_at")
+      .select("id, role, content, kind, session_id, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true }),
   ]);
@@ -107,19 +179,40 @@ export async function loadUserState(): Promise<UserState | null> {
   };
 
   const contextChunks = (contextRes.data ?? []).map(chunkFromRow);
-  const messages: PersistedMessage[] = (messagesRes.data ?? []).map((m) => ({
+  const allMessages: PersistedMessage[] = (messagesRes.data ?? []).map((m) => ({
     id: m.id as string,
     role: m.role as "user" | "assistant",
     content: m.content as string,
     kind: (m.kind as "chat" | "call") ?? "chat",
+    sessionId: (m.session_id as string | null) ?? undefined,
     createdAt: new Date(m.created_at as string).getTime(),
   }));
+
+  const sessions = sessionsRes.data ?? [];
+  const activeRow = sessions.find((s) => s.ended_at == null);
+  const activeSessionId = (activeRow?.id as string | undefined) ?? null;
+
+  const endedSessions: PersistedSession[] = sessions
+    .filter((s) => s.ended_at != null)
+    .map((s) => ({
+      id: s.id as string,
+      startedAt: new Date(s.started_at as string).getTime(),
+      endedAt: s.ended_at ? new Date(s.ended_at as string).getTime() : undefined,
+      preview: (s.preview as string) ?? "",
+      messageCount: (s.message_count as number) ?? 0,
+    }));
+
+  const messages = activeSessionId
+    ? allMessages.filter((m) => m.sessionId === activeSessionId)
+    : allMessages.filter((m) => !m.sessionId);
 
   return {
     persisted: true,
     profile,
     contextChunks,
     contextText: buildContextText(contextChunks),
+    activeSessionId,
+    endedSessions,
     messages,
   };
 }
@@ -164,7 +257,12 @@ export async function loadMessages(): Promise<PersistedMessage[] | null> {
 
 /** Append turns for the signed-in user. No-op (returns false) when unconfigured. */
 export async function insertMessages(
-  turns: { role: "user" | "assistant"; content: string; kind?: "chat" | "call" }[],
+  turns: {
+    role: "user" | "assistant";
+    content: string;
+    kind?: "chat" | "call";
+    sessionId?: string;
+  }[],
 ): Promise<boolean> {
   const userId = await getUserId();
   if (!userId || turns.length === 0) return false;
@@ -174,9 +272,97 @@ export async function insertMessages(
     role: t.role,
     content: t.content,
     kind: t.kind ?? "chat",
+    session_id: t.sessionId ?? null,
   }));
   const { error } = await supabase.from("messages").insert(rows);
   return !error;
+}
+
+/** Start a new typed-chat session; returns the session id or null. */
+export async function createChatSession(): Promise<string | null> {
+  const userId = await getUserId();
+  if (!userId) return null;
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("chat_sessions")
+    .insert({ user_id: userId, preview: "", message_count: 0 })
+    .select("id")
+    .single();
+  if (error || !data) return null;
+  return data.id as string;
+}
+
+/** Mark the active session ended and store preview metadata. */
+export async function endChatSession(
+  sessionId: string,
+  preview: string,
+  messageCount: number,
+): Promise<boolean> {
+  const userId = await getUserId();
+  if (!userId) return false;
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("chat_sessions")
+    .update({
+      ended_at: new Date().toISOString(),
+      preview,
+      message_count: messageCount,
+    })
+    .eq("id", sessionId)
+    .eq("user_id", userId);
+  return !error;
+}
+
+/** List ended sessions for history (newest first). */
+export async function listEndedSessions(): Promise<PersistedSession[]> {
+  const userId = await getUserId();
+  if (!userId) return [];
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("chat_sessions")
+    .select("id, started_at, ended_at, preview, message_count")
+    .eq("user_id", userId)
+    .not("ended_at", "is", null)
+    .order("started_at", { ascending: false });
+  return (data ?? []).map((s) => ({
+    id: s.id as string,
+    startedAt: new Date(s.started_at as string).getTime(),
+    endedAt: s.ended_at ? new Date(s.ended_at as string).getTime() : undefined,
+    preview: (s.preview as string) ?? "",
+    messageCount: (s.message_count as number) ?? 0,
+  }));
+}
+
+/** Load all turns for one session (chat history transcript view). */
+export async function loadSessionMessages(
+  sessionId: string,
+): Promise<PersistedMessage[] | null> {
+  const userId = await getUserId();
+  if (!userId) return null;
+  const supabase = await createSupabaseServerClient();
+  const { data: session } = await supabase
+    .from("chat_sessions")
+    .select("id")
+    .eq("id", sessionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!session) return null;
+
+  const { data } = await supabase
+    .from("messages")
+    .select("id, role, content, kind, session_id, created_at")
+    .eq("user_id", userId)
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: true });
+
+  return (data ?? []).map((m) => ({
+    id: m.id as string,
+    role: m.role as "user" | "assistant",
+    content: m.content as string,
+    kind: (m.kind as "chat" | "call") ?? "chat",
+    sessionId: sessionId,
+    createdAt: new Date(m.created_at as string).getTime(),
+  }));
 }
 
 export type ProfilePatch = Partial<{
@@ -243,6 +429,7 @@ export async function resetUserData(): Promise<boolean> {
   if (!userId) return false;
   const supabase = await createSupabaseServerClient();
   await supabase.from("messages").delete().eq("user_id", userId);
+  await supabase.from("chat_sessions").delete().eq("user_id", userId);
   await supabase.from("user_context").delete().eq("user_id", userId);
   await supabase
     .from("profiles")

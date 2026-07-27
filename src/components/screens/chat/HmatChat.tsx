@@ -2,23 +2,17 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
+import { ChatActionBar } from "@/components/chat/ChatActionBar";
+import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
 import { HmatOrb } from "@/components/honza/HmatOrb";
+import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import type { ChatScreen } from "@/hooks/useChatScreen";
 import { HmatScreenLoading } from "@/components/screens/hmat/HmatChrome";
-import { HmatComposer } from "@/components/screens/hmat/HmatComposer";
+import { useLocale } from "@/lib/i18n/useLocale";
 import type { ChatMessage } from "@/types";
-
-/**
- * Hmat Chat — Honza leads from a material header card, the thread runs in
- * tactile bubbles (user = lit accent, Honza = machined card), and a run of
- * `kind:'call'` turns is framed as a call transcript. Behaviour comes from
- * `useChatScreen`; Czech renders in the body face with full diacritics.
- */
 
 type Segment = { kind: "chat" | "call"; id: string; messages: ChatMessage[] };
 
-// Mirrors the grouping in the Classic MessageList: a call was one event, so its
-// consecutive turns read back as a labelled transcript, not loose bubbles.
 function segment(messages: ChatMessage[]): Segment[] {
   const out: Segment[] = [];
   for (const m of messages) {
@@ -61,26 +55,19 @@ function Bubble({ message }: { message: ChatMessage }) {
   );
 }
 
-function CallTranscript({ messages }: { messages: ChatMessage[] }) {
-  return (
-    <section
-      className="rounded-[16px] border border-dashed border-accent/40 bg-accent/[0.03] p-3"
-      aria-label="Call transcript"
-    >
-      <p className="mb-3 font-display text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
-        Přepis hovoru
-      </p>
-      <div className="flex flex-col gap-2.5">
-        {messages.map((m) => (
-          <Bubble key={m.id} message={m} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export function HmatChat({ screen }: { screen: ChatScreen }) {
-  const { expression, threadMessages, loading, lastError, showEmptyState } = screen;
+  const { t } = useLocale();
+  const {
+    expression,
+    threadMessages,
+    loading,
+    lastError,
+    showEmptyState,
+    chatPhase,
+    endedSessions,
+    historyOpen,
+    setHistoryOpen,
+  } = screen;
   const segments = useMemo(() => segment(threadMessages), [threadMessages]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -91,64 +78,81 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   if (!screen.ready) return <HmatScreenLoading />;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
-      {/* Character-first header card. */}
-      <header className="mat flex shrink-0 items-center gap-3 px-3.5 py-2.5">
-        <HmatOrb state={expression.mood} size={40} breathe={false} />
-        <div className="flex-1">
-          <p className="font-display text-[12px] tracking-[0.06em] text-foreground">Honza</p>
-          <p className="font-display text-[8.5px] uppercase tracking-[0.12em] text-accent">
-            {loading ? "Přemýšlí" : expression.czLabel}
+    <>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex shrink-0 items-center justify-end">
+          <button
+            type="button"
+            onClick={() => setHistoryOpen(true)}
+            aria-label={t.chat.history}
+            className="mat-key press flex h-10 w-10 items-center justify-center rounded-full text-accent"
+          >
+            <HardwareIcon name="history" size={20} />
+          </button>
+        </div>
+
+        <div className="mat-recess flex shrink-0 flex-col items-center px-4 py-5">
+          <HmatOrb state={expression.mood} size={150} />
+          <p className="mt-3 font-display text-[9px] uppercase tracking-[0.16em] text-accent">
+            {loading ? t.chat.thinking : expression.czLabel}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={screen.clearThread}
-          className="font-display text-[9px] uppercase tracking-[0.14em] text-muted-foreground"
-        >
-          Nový
-        </button>
-      </header>
 
-      {lastError ? (
-        <div className="mat px-4 py-3">
-          <p className="font-sans text-sm text-accent">{lastError}</p>
-          {threadMessages.length === 0 ? (
-            <button
-              type="button"
-              onClick={screen.retryOpener}
-              className="mt-2 font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground underline"
-            >
-              Zkusit znovu
-            </button>
+        <div className="mat mt-3 flex min-h-0 flex-1 flex-col overflow-hidden p-3">
+          {lastError ? (
+            <div className="mb-3 shrink-0 px-1">
+              <p className="font-sans text-sm text-accent">{lastError}</p>
+              {threadMessages.length === 0 ? (
+                <button
+                  type="button"
+                  onClick={screen.retryOpener}
+                  className="mt-2 font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground underline"
+                >
+                  {t.chat.tryAgain}
+                </button>
+              ) : null}
+            </div>
           ) : null}
-        </div>
-      ) : null}
 
-      {/* Thread. */}
-      <div className="flex min-h-0 flex-1 flex-col justify-end gap-2.5 overflow-y-auto">
-        {showEmptyState ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-            <HmatOrb state="idle" size={64} breathe={false} />
-            <p className="font-sans text-sm leading-relaxed text-muted-foreground">
-              Honza začne konverzaci česky. Odpověz níže a bude pokračovat.
-            </p>
-          </div>
-        ) : (
-          <>
-            {segments.map((seg) =>
-              seg.kind === "call" ? (
-                <CallTranscript key={seg.id} messages={seg.messages} />
-              ) : (
-                seg.messages.map((m) => <Bubble key={m.id} message={m} />)
-              ),
+          <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto">
+            {chatPhase === "idle" ? (
+              <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
+                <p className="font-sans text-sm leading-relaxed text-muted-foreground">
+                  {t.chat.emptyHint}
+                </p>
+              </div>
+            ) : showEmptyState ? (
+              <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
+                <p className="font-sans text-sm leading-relaxed text-muted-foreground">
+                  {t.chat.thinking}
+                </p>
+              </div>
+            ) : (
+              <>
+                {segments.map((seg) =>
+                  seg.messages.map((m) => <Bubble key={m.id} message={m} />),
+                )}
+                <div ref={bottomRef} />
+              </>
             )}
-            <div ref={bottomRef} />
-          </>
-        )}
+          </div>
+        </div>
+
+        <ChatActionBar
+          chatPhase={chatPhase}
+          onStartChat={screen.startChat}
+          onSend={screen.send}
+          onEndChat={screen.endChat}
+          disabled={loading}
+        />
       </div>
 
-      <HmatComposer onSend={screen.send} disabled={loading} />
-    </div>
+      <ChatHistoryDrawer
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        sessions={endedSessions}
+        onSelect={screen.openHistorySession}
+      />
+    </>
   );
 }

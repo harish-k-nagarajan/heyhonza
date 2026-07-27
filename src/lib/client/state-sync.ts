@@ -1,6 +1,6 @@
 "use client";
 
-import type { ContextChunk, ContextSource } from "@/types";
+import type { ChatSessionMeta, ContextChunk, ContextSource } from "@/types";
 import type { ProfilePatch } from "@/lib/server/user-data";
 
 /**
@@ -27,11 +27,14 @@ export type ServerState = {
     onboardingCompleted: boolean;
   };
   contextChunks?: ContextChunk[];
+  activeSessionId?: string | null;
+  endedSessions?: ChatSessionMeta[];
   messages?: {
     id: string;
     role: "user" | "assistant";
     content: string;
     kind: "chat" | "call";
+    sessionId?: string;
     createdAt: number;
   }[];
 };

@@ -26,6 +26,7 @@ type ChatRequestBody = {
    * history as typed ones, tagged so Chat can render them as a call transcript.
    */
   kind?: "chat" | "call";
+  sessionId?: string;
 };
 
 export async function POST(req: Request) {
@@ -47,6 +48,10 @@ export async function POST(req: Request) {
 
   const bootstrap = Boolean(body.bootstrap);
   const kind = body.kind === "call" ? "call" : "chat";
+  const sessionId =
+    typeof body.sessionId === "string" && body.sessionId.length > 0
+      ? body.sessionId
+      : undefined;
   const messages = sanitizeMessages(body.messages, bootstrap);
   if (!messages) {
     return NextResponse.json(
@@ -98,13 +103,17 @@ export async function POST(req: Request) {
     // Persist the just-sent user turn (not on bootstrap, which has no real user
     // message) plus Honza's reply, so history survives refresh / re-login.
     if (persisted) {
-      const turns: { role: "user" | "assistant"; content: string; kind: "chat" | "call" }[] =
-        [];
+      const turns: {
+        role: "user" | "assistant";
+        content: string;
+        kind: "chat" | "call";
+        sessionId?: string;
+      }[] = [];
       const lastUser = [...messages].reverse().find((m) => m.role === "user");
       if (!bootstrap && lastUser) {
-        turns.push({ role: "user", content: lastUser.content, kind });
+        turns.push({ role: "user", content: lastUser.content, kind, sessionId });
       }
-      turns.push({ role: "assistant", content: text, kind });
+      turns.push({ role: "assistant", content: text, kind, sessionId });
       await insertMessages(turns);
     }
 

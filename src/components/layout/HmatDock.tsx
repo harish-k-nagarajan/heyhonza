@@ -7,6 +7,7 @@ import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import type { IconName } from "@/components/icons/HardwareIcons";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 /**
  * The floating material dock — the Hmat nav. Detached from the bottom edge,
@@ -15,15 +16,15 @@ import { cn } from "@/lib/cn";
  * with the mood accent. Fixed within the centered phone stage; content is padded
  * to clear it so nothing overlaps.
  */
-const TABS: { href: string; icon: IconName; label: string }[] = [
-  { href: ROUTES.home, icon: "home", label: "Domů" },
-  { href: ROUTES.chat, icon: "chat", label: "Chat" },
-  { href: ROUTES.call, icon: "call", label: "Hovor" },
-  { href: ROUTES.settings, icon: "settings", label: "Nastav" },
+const TABS: { href: string; icon: IconName; labelKey: "chat" | "call" | "settings" }[] = [
+  { href: ROUTES.chat, icon: "chat", labelKey: "chat" },
+  { href: ROUTES.call, icon: "call", labelKey: "call" },
+  { href: ROUTES.settings, icon: "settings", labelKey: "settings" },
 ];
 
 export function HmatDock() {
   const pathname = usePathname();
+  const { t } = useLocale();
 
   return (
     <div
@@ -32,10 +33,7 @@ export function HmatDock() {
     >
       <nav className="fdock pointer-events-auto">
         {TABS.map((tab) => {
-          const active =
-            tab.href === ROUTES.home
-              ? pathname === ROUTES.home
-              : pathname.startsWith(tab.href);
+          const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
           return (
             <Link
               key={tab.href}
@@ -45,7 +43,7 @@ export function HmatDock() {
             >
               <HardwareIcon name={tab.icon} size={21} />
               <span className="lbl font-display text-[8px] uppercase tracking-[0.1em]">
-                {tab.label}
+                {t.nav[tab.labelKey]}
               </span>
             </Link>
           );

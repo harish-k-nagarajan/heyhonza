@@ -13,7 +13,17 @@ export type ChatMessage = {
   role: ChatRole;
   content: string;
   kind?: MessageKind;
+  sessionId?: string;
   createdAt: number;
+};
+
+/** Metadata for an ended (or active) typed-chat session. */
+export type ChatSessionMeta = {
+  id: string;
+  startedAt: number;
+  endedAt?: number;
+  preview: string;
+  messageCount: number;
 };
 
 export type ContextSource =

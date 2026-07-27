@@ -12,6 +12,8 @@ import type { LevelId, ModelId } from "@/lib/constants";
 import type { SettingsScreen } from "@/hooks/useSettingsScreen";
 
 import { DesignLab } from "./DesignLab";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 /**
  * Classic Settings presentation — the shipped app, byte-for-byte, plus the
@@ -19,6 +21,7 @@ import { DesignLab } from "./DesignLab";
  */
 export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
   const { expression, contextChunks, lastSynced } = screen;
+  const { t } = useLocale();
 
   if (!screen.ready) {
     return (
@@ -46,6 +49,11 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
       </p>
 
       <DesignLab />
+
+      <Card className="space-y-3">
+        <SectionLabel as="p">{t.settings.appLanguage}</SectionLabel>
+        <LanguageSwitcher />
+      </Card>
 
       <Card className="space-y-2">
         <SectionLabel>Server status</SectionLabel>

@@ -4,6 +4,7 @@ import { persist } from "zustand/middleware";
 import { DEFAULT_LEVEL_ID, DEFAULT_MODEL_ID } from "@/lib/constants";
 import type { LevelId, ModelId, TopicId } from "@/lib/constants";
 import { buildLearnerContextText } from "@/lib/context";
+import { DEFAULT_LOCALE, type UiLocale } from "@/lib/i18n/locales";
 import type { ContextChunk, ContextSource } from "@/types";
 
 export type SettingsState = {
@@ -12,6 +13,8 @@ export type SettingsState = {
   contextChunks: ContextChunk[];
   preferredModel: ModelId;
   level: LevelId;
+  uiLocale: UiLocale;
+  setUiLocale: (locale: UiLocale) => void;
   setOnboardingComplete: (v: boolean) => void;
   setTopics: (topics: TopicId[]) => void;
   setPreferredModel: (m: ModelId) => void;
@@ -33,12 +36,14 @@ const initial = {
   contextChunks: [] as ContextChunk[],
   preferredModel: DEFAULT_MODEL_ID as ModelId,
   level: DEFAULT_LEVEL_ID as LevelId,
+  uiLocale: DEFAULT_LOCALE as UiLocale,
 };
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       ...initial,
+      setUiLocale: (uiLocale) => set({ uiLocale }),
       setOnboardingComplete: (v) => set({ onboardingComplete: v }),
       setTopics: (topics) => set({ selectedTopics: topics }),
       setPreferredModel: (m) => set({ preferredModel: m }),

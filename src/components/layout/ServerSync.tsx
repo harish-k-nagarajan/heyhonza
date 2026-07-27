@@ -42,9 +42,14 @@ export function ServerSync() {
           role: m.role,
           content: m.content,
           kind: m.kind ?? "chat",
+          sessionId: m.sessionId,
           createdAt: m.createdAt,
         }));
-        useChatStore.getState().setMessages(mapped);
+        useChatStore.getState().hydrateSessions({
+          activeSessionId: data.activeSessionId ?? null,
+          endedSessions: data.endedSessions ?? [],
+          messages: mapped,
+        });
       }
 
       markChecked(Boolean(data.persisted));

@@ -39,6 +39,6 @@ export async function removeContext(id: string): Promise<void> {
 /** Wipe this user's data (chat + context) and re-arm onboarding (data doctrine §5). */
 export async function resetUserData(): Promise<void> {
   await patchServerState({ reset: true });
-  useChatStore.getState().clearThread();
+  useChatStore.getState().reset();
   useSettingsStore.getState().reset();
 }

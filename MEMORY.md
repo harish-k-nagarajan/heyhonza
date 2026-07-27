@@ -852,3 +852,19 @@ Stack: **Supabase** (Auth magic links + Postgres) via `@supabase/ssr`, per Haris
 - `InstallPrompt` is design-aware (Classic flat card vs Hmat `.mat` chrome).
 
 **Test:** Sign in → Settings → Design Lab → pick Classic or Hmat → sign out → `/welcome` → `/signin` — entire path matches. To drop a design family later: remove its `DesignId` from `registry.ts`, delete its `Classic*` / `Hmat*` screen trees, collapse `*Screen.tsx` selectors.
+
+---
+
+## Current entry — 2026-07-27 (Chat-first nav + sessions + UI locale)
+
+**Navigation:** Home removed from dock; app is **Chat · Call · Settings**. `/` redirects to `/chat`. Post-auth and post-onboarding land on `/chat`.
+
+**Chat UX:** Orb-on-top layout on `/chat`. Idle → **Start chat** (Honza opener on tap). Active → scrollable thread + **Send** + **End chat**. History icon opens drawer; tap session → `/chat/history/[id]` read-only transcript.
+
+**Sessions:** `chat_sessions` table + `messages.session_id` (`0003_chat_sessions.sql`). Local Zustand persists `activeSessionId`, `endedSessions`, `archivedMessages`. Orphan DB rows backfill into one ended session on load.
+
+**i18n:** Lightweight `src/lib/i18n/` + `uiLocale` in settings (CS/EN). Toggle on sign-in and Settings; independent of design family. Honza teaching copy stays Czech.
+
+**Removed:** `useHomeScreen`, `ClassicHome`, `HmatHome`, `HomeScreen`.
+
+**Verify:** `npm run lint` + `npm run build` green. Apply `0003_chat_sessions.sql` on Supabase before session persistence works in production.

@@ -8,6 +8,8 @@ import type { SettingsScreen } from "@/hooks/useSettingsScreen";
 import { HmatBadge, HmatFileInput } from "@/components/screens/hmat/HmatChrome";
 
 import { DesignLab } from "./DesignLab";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 /**
  * Hmat Settings — the profile form and context documents in tactile material,
@@ -53,6 +55,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 export function HmatSettings({ screen }: { screen: SettingsScreen }) {
   const { expression, contextChunks, lastSynced } = screen;
+  const { t } = useLocale();
 
   if (!screen.ready) {
     return (
@@ -78,6 +81,11 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       </header>
 
       <DesignLab />
+
+      <section className="mat space-y-3 px-4 py-4">
+        <Label>{t.settings.appLanguage}</Label>
+        <LanguageSwitcher />
+      </section>
 
       <section className="mat space-y-2 px-4 py-4">
         <Label>Server</Label>

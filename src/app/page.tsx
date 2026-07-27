@@ -1,5 +1,7 @@
-import { HomeScreen } from "@/components/screens/home/HomeScreen";
+import { redirect } from "next/navigation";
+
+import { ROUTES } from "@/lib/constants";
 
 export default function HomePage() {
-  return <HomeScreen />;
+  redirect(ROUTES.chat);
 }

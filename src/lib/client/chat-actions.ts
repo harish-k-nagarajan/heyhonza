@@ -1,26 +1,27 @@
 "use client";
 
 import { buildLearnerContextText } from "@/lib/context";
-import { useChatStore } from "@/stores/useChatStore";
+import { previewFromThread, useChatStore } from "@/stores/useChatStore";
 import { useMoodStore } from "@/stores/useMoodStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import type { MessageKind } from "@/types";
 
 /**
- * The single client path to Honza. Both Chat and Home (Phase 7 initiation) call
- * these, so there's one place that talks to `/api/chat`, updates the shared chat
- * store, and drives Honza's shared mood (thinking → speaking / oops). In DB mode
- * the server persists turns and overrides context; the local values sent here
- * are what the server falls back to in local pass-through dev.
+ * The single client path to Honza. Chat calls these to talk to `/api/chat`,
+ * update the shared chat store, and drive Honza's shared mood.
  */
 
-// Module-level lock so Home and Chat can't both fire the opener at once.
 let initiateLock = false;
 
 async function callChatApi(
   messages: { role: "user" | "assistant"; content: string }[],
   bootstrap: boolean,
-  extra?: { localHour?: number; lastContactAt?: number; kind?: MessageKind },
+  extra?: {
+    localHour?: number;
+    lastContactAt?: number;
+    kind?: MessageKind;
+    sessionId?: string;
+  },
 ): Promise<string> {
   const s = useSettingsStore.getState();
   const res = await fetch("/api/chat", {
@@ -42,10 +43,54 @@ async function callChatApi(
   return data.message;
 }
 
-/** Honza initiates: generate an unprompted opener if the thread is empty. */
+async function createServerSession(): Promise<string | null> {
+  const res = await fetch("/api/sessions", { method: "POST" });
+  const data = (await res.json()) as { sessionId?: string; persisted?: boolean };
+  if (!res.ok || !data.sessionId) return null;
+  return data.sessionId;
+}
+
+async function endServerSession(
+  sessionId: string,
+  preview: string,
+  messageCount: number,
+): Promise<void> {
+  await fetch("/api/sessions", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionId, preview, messageCount }),
+  });
+}
+
+/** Start a new typed-chat session locally and on the server when persisted. */
+export async function startChatSession(): Promise<string> {
+  const serverId = await createServerSession();
+  return useChatStore.getState().startSession(serverId ?? undefined);
+}
+
+/** End the active session and archive it for history. */
+export async function endChatSessionAction(): Promise<void> {
+  const chat = useChatStore.getState();
+  const { activeSessionId, messages } = chat;
+  if (!activeSessionId) {
+    chat.endSession();
+    return;
+  }
+  const thread = messages.filter((m) => m.role === "user" || m.role === "assistant");
+  if (thread.length > 0) {
+    await endServerSession(
+      activeSessionId,
+      previewFromThread(thread),
+      thread.length,
+    );
+  }
+  chat.endSession();
+}
+
+/** Honza initiates within the active session. */
 export async function initiateOpener(): Promise<void> {
   const chat = useChatStore.getState();
-  if (chat.messages.length > 0 || initiateLock) return;
+  if (chat.messages.length > 0 || initiateLock || !chat.activeSessionId) return;
   initiateLock = true;
   chat.setStatus("loading");
   chat.setError(null);
@@ -54,6 +99,7 @@ export async function initiateOpener(): Promise<void> {
     const reply = await callChatApi([], true, {
       localHour: new Date().getHours(),
       lastContactAt: 0,
+      sessionId: chat.activeSessionId,
     });
     if (useChatStore.getState().messages.length === 0) {
       useChatStore.getState().addAssistantMessage(reply);
@@ -68,17 +114,6 @@ export async function initiateOpener(): Promise<void> {
   }
 }
 
-/**
- * Send the user's Czech turn and append Honza's reply.
- *
- * `kind` tags where the turn came from. It's the same request either way — the
- * server persists both sides with that tag and shapes the prompt for speech when
- * it's `call` — so chat and call stay one continuous history and one code path.
- *
- * Returns Honza's reply so a caller that needs to *do* something with it (the
- * call screen speaks it) doesn't have to race the store for it. Returns null if
- * the turn failed; the error is already in the store either way.
- */
 export async function sendUserTurn(
   text: string,
   kind: MessageKind = "chat",
@@ -94,10 +129,11 @@ export async function sendUserTurn(
   chat.setError(null);
   useMoodStore.getState().setMood("thinking");
   try {
-    const reply = await callChatApi(thread, false, { kind });
+    const reply = await callChatApi(thread, false, {
+      kind,
+      sessionId: chat.activeSessionId ?? undefined,
+    });
     useChatStore.getState().addAssistantMessage(reply, kind);
-    // On a call the mood is driven by actual audio playback, so don't flash a
-    // 900ms "speaking" that would end while Honza is still mid-sentence.
     if (kind !== "call") {
       useMoodStore.getState().flashMood("speaking", { ms: 900 });
     }
@@ -111,18 +147,12 @@ export async function sendUserTurn(
   }
 }
 
-/**
- * Honza picks up the phone: a spoken opener that starts a call, tagged
- * `kind:'call'` so it lands in the same history as everything else.
- *
- * Unlike {@link initiateOpener} this runs even when the thread already has
- * messages — you're starting a *call*, and a call that opens in silence is a
- * broken call. The opener is aware of when you two last spoke, so it doesn't
- * greet a returning learner like a stranger.
- */
 export async function startCallOpener(): Promise<string | null> {
   const chat = useChatStore.getState();
-  const prior = chat.messages;
+  const prior = [
+    ...chat.messages,
+    ...Object.values(chat.archivedMessages).flat(),
+  ];
   const lastContactAt = prior.length ? prior[prior.length - 1]!.createdAt : 0;
 
   chat.setStatus("loading");
@@ -133,6 +163,7 @@ export async function startCallOpener(): Promise<string | null> {
       localHour: new Date().getHours(),
       lastContactAt,
       kind: "call",
+      sessionId: chat.activeSessionId ?? undefined,
     });
     useChatStore.getState().addAssistantMessage(reply, "call");
     return reply;
@@ -143,4 +174,28 @@ export async function startCallOpener(): Promise<string | null> {
   } finally {
     useChatStore.getState().setStatus("idle");
   }
+}
+
+/** Fetch transcript for a session from the server (signed-in users). */
+export async function fetchSessionMessages(sessionId: string) {
+  const res = await fetch(`/api/sessions/${sessionId}`);
+  const data = (await res.json()) as {
+    persisted?: boolean;
+    messages?: {
+      id: string;
+      role: "user" | "assistant";
+      content: string;
+      kind?: MessageKind;
+      createdAt: number;
+    }[];
+  };
+  if (!res.ok || !data.messages) return null;
+  return data.messages.map((m) => ({
+    id: m.id,
+    role: m.role,
+    content: m.content,
+    kind: m.kind ?? "chat",
+    sessionId,
+    createdAt: m.createdAt,
+  }));
 }
