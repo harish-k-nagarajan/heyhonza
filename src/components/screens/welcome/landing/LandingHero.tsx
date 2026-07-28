@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import type { HonzaOrbState } from "@/components/honza/theme";
+import { moodExpression } from "@/lib/mood/expression";
 import {
   LANDING_HERO_FIRST,
   LANDING_HERO_RETURN,
@@ -49,12 +50,13 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
         <p className="mt-3 min-h-[1.25rem] font-display text-[9px] uppercase tracking-[0.16em] text-accent">
           {visitor.isSignedOut
             ? "NA SHLEDANOU!"
-            : mood === "excited"
-              ? "NICE!"
-              : mood === "thinking"
-                ? "THINKING…"
-                : "WAITING FOR YOU"}
+            : moodExpression(mood).czLabel}
         </p>
+        {!visitor.isSignedOut ? (
+          <p className="font-sans text-xs text-muted-foreground">
+            {moodExpression(mood).caption}
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-3">

@@ -56,8 +56,8 @@ function CallTranscript({ messages }: { messages: ChatMessage[] }) {
         ) : null}
       </header>
       <div className="flex flex-col gap-3">
-        {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} />
+        {messages.map((m, i) => (
+          <MessageBubble key={m.id} message={m} index={i} />
         ))}
       </div>
     </section>
@@ -78,7 +78,9 @@ export function MessageList({ messages }: { messages: ChatMessage[] }) {
         seg.kind === "call" ? (
           <CallTranscript key={seg.id} messages={seg.messages} />
         ) : (
-          seg.messages.map((m) => <MessageBubble key={m.id} message={m} />)
+          seg.messages.map((m, i) => (
+            <MessageBubble key={m.id} message={m} index={i} />
+          ))
         ),
       )}
       <div ref={bottomRef} />

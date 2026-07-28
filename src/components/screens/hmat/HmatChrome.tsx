@@ -85,7 +85,15 @@ export function HmatBadge({ label }: { label: string }) {
 /** Design-consistent loading state while a screen hydrates. */
 export function HmatScreenLoading() {
   return (
-    <div className="flex flex-1 items-center justify-center">
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12">
+      <div className="mat-recess flex flex-col items-center px-6 py-6">
+        <div className="hmat-orb" style={{ width: 72, height: 72 }}>
+          <div className="stack breathe">
+            <div className="h-16 w-16 animate-pulse rounded-2xl bg-muted/40" aria-hidden />
+          </div>
+        </div>
+      </div>
+      <div className="mat h-3 w-28 animate-pulse rounded-full opacity-50" aria-hidden />
       <p className="font-display text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
         Načítání…
       </p>

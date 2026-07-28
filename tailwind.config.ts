@@ -39,6 +39,11 @@ const config: Config = {
         "honza-excited": "honza-excited 2.6s ease-in-out infinite",
         blink: "blink 1.1s step-end infinite",
         "landing-fade-in": "landing-fade-in 0.5s ease-out forwards",
+        "message-in": "message-in 0.22s ease-out forwards",
+        "drawer-in": "drawer-in 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) forwards",
+        "drawer-backdrop": "drawer-backdrop 0.22s ease-out forwards",
+        "channel-pulse": "channel-pulse 0.45s ease-out 1",
+        "honza-pop": "honza-pop 0.55s cubic-bezier(0.2, 1.5, 0.4, 1)",
       },
       keyframes: {
         honza: {
@@ -73,6 +78,28 @@ const config: Config = {
         "landing-fade-in": {
           "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "message-in": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "drawer-in": {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+        "drawer-backdrop": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "channel-pulse": {
+          "0%": { filter: "brightness(1)" },
+          "40%": { filter: "brightness(1.35)" },
+          "100%": { filter: "brightness(1)" },
+        },
+        "honza-pop": {
+          "0%": { transform: "scale(1)" },
+          "35%": { transform: "scale(1.1)" },
+          "100%": { transform: "scale(1)" },
         },
       },
       maxWidth: {

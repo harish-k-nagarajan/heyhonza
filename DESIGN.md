@@ -198,8 +198,9 @@ Source of truth: `design-lab/round4-hmat.html`. CSS lives in `globals.css`
 - **Lit channel (`mat-channel`)** — recessed channel whose inner glow is the mood
   accent, brightness × `--energy`.
 - **Floating dock (`fdock`)** — detached from the bottom edge, rounded, material
-  (not glass), the four tabs, active tab accent-tinted. Content is padded to clear
-  it; nothing overlaps.
+  (not glass), the three tabs (**Chat · Hovor · Nastavení** — chat-first since
+  2026-07-27; no separate Home tab), active tab accent-tinted with a sliding pill.
+  Content is padded to clear it; nothing overlaps.
 - **Metal vs Ceramic** — tokens only: `--mat-grain-opacity` (Metal `0.5`, Ceramic
   `0`) and the warmth mixes (`--mat-surface-warm`, `--mat-metal-warm`,
   `--mat-recess-warm`).
@@ -219,5 +220,28 @@ sets are design-dependent, never merged.
 glyphs inheriting `currentColor` (→ the mood accent): `home` (2×2 dot-matrix
 window), `chat` (3 square dots), `call` (**phone handset, not a mic**),
 `settings` (machined sliders), `send`, `mic` (in-call mute only), `hang`. Built
-once; used by both Hmat variants. Classic keeps its own minimal iconography.
-Type scale: `src/lib/design/typography.ts` (`TYPE` roles).
+once; used by both Hmat variants. Classic keeps its own minimal iconography on
+nav labels but uses hardware icons on Call mic/hang (2026-07-28).
+Type scale: `src/lib/design/typography.ts` (`TYPE` roles) — adopted on Hmat chat
+bubbles and chrome.
+
+## Interaction layer (2026-07-28)
+
+Shared primitives in `src/lib/interaction/haptic.ts` + hooks:
+
+- **`tapLight` / `tapMedium` / `hapticSuccess`** — `navigator.vibrate` wrappers;
+  no-op on desktop/unsupported. Wired to mat-keys, send, dock tabs, call connect.
+- **`useReactPop`** — one-shot orb pop on send, mood beats (excited/oops/speaking),
+  call connect, orb tap. Hmat: `.hmat-orb .react-pop`; Classic: `.honza-pop`.
+- **`useMoodReactions`** — mood transition → haptic + pop.
+- **Micro-animations** — `animate-message-in`, `animate-drawer-in`, dock pill
+  slide, channel pulse, card tilt on desktop (`.mat-tilt`).
+
+**Chat layout (Hmat):** dual-mode — **hero** recess + `mat-metal` opener card until
+the learner sends their first reply; then **compact** header (48px orb + channel).
+Honza auto-initiates on load (no Start Chat gate). Classic gets the same behaviour
+with flat chrome.
+
+**Push (foundation):** Settings toggle + `/api/push/subscribe` + Supabase
+`push_subscriptions` table. Scheduled sends not wired — copy stays honest until
+VAPID + cron are provisioned.

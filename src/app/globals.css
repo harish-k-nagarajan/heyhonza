@@ -471,3 +471,64 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Classic orb react-pop (Hmat uses .hmat-orb .react-pop). */
+.honza-pop {
+  animation: honza-pop 0.55s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+@keyframes honza-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Subtle card tilt on desktop (round-4 Hmat reference). */
+@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
+  .mat-tilt,
+  .mat-metal.mat-tilt {
+    transition: transform 0.13s cubic-bezier(0.2, 0.8, 0.3, 1);
+    transform-style: preserve-3d;
+  }
+  .mat-tilt:hover,
+  .mat-metal.mat-tilt:hover {
+    transform: perspective(900px) rotateX(1.2deg) rotateY(-1.2deg);
+  }
+}
+
+/* Floating dock — sliding active pill indicator. */
+.fdock {
+  position: relative;
+}
+.fdock-pill {
+  position: absolute;
+  top: 9px;
+  bottom: 9px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  transition: left 0.22s cubic-bezier(0.2, 0.8, 0.3, 1), width 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+.fdock .hmat-tab.on::before {
+  display: none;
+}
+
+/* Chat header morph between hero and compact. */
+.chat-orb-header {
+  transition: padding 0.3s ease, gap 0.3s ease;
+}
+.chat-orb-header.compact {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+.chat-orb-header.hero {
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem 1rem;
+}
+.chat-orb-wrap {
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}

@@ -8,6 +8,7 @@ import type { SettingsScreen } from "@/hooks/useSettingsScreen";
 import { HmatBadge, HmatFileInput } from "@/components/screens/hmat/HmatChrome";
 
 import { DesignLab } from "./DesignLab";
+import { PushNotificationSettings } from "@/components/pwa/PushNotificationSettings";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/useLocale";
 
@@ -81,6 +82,10 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       </header>
 
       <DesignLab />
+
+      <section className="mat px-4 py-4">
+        <PushNotificationSettings />
+      </section>
 
       <section className="mat space-y-3 px-4 py-4">
         <Label>{t.settings.appLanguage}</Label>

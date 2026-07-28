@@ -12,6 +12,7 @@ import type { LevelId, ModelId } from "@/lib/constants";
 import type { SettingsScreen } from "@/hooks/useSettingsScreen";
 
 import { DesignLab } from "./DesignLab";
+import { PushNotificationSettings } from "@/components/pwa/PushNotificationSettings";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/useLocale";
 
@@ -53,6 +54,10 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
       <Card className="space-y-3">
         <SectionLabel as="p">{t.settings.appLanguage}</SectionLabel>
         <LanguageSwitcher />
+      </Card>
+
+      <Card className="space-y-3">
+        <PushNotificationSettings />
       </Card>
 
       <Card className="space-y-2">
