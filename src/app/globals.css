@@ -518,10 +518,10 @@ body {
 
 /* Chat header morph between hero and compact. */
 .chat-orb-header {
+  display: flex;
   transition:
     padding 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    gap 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    flex-direction 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    gap 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .chat-orb-header.compact {
   flex-direction: row;

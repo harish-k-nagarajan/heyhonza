@@ -47,7 +47,14 @@ export function TabScreenTransition({ children, className }: TabScreenTransition
         : "motion-safe:animate-tab-enter motion-reduce:animate-none";
 
   return (
-    <div key={pathname} className={cn(slideClass, className)}>
+    <div
+      key={pathname}
+      className={cn(
+        "flex min-h-0 w-full flex-1 flex-col",
+        slideClass,
+        className,
+      )}
+    >
       {children}
     </div>
   );

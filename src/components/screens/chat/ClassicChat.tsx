@@ -67,7 +67,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
 
         <div
           className={cn(
-            "flex shrink-0 items-center gap-3 py-2 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            "flex shrink-0 items-center gap-3 py-2 motion-reduce:transition-none",
             heroMode ? "flex-col text-center" : "flex-row",
           )}
         >
@@ -77,7 +77,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
           >
             <HonzaOrb
               state={expression.mood}
-              size={heroMode ? "hero" : "compact"}
+              size={heroMode ? "hero" : "avatar"}
               stackClassName={stackClassName}
             />
           </div>

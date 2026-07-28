@@ -891,3 +891,23 @@ cron approval.
 
 **Verify:** `npm run lint` + `npm run build` green (16 routes incl. `/api/push/subscribe`).
 Apply `0003_push_subscriptions.sql` on Supabase for push persistence.
+
+---
+
+## Current entry — 2026-07-28 (Nav polish + Noto typography)
+
+**Typography:** Added **Noto Sans** + **Noto Sans Mono** to the Design Lab font axis.
+Hmat default body is now Noto Sans (replacing Geist Sans — too generic). Display stays
+Geist Pixel Square for the robotic chrome; Share Tech Mono unchanged on Classic.
+
+**Tab transitions:** `TabScreenTransition` on Chat/Call/Settings — direction-aware
+fade/slide (~550ms). Hmat dock pill slide slowed to 450ms; chat header morph to 500ms.
+
+**Orb:** Chat compact mode keeps a **112px** orb (was 48/64px avatar). Orb is no longer
+tappable — removed tap `react-pop` so incidental taps don't flash color/scale. Mood
+changes still drive color via `useMoodReactions`.
+
+**Nav glass:** Classic `BottomNav` + Hmat `fdock` use frosted cream glass
+(`backdrop-blur` + semi-transparent `--bg` tint) instead of solid fills.
+
+**Verify:** `npm run lint` + `npm run build` green.
