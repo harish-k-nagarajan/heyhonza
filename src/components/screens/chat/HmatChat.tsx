@@ -126,14 +126,14 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
         <div
           className={cn(
-            "mat-recess flex shrink-0 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
-            heroMode ? "chat-orb-header hero flex-col items-center" : "chat-orb-header compact flex-row",
+            "mat-recess flex shrink-0",
+            heroMode ? "chat-orb-header hero flex-col items-center" : "chat-orb-header compact flex-row items-center",
           )}
         >
-          <div className="chat-orb-wrap rounded-full" aria-hidden>
+          <div className="chat-orb-wrap shrink-0 rounded-full" aria-hidden>
             <HmatOrb
               state={expression.mood}
-              size={heroMode ? 150 : 112}
+              size={heroMode ? 150 : 72}
               breathe={heroMode}
               stackClassName={stackClassName}
             />
