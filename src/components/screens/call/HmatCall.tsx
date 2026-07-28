@@ -65,17 +65,9 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
       </header>
 
       <div className="mat-recess mt-6 flex flex-col items-center px-4 py-8">
-        <button
-          type="button"
-          onClick={() => {
-            tapLight();
-            triggerPop();
-          }}
-          className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          aria-label="Honza"
-        >
+        <div className="rounded-full" aria-hidden>
           <HmatOrb state={orbState} size={172} stackClassName={stackClassName} />
-        </button>
+        </div>
         <MoodOrbStrip
           expression={screen.expression}
           thinkingLabel="Vyzvání…"

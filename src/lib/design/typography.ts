@@ -5,7 +5,7 @@
  *
  * Two axes, from the token contract (P1):
  *   `font-display` → the pixel display face (Geist Pixel Square on Hmat)
- *   `font-sans`    → the body face (Geist Sans on Hmat) — full Czech diacritics
+ *   `font-sans`    → the body face (Noto Sans on Hmat) — full Czech diacritics
  *
  * These are className strings, not components: drop them onto any element. Roles
  * carrying Czech prose deliberately use `font-sans` (never a display face), so

@@ -1,5 +1,6 @@
 "use client";
 
+import { TabScreenTransition } from "@/components/layout/TabScreenTransition";
 import { useSettingsScreen } from "@/hooks/useSettingsScreen";
 
 import { ClassicSettings } from "./ClassicSettings";
@@ -11,6 +12,12 @@ import { HmatSettings } from "./HmatSettings";
  */
 export function SettingsScreen() {
   const screen = useSettingsScreen();
-  if (screen.family === "hmat") return <HmatSettings screen={screen} />;
-  return <ClassicSettings screen={screen} />;
+  const body =
+    screen.family === "hmat" ? (
+      <HmatSettings screen={screen} />
+    ) : (
+      <ClassicSettings screen={screen} />
+    );
+
+  return <TabScreenTransition>{body}</TabScreenTransition>;
 }

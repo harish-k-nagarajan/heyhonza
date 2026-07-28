@@ -1,5 +1,6 @@
 "use client";
 
+import { TabScreenTransition } from "@/components/layout/TabScreenTransition";
 import { useCallScreen } from "@/hooks/useCallScreen";
 
 import { ClassicCall } from "./ClassicCall";
@@ -11,6 +12,12 @@ import { HmatCall } from "./HmatCall";
  */
 export function CallScreen() {
   const screen = useCallScreen();
-  if (screen.family === "hmat") return <HmatCall screen={screen} />;
-  return <ClassicCall screen={screen} />;
+  const body =
+    screen.family === "hmat" ? (
+      <HmatCall screen={screen} />
+    ) : (
+      <ClassicCall screen={screen} />
+    );
+
+  return <TabScreenTransition>{body}</TabScreenTransition>;
 }

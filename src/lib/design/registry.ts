@@ -20,6 +20,8 @@ export type HmatVariant = "metal" | "ceramic";
 
 export type FontId =
   | "share-tech-mono"
+  | "noto-sans"
+  | "noto-sans-mono"
   | "geist-sans"
   | "geist-mono"
   | "geist-pixel-square"
@@ -54,6 +56,20 @@ export const FONTS: Record<FontId, FontMeta> = {
     cssVar: "--f-share-tech-mono",
     displayOnly: false,
     coversCzech: false,
+  },
+  "noto-sans": {
+    id: "noto-sans",
+    label: "Noto Sans",
+    cssVar: "--f-noto-sans",
+    displayOnly: false,
+    coversCzech: true,
+  },
+  "noto-sans-mono": {
+    id: "noto-sans-mono",
+    label: "Noto Sans Mono",
+    cssVar: "--f-noto-sans-mono",
+    displayOnly: false,
+    coversCzech: true,
   },
   "geist-sans": {
     id: "geist-sans",
@@ -134,7 +150,7 @@ export const DESIGNS: Record<DesignId, DesignMeta> = {
     family: "hmat",
     variant: "metal",
     defaultDisplayFont: "geist-pixel-square",
-    defaultBodyFont: "geist-sans",
+    defaultBodyFont: "noto-sans",
   },
   "hmat-ceramic": {
     id: "hmat-ceramic",
@@ -143,7 +159,7 @@ export const DESIGNS: Record<DesignId, DesignMeta> = {
     family: "hmat",
     variant: "ceramic",
     defaultDisplayFont: "geist-pixel-square",
-    defaultBodyFont: "geist-sans",
+    defaultBodyFont: "noto-sans",
   },
 };
 

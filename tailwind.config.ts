@@ -44,6 +44,10 @@ const config: Config = {
         "drawer-backdrop": "drawer-backdrop 0.22s ease-out forwards",
         "channel-pulse": "channel-pulse 0.45s ease-out 1",
         "honza-pop": "honza-pop 0.55s cubic-bezier(0.2, 1.5, 0.4, 1)",
+        "tab-enter": "tab-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "tab-enter-from-right": "tab-enter-from-right 0.58s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "tab-enter-from-left": "tab-enter-from-left 0.58s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "tab-content-in": "tab-content-in 0.62s cubic-bezier(0.22, 1, 0.36, 1) forwards",
       },
       keyframes: {
         honza: {
@@ -100,6 +104,23 @@ const config: Config = {
           "0%": { transform: "scale(1)" },
           "35%": { transform: "scale(1.1)" },
           "100%": { transform: "scale(1)" },
+        },
+        "tab-enter": {
+          "0%": { opacity: "0", transform: "translateY(14px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "tab-enter-from-right": {
+          "0%": { opacity: "0", transform: "translateX(18px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "tab-enter-from-left": {
+          "0%": { opacity: "0", transform: "translateX(-18px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "tab-content-in": {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "60%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
       maxWidth: {
