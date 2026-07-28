@@ -20,7 +20,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-[#F5F2EE]/95 backdrop-blur-md"
+      className="nav-glass fixed bottom-0 left-0 right-0 z-40 border-t border-white/50"
       style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
     >
       <div className="mx-auto flex max-w-app justify-around px-2 pt-2 font-sans">
@@ -32,7 +32,7 @@ export function BottomNav() {
               href={item.href}
               onClick={() => tapLight()}
               className={cn(
-                "flex min-h-11 min-w-[72px] flex-1 flex-col items-center justify-center gap-1 transition active:scale-[0.96] motion-reduce:active:scale-100",
+                "flex min-h-11 min-w-[72px] flex-1 flex-col items-center justify-center gap-1 transition-[color,transform] duration-300 ease-out active:scale-[0.96] motion-reduce:active:scale-100 motion-reduce:transition-none",
                 active ? "text-accent" : "text-muted-foreground hover:text-foreground",
               )}
             >

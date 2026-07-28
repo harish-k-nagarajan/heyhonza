@@ -10,7 +10,7 @@ import type { HonzaOrbState } from "./theme";
 export { HONZA_STATE_COLORS };
 export type { HonzaOrbState };
 
-export type HonzaOrbSize = "hero" | "avatar";
+export type HonzaOrbSize = "hero" | "compact" | "avatar";
 
 const GRID = 15;
 const VIEW = 90;
@@ -157,6 +157,7 @@ function pixelsForState(state: HonzaOrbState): { accent: Set<string>; faint: Set
 
 const SIZE_PX: Record<HonzaOrbSize, number> = {
   hero: 200,
+  compact: 112,
   avatar: 64,
 };
 

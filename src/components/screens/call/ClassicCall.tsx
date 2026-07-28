@@ -61,17 +61,9 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
 
       <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
         <div className="relative">
-          <button
-            type="button"
-            onClick={() => {
-              tapLight();
-              triggerPop();
-            }}
-            className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            aria-label="Honza"
-          >
+          <div className="rounded-full" aria-hidden>
             <HonzaOrb state={orbState} size="hero" stackClassName={stackClassName} />
-          </button>
+          </div>
           {phase === "listening" && listening ? (
             <span
               className="pointer-events-none absolute -inset-3 rounded-[20px] border-2 border-accent motion-safe:animate-honza-thinking motion-reduce:animate-none"

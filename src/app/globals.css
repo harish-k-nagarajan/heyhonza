@@ -10,6 +10,8 @@
  */
 :root {
   --f-share-tech-mono: var(--font-share-tech-mono), ui-monospace, "Courier New", monospace;
+  --f-noto-sans: var(--font-noto-sans), "Segoe UI", system-ui, sans-serif;
+  --f-noto-sans-mono: var(--font-noto-sans-mono), ui-monospace, "Courier New", monospace;
   --f-geist-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-geist-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
   --f-geist-pixel-square: var(--font-geist-pixel-square), var(--font-geist-mono), ui-monospace, monospace;
@@ -51,7 +53,7 @@
 [data-design="hmat-metal"],
 [data-design="hmat-ceramic"] {
   --font-display: var(--f-geist-pixel-square);
-  --font-body: var(--f-geist-sans);
+  --font-body: var(--f-noto-sans);
   --radius-card: 18px;
 
   /* Shared Hmat ink/scale on the cream base. */
@@ -297,17 +299,19 @@ body {
 /* Floating material dock (the Hmat nav). Positioned by its fixed wrapper; this
  * is just the bar material + tabs. Active tab is tinted with the mood accent. */
 .fdock {
+  position: relative;
   border-radius: 24px;
   display: flex;
   gap: 2px;
   padding: 9px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--bg) 52%, #fff));
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  background: color-mix(in srgb, var(--bg) 48%, rgba(255, 255, 255, 0.68));
+  backdrop-filter: blur(20px) saturate(165%);
+  -webkit-backdrop-filter: blur(20px) saturate(165%);
   box-shadow:
-    0 2px 0 rgba(255, 255, 255, 0.9) inset,
-    0 -2px 5px rgba(120, 90, 70, 0.1) inset,
-    0 12px 26px rgba(90, 60, 45, 0.2),
-    0 2px 6px rgba(90, 60, 45, 0.14);
+    0 1px 0 rgba(255, 255, 255, 0.88) inset,
+    0 12px 28px rgba(90, 60, 45, 0.14),
+    0 2px 6px rgba(90, 60, 45, 0.08);
 }
 .hmat-tab {
   flex: 1;
@@ -320,7 +324,7 @@ body {
   position: relative;
   padding: 4px 0;
   color: #9c9089;
-  transition: color 0.15s ease;
+  transition: color 0.3s ease;
 }
 .hmat-tab.on {
   color: var(--accent);
@@ -496,16 +500,15 @@ body {
 }
 
 /* Floating dock — sliding active pill indicator. */
-.fdock {
-  position: relative;
-}
 .fdock-pill {
   position: absolute;
   top: 9px;
   bottom: 9px;
   border-radius: 13px;
   background: color-mix(in srgb, var(--accent) 14%, transparent);
-  transition: left 0.22s cubic-bezier(0.2, 0.8, 0.3, 1), width 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+  transition:
+    left 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
   z-index: 0;
 }
@@ -515,13 +518,16 @@ body {
 
 /* Chat header morph between hero and compact. */
 .chat-orb-header {
-  transition: padding 0.3s ease, gap 0.3s ease;
+  transition:
+    padding 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    gap 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    flex-direction 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .chat-orb-header.compact {
   flex-direction: row;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  gap: 0.875rem;
+  padding: 0.875rem 1rem;
 }
 .chat-orb-header.hero {
   flex-direction: column;
@@ -529,6 +535,13 @@ body {
   padding: 1.25rem 1rem;
 }
 .chat-orb-wrap {
-  transition: transform 0.3s ease;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   flex-shrink: 0;
+}
+
+/* Frosted bottom nav — cream tint preserved, content shows through. */
+.nav-glass {
+  background: color-mix(in srgb, #f5f2ee 62%, transparent);
+  backdrop-filter: blur(20px) saturate(165%);
+  -webkit-backdrop-filter: blur(20px) saturate(165%);
 }

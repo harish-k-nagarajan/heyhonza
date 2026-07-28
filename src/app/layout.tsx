@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Share_Tech_Mono } from "next/font/google";
+import { Noto_Sans, Noto_Sans_Mono, Share_Tech_Mono } from "next/font/google";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import {
@@ -25,12 +25,28 @@ const shareTechMono = Share_Tech_Mono({
   display: "swap",
 });
 
+// Humanist body + technical mono with full Czech diacritics (Noto family).
+const notoSans = Noto_Sans({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-noto-sans",
+  display: "swap",
+});
+
+const notoSansMono = Noto_Sans_Mono({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500"],
+  variable: "--font-noto-sans-mono",
+  display: "swap",
+});
+
 // The Design Lab font axis. Geist Sans/Mono cover the full Czech diacritic set
 // (fixes F0 for Hmat body copy); the five Pixel faces share the orb's DNA and
 // are display-only by default. Each exposes a `--font-…` CSS variable that the
 // `--f-*` stacks in globals.css chain into.
 const FONT_VARS = [
   shareTechMono.variable,
+  notoSans.variable,
+  notoSansMono.variable,
   GeistSans.variable,
   GeistMono.variable,
   GeistPixelSquare.variable,

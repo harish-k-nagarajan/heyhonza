@@ -67,25 +67,20 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
 
         <div
           className={cn(
-            "flex shrink-0 items-center gap-3 py-2 transition-all duration-300 motion-reduce:transition-none",
+            "flex shrink-0 items-center gap-3 py-2 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
             heroMode ? "flex-col text-center" : "flex-row",
           )}
         >
-          <button
-            type="button"
-            onClick={() => {
-              tapLight();
-              triggerPop();
-            }}
-            className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            aria-label="Honza"
+          <div
+            className="shrink-0 rounded-full"
+            aria-hidden
           >
             <HonzaOrb
               state={expression.mood}
-              size={heroMode ? "hero" : "avatar"}
+              size={heroMode ? "hero" : "compact"}
               stackClassName={stackClassName}
             />
-          </button>
+          </div>
           {!heroMode ? (
             <MoodOrbStrip
               expression={expression}

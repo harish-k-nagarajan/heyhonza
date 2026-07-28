@@ -1,5 +1,6 @@
 "use client";
 
+import { TabScreenTransition } from "@/components/layout/TabScreenTransition";
 import { useChatScreen } from "@/hooks/useChatScreen";
 
 import { ClassicChat } from "./ClassicChat";
@@ -11,6 +12,12 @@ import { HmatChat } from "./HmatChat";
  */
 export function ChatScreen() {
   const screen = useChatScreen();
-  if (screen.family === "hmat") return <HmatChat screen={screen} />;
-  return <ClassicChat screen={screen} />;
+  const body =
+    screen.family === "hmat" ? (
+      <HmatChat screen={screen} />
+    ) : (
+      <ClassicChat screen={screen} />
+    );
+
+  return <TabScreenTransition>{body}</TabScreenTransition>;
 }

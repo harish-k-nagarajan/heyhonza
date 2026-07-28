@@ -126,26 +126,18 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
         <div
           className={cn(
-            "mat-recess flex shrink-0 transition-all duration-300 motion-reduce:transition-none",
+            "mat-recess flex shrink-0 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
             heroMode ? "chat-orb-header hero flex-col items-center" : "chat-orb-header compact flex-row",
           )}
         >
-          <button
-            type="button"
-            onClick={() => {
-              tapLight();
-              triggerPop();
-            }}
-            className="chat-orb-wrap rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            aria-label="Honza"
-          >
+          <div className="chat-orb-wrap rounded-full" aria-hidden>
             <HmatOrb
               state={expression.mood}
-              size={heroMode ? 150 : 48}
+              size={heroMode ? 150 : 112}
               breathe={heroMode}
               stackClassName={stackClassName}
             />
-          </button>
+          </div>
           <MoodOrbStrip
             expression={expression}
             loading={loading}
