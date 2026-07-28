@@ -868,3 +868,26 @@ Stack: **Supabase** (Auth magic links + Postgres) via `@supabase/ssr`, per Haris
 **Removed:** `useHomeScreen`, `ClassicHome`, `HmatHome`, `HomeScreen`.
 
 **Verify:** `npm run lint` + `npm run build` green. Apply `0003_chat_sessions.sql` on Supabase before session persistence works in production.
+
+---
+
+## Current entry — 2026-07-28 (Design delight pass)
+
+**Interaction:** `src/lib/interaction/haptic.ts` + `useReactPop` + `useMoodReactions`.
+Light haptics on mat-keys/send/dock; orb `react-pop` on send, mood beats, call connect,
+orb tap. Respects `prefers-reduced-motion` for CSS; haptics follow OS setting.
+
+**Chat:** Auto-initiate session + opener on load (and after End Chat) — **no Start Chat
+gate**. Hmat dual layout: hero recess + `mat-metal` opener card until first user reply,
+then compact 48px orb header. `expression.caption` surfaced under channel. Message
+bubbles animate in; history drawer slides.
+
+**Classic:** Shared haptics/pop; accent Honza bubbles; circular send; HardwareIcons on
+Call mic/hang. Deleted dead `Composer`, `HmatComposer`, `HmatWelcome`.
+
+**Push (foundation only):** `0003_push_subscriptions.sql`, `/api/push/subscribe`,
+Settings `PushNotificationSettings`. Scheduled sends **not** wired — needs VAPID +
+cron approval.
+
+**Verify:** `npm run lint` + `npm run build` green (16 routes incl. `/api/push/subscribe`).
+Apply `0003_push_subscriptions.sql` on Supabase for push persistence.

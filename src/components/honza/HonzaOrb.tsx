@@ -164,9 +164,16 @@ export type HonzaOrbProps = {
   state?: HonzaOrbState;
   size?: HonzaOrbSize;
   className?: string;
+  /** Triggers react-pop keyframe (Classic equivalent of HmatOrb stackClassName). */
+  stackClassName?: string;
 };
 
-export function HonzaOrb({ state = "idle", size = "hero", className }: HonzaOrbProps) {
+export function HonzaOrb({
+  state = "idle",
+  size = "hero",
+  className,
+  stackClassName,
+}: HonzaOrbProps) {
   const uid = useId();
   const clipId = `${uid}-clip`;
   const px = SIZE_PX[size];
@@ -261,6 +268,7 @@ export function HonzaOrb({ state = "idle", size = "hero", className }: HonzaOrbP
         className={cn(
           "flex h-full w-full origin-center will-change-transform motion-reduce:animate-none",
           motionClass,
+          stackClassName === "react-pop" && "honza-pop",
         )}
         style={{ ["--honza-accent" as string]: facePalette.accent }}
       >

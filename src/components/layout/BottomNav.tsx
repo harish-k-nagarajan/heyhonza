@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { tapLight } from "@/lib/interaction/haptic";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { useLocale } from "@/lib/i18n/useLocale";
@@ -29,8 +30,9 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => tapLight()}
               className={cn(
-                "flex min-h-11 min-w-[72px] flex-1 flex-col items-center justify-center gap-1 transition",
+                "flex min-h-11 min-w-[72px] flex-1 flex-col items-center justify-center gap-1 transition active:scale-[0.96] motion-reduce:active:scale-100",
                 active ? "text-accent" : "text-muted-foreground hover:text-foreground",
               )}
             >

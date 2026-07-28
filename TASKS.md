@@ -190,6 +190,18 @@ Full spec in `DESIGN.md` § Design Lab; the source of truth is
 
 ---
 
+## Design delight pass — 2026-07-28
+
+- [x] **Interaction layer** — `haptic.ts`, `useReactPop`, `useMoodReactions`; wired to send, mood beats, mat-keys, dock, call connect, orb tap. `[independent]`
+- [x] **Chat alive** — auto-initiate opener (no Start Chat gate), mood `caption` + lit channel, message bubble enter animations, composer consolidation in `ChatActionBar` (blinking `_`, circular send both designs). `[depends on: Interaction layer]`
+- [x] **Dual-mode Hmat chat** — hero recess + `mat-metal` opener → compact header after first user reply; 300ms morph. Classic mirrors with flat chrome. `[depends on: Chat alive]`
+- [x] **Nav + drawer motion** — Hmat dock sliding pill; history drawer slide-in; BottomNav haptic + press scale. `[depends on: Interaction layer]`
+- [x] **Classic polish** — accent Honza bubbles, circular send arrow, HardwareIcons on Call mic/hang; deleted dead `Composer`, `HmatComposer`, `HmatWelcome`. `[depends on: Chat alive]`
+- [x] **Push foundation** — `push_subscriptions` migration, `/api/push/subscribe`, Settings toggle (`PushNotificationSettings`); honest copy until scheduled sends ship. `[independent]`
+- [x] **Docs** — DESIGN.md § interaction + 3-tab IA; MEMORY.md entry. `[depends on: all above]`
+
+---
+
 ## How to use in each session
 
 1. Pick the **lowest phase** with an unchecked task.

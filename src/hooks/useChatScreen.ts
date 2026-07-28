@@ -32,6 +32,10 @@ export type ChatScreen = {
   lastError: string | null;
   loading: boolean;
   chatPhase: "idle" | "active";
+  /** Hero recess until the learner sends their first reply. */
+  heroMode: boolean;
+  /** Honza's opening line while waiting in hero mode. */
+  openerMessage: string | null;
   showEmptyState: boolean;
   historyOpen: boolean;
   setHistoryOpen: (open: boolean) => void;
@@ -68,10 +72,31 @@ export function useChatScreen(): ChatScreen {
     return () => setMood("idle");
   }, [setMood]);
 
+  /** Honza initiates on load (and after End Chat) — no "Start Chat" gate. */
+  useEffect(() => {
+    if (!ready || !onboardingComplete) return;
+    if (chatPhase !== "idle" || activeSessionId) return;
+
+    void (async () => {
+      await startChatSession();
+      if (useChatStore.getState().messages.length === 0) {
+        await initiateOpener();
+      }
+    })();
+  }, [ready, onboardingComplete, chatPhase, activeSessionId]);
+
   const threadMessages = useMemo(
     () => messages.filter((m) => m.role === "user" || m.role === "assistant"),
     [messages],
   );
+
+  const heroMode = !threadMessages.some((m) => m.role === "user");
+
+  const openerMessage = useMemo(() => {
+    if (!heroMode) return null;
+    const first = threadMessages.find((m) => m.role === "assistant");
+    return first?.content ?? null;
+  }, [heroMode, threadMessages]);
 
   const showEmptyState =
     chatPhase === "active" &&
@@ -115,6 +140,8 @@ export function useChatScreen(): ChatScreen {
     lastError,
     loading: status === "loading",
     chatPhase,
+    heroMode,
+    openerMessage,
     showEmptyState,
     historyOpen,
     setHistoryOpen,

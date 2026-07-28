@@ -1,23 +1,18 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 import { HmatOrb } from "@/components/honza/HmatOrb";
+import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
+import { HmatScreenLoading } from "@/components/screens/hmat/HmatChrome";
+import type { CallScreen } from "@/hooks/useCallScreen";
+import { useMoodReactions } from "@/hooks/useMoodReactions";
+import { useReactPop } from "@/hooks/useReactPop";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
-import type { CallScreen } from "@/hooks/useCallScreen";
-import { HmatScreenLoading } from "@/components/screens/hmat/HmatChrome";
+import { tapLight, tapMedium } from "@/lib/interaction/haptic";
 
-/**
- * Hmat Call — a real call, not a chat with a mic. Honza fills a machined recess,
- * the lit channel and orb backlight ride the mood energy, and the controls are
- * deep keys (mic = in-call mute, hang = red). Behaviour + the speak→listen→send
- * turn cycle come from `useCallScreen`; hanging up drops you into the transcript.
- */
-/**
- * Czech status line for the Hmat call. The shared `useCallScreen` hook returns
- * an English `statusLine` (Classic's copy — left byte-for-byte); Hmat leads with
- * the character in full Czech, so it derives its own from the same phase.
- */
 function czStatusLine(phase: CallScreen["phase"], listening: boolean): string {
   switch (phase) {
     case "ready":
@@ -36,12 +31,25 @@ function czStatusLine(phase: CallScreen["phase"], listening: boolean): string {
 export function HmatCall({ screen }: { screen: CallScreen }) {
   const { phase, inCall, orbState, caption, captionWho, error, listening, supported } =
     screen;
+  const { stackClassName, triggerPop } = useReactPop();
+  const wasInCallRef = useRef(false);
+
+  useMoodReactions(triggerPop);
+
+  useEffect(() => {
+    if (inCall && !wasInCallRef.current) {
+      tapMedium();
+      triggerPop();
+    }
+    wasInCallRef.current = inCall;
+  }, [inCall, triggerPop]);
 
   if (!screen.ready) return <HmatScreenLoading />;
 
+  const channelPulse = phase === "speaking" || orbState === "excited";
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Header: duration pill mid-call, label otherwise. */}
       <header className="flex shrink-0 items-center justify-center">
         {inCall ? (
           <span className="mat rounded-full px-4 py-1.5" aria-label="Call duration">
@@ -56,28 +64,36 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
         )}
       </header>
 
-      {/* Character in the recess. */}
       <div className="mat-recess mt-6 flex flex-col items-center px-4 py-8">
-        <HmatOrb state={orbState} size={172} />
-        <div className="mat-channel mt-5" style={{ width: "56%" }} aria-hidden />
-        <p className="mt-3.5 font-display text-[10px] uppercase tracking-[0.18em] text-accent">
-          {screen.expression.czLabel}
-        </p>
+        <button
+          type="button"
+          onClick={() => {
+            tapLight();
+            triggerPop();
+          }}
+          className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          aria-label="Honza"
+        >
+          <HmatOrb state={orbState} size={172} stackClassName={stackClassName} />
+        </button>
+        <MoodOrbStrip
+          expression={screen.expression}
+          thinkingLabel="Vyzvání…"
+          channelPulse={channelPulse}
+          className="mt-5 w-full"
+        />
       </div>
 
-      <div className="mt-6 flex flex-col items-center gap-1 text-center">
-        <h1 className="font-display text-lg tracking-[0.2em]">HONZA</h1>
-        <p
-          className="font-sans text-xs text-muted-foreground"
-          role="status"
-          aria-live="polite"
-        >
-          {czStatusLine(phase, listening)}
-        </p>
-      </div>
+      <p
+        className="mt-4 text-center font-sans text-xs text-muted-foreground"
+        role="status"
+        aria-live="polite"
+      >
+        {czStatusLine(phase, listening)}
+      </p>
 
       {caption ? (
-        <div className="mat mx-auto mt-5 w-full max-w-[340px] px-4 py-3">
+        <div className="mat mat-tilt mx-auto mt-5 w-full max-w-[340px] px-4 py-3 motion-safe:animate-message-in motion-reduce:animate-none">
           <p className="mb-1 font-display text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
             {captionWho === "honza" ? "Honza" : "Ty"}
           </p>
@@ -103,12 +119,14 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
 
       <div className="flex-1" />
 
-      {/* Controls. */}
       <div className="flex shrink-0 flex-col items-center gap-3">
         {!inCall ? (
           <button
             type="button"
-            onClick={screen.startCall}
+            onClick={() => {
+              tapMedium();
+              screen.startCall();
+            }}
             disabled={!supported}
             className="mat-key press flex h-14 w-full max-w-[280px] items-center justify-center rounded-full font-display text-base tracking-[0.2em] text-accent disabled:opacity-40"
           >
@@ -118,7 +136,10 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
           <div className="flex items-center gap-5">
             <button
               type="button"
-              onClick={screen.toggleMic}
+              onClick={() => {
+                tapLight();
+                screen.toggleMic();
+              }}
               disabled={phase === "connecting" || phase === "thinking"}
               aria-pressed={listening}
               aria-label={listening ? "Stop speaking" : "Speak"}
@@ -128,7 +149,10 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
               )}
               style={
                 listening
-                  ? { background: "linear-gradient(180deg, color-mix(in srgb, var(--accent) 96%, #fff), var(--accent))" }
+                  ? {
+                      background:
+                        "linear-gradient(180deg, color-mix(in srgb, var(--accent) 96%, #fff), var(--accent))",
+                    }
                   : undefined
               }
             >
@@ -136,7 +160,10 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
             </button>
             <button
               type="button"
-              onClick={() => screen.endCall(true)}
+              onClick={() => {
+                tapLight();
+                screen.endCall(true);
+              }}
               aria-label="End call"
               className="mat-key press flex h-[60px] w-[60px] items-center justify-center rounded-full text-white"
               style={{ background: "linear-gradient(180deg, #ef5b60, #E5484D)" }}
