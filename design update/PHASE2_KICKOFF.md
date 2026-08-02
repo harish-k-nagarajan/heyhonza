@@ -48,5 +48,6 @@ Update DESIGN.md and MEMORY.md when complete.
 | 2 Typography | `cursor/typography-phase-2-1034` |
 | 3 Buttons | `cursor/button-depth-phase-3-1034` |
 | 4 Orb backdrop | `cursor/orb-backdrop-phase-4-1034` |
+| 5 Polish audit | `cursor/polish-audit-phase-5-1034` |
 
 Each phase = **new branch**, **new PR**, after the previous phase is merged.

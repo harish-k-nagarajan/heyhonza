@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
+import { HonzaOrbBackdrop } from "@/components/honza/HonzaOrbBackdrop";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
@@ -60,14 +61,15 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
       </header>
 
       <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-        <div className="relative">
+        <div className="relative overflow-hidden rounded-[24px] px-4 py-6">
+          <HonzaOrbBackdrop state={orbState} />
           <button
             type="button"
             onClick={() => {
               tapLight();
               triggerPop();
             }}
-            className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="relative z-[1] rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             aria-label="Honza"
           >
             <HonzaOrb state={orbState} size="hero" stackClassName={stackClassName} />

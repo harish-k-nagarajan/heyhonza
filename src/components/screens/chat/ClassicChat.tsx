@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { ChatActionBar } from "@/components/chat/ChatActionBar";
 import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
 import { MessageList } from "@/components/chat/MessageList";
+import { HonzaOrbBackdrop } from "@/components/honza/HonzaOrbBackdrop";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { Card } from "@/components/ui/Card";
@@ -67,17 +68,21 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
 
         <div
           className={cn(
-            "flex shrink-0 items-center gap-3 py-2 transition-all duration-300 motion-reduce:transition-none",
-            heroMode ? "flex-col text-center" : "flex-row",
+            "relative shrink-0 overflow-hidden rounded-[24px] py-2 transition-all duration-300 motion-reduce:transition-none",
+            heroMode ? "flex flex-col items-center text-center" : "flex flex-row items-center gap-3",
           )}
         >
+          {heroMode ? <HonzaOrbBackdrop state={expression.mood} /> : null}
           <button
             type="button"
             onClick={() => {
               tapLight();
               triggerPop();
             }}
-            className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className={cn(
+              "shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+              heroMode && "relative z-[1]",
+            )}
             aria-label="Honza"
           >
             <HonzaOrb

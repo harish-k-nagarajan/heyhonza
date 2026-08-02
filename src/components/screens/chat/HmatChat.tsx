@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { ChatActionBar } from "@/components/chat/ChatActionBar";
 import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
+import { HonzaOrbBackdrop } from "@/components/honza/HonzaOrbBackdrop";
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
@@ -128,17 +129,18 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
         <div
           className={cn(
-            "mat-recess flex shrink-0 transition-all duration-300 motion-reduce:transition-none",
+            "mat-recess relative shrink-0 overflow-hidden transition-all duration-300 motion-reduce:transition-none",
             heroMode ? "chat-orb-header hero flex-col items-center" : "chat-orb-header compact flex-row",
           )}
         >
+          <HonzaOrbBackdrop state={expression.mood} />
           <button
             type="button"
             onClick={() => {
               tapLight();
               triggerPop();
             }}
-            className="chat-orb-wrap rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="chat-orb-wrap relative z-[1] rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             aria-label="Honza"
           >
             <HmatOrb
@@ -154,7 +156,10 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
             thinkingLabel={t.chat.thinking}
             channelPulse={channelPulse}
             compact={!heroMode}
-            className={heroMode ? "mt-3 w-full" : "min-w-0 flex-1"}
+            className={cn(
+              "relative z-[1]",
+              heroMode ? "mt-3 w-full" : "min-w-0 flex-1",
+            )}
           />
         </div>
 

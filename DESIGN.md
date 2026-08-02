@@ -223,7 +223,9 @@ exploration variant; **only Metal ships**.
 
 `HmatOrb` keeps the 15×15 dot matrix but adds an energy-scaled backlight,
 emissive drop-shadow, specular dome, a **blink loop** (~5s, faster with energy),
-and a `react-pop`. Live orb backdrop (dot/waveform field) is Phase 4.
+and a `react-pop`. **`HonzaOrbBackdrop`** renders a dot field behind the face
+inside recess wells; it pulses during thinking/speaking (amplitude × `--energy`)
+and stays static under `prefers-reduced-motion`.
 
 ## Icon set (system kit)
 

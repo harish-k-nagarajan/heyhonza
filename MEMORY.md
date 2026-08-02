@@ -920,8 +920,6 @@ Classic screens left as legacy baselines (not selectable).
    defaults to Doto / Space Grotesk (inline DesignScript already won, but CSS
    safety net was wrong).
 
-Next: Phase 4 live orb dot backdrop (`cursor/orb-backdrop-phase-4-1034`).
-
 ### Phase 3 button unification (2026-08-02)
 
 Branch `cursor/button-depth-phase-3-1034`. Unified Hmat + Classic buttons behind
@@ -934,4 +932,18 @@ sign-in, onboarding/settings, chat send/history, call connect/mic/hang, push,
 install, file picker). Classic screens unchanged (`surface="flat"` default).
 `Pressable` is now a thin alias over mat-key `Button`.
 
-Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 4 live orb dot backdrop.
+### Phase 4 live orb backdrop (2026-08-02)
+
+Branch `cursor/polish-audit-phase-5-1034` (Phase 4+5 shipped together). Added
+`HonzaOrbBackdrop` — 21×7 accent dot grid behind the orb in recess wells; thinking
+uses a staggered opacity/scale wave, speaking uses a vertical bar pulse (amplitude
+× `--energy`). Integrated in Hmat + Classic chat (hero) and call. Static grid under
+`prefers-reduced-motion`. CSS in `globals.css`; wired in `HmatChat`, `HmatCall`,
+`ClassicChat`, `ClassicCall`.
+
+### Phase 5 polish audit closure (2026-08-02)
+
+Same branch. Closed the Design Elevation Plan: all success criteria met. Hmat
+surfaces already on `TYPE` + unified `Button`; Classic screens intentionally
+unchanged (legacy baseline). `DESIGN.md` orb section updated; elevation plan
+marked complete. Verified `npm run lint` + `npm run build` green.

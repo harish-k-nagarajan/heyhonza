@@ -304,6 +304,53 @@ body {
   100% { transform: scale(1); }
 }
 
+/* Dot-matrix field behind the orb in a recess — amplitude scales with --energy. */
+.honza-orb-backdrop {
+  display: grid;
+  grid-template-columns: repeat(21, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  place-items: center;
+  opacity: calc(0.28 + var(--energy, 0.35) * 0.35);
+}
+.honza-orb-backdrop__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: calc(0.18 + var(--energy, 0.35) * 0.22);
+  transform: scale(1);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .honza-orb-backdrop--live[data-orb-state="thinking"] .honza-orb-backdrop__dot {
+    animation: orb-dot-think 1.5s ease-in-out infinite;
+    animation-delay: calc(var(--col) * 0.055s + var(--row) * 0.018s);
+  }
+  .honza-orb-backdrop--live[data-orb-state="speaking"] .honza-orb-backdrop__dot {
+    animation: orb-dot-speak 0.52s ease-in-out infinite;
+    animation-delay: calc(var(--col) * 0.038s);
+  }
+}
+@keyframes orb-dot-think {
+  0%, 100% {
+    opacity: calc(0.14 + var(--energy, 0.35) * 0.18);
+    transform: scale(1);
+  }
+  50% {
+    opacity: calc(0.32 + var(--energy, 0.35) * 0.48);
+    transform: scale(calc(1 + var(--energy, 0.35) * 0.55));
+  }
+}
+@keyframes orb-dot-speak {
+  0%, 100% {
+    opacity: calc(0.2 + var(--energy, 0.35) * 0.25);
+    transform: scaleY(0.55);
+  }
+  50% {
+    opacity: calc(0.45 + var(--energy, 0.35) * 0.45);
+    transform: scaleY(calc(0.55 + var(--energy, 0.35) * 1.05));
+  }
+}
+
 /* Floating material dock (the Hmat nav). Positioned by its fixed wrapper; this
  * is just the bar material + tabs. Active tab is tinted with the mood accent. */
 .fdock {

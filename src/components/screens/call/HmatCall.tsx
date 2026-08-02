@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { HonzaOrbBackdrop } from "@/components/honza/HonzaOrbBackdrop";
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
@@ -68,14 +69,15 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
         )}
       </header>
 
-      <div className="mat-recess mt-6 flex flex-col items-center px-4 py-8">
+      <div className="mat-recess relative mt-6 overflow-hidden flex flex-col items-center px-4 py-8">
+        <HonzaOrbBackdrop state={orbState} />
         <button
           type="button"
           onClick={() => {
             tapLight();
             triggerPop();
           }}
-          className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="relative z-[1] rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           aria-label="Honza"
         >
           <HmatOrb state={orbState} size={172} stackClassName={stackClassName} />
@@ -84,7 +86,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
           expression={screen.expression}
           thinkingLabel="Vyzvání…"
           channelPulse={channelPulse}
-          className="mt-5 w-full"
+          className="relative z-[1] mt-5 w-full"
         />
       </div>
 
