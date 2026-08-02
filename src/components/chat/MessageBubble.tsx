@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 import type { ChatMessage } from "@/types";
 
 export function MessageBubble({
@@ -23,7 +24,8 @@ export function MessageBubble({
     >
       <div
         className={cn(
-          "max-w-[85%] rounded-card px-3 py-2 text-sm leading-relaxed",
+          "max-w-[85%] rounded-card px-3 py-2",
+          TYPE.bodySm,
           isUser
             ? "bg-accent text-accent-foreground"
             : "border border-border bg-card text-accent",
@@ -31,7 +33,7 @@ export function MessageBubble({
       >
         <p className="whitespace-pre-wrap break-words">{message.content}</p>
         <time
-          className="mt-1 block font-sans text-[9px] opacity-60"
+          className={cn("mt-1 block opacity-60", TYPE.kicker)}
           dateTime={new Date(message.createdAt).toISOString()}
         >
           {new Date(message.createdAt).toLocaleTimeString("en-US", {

@@ -1,10 +1,11 @@
 import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 
 /**
- * DESIGN.md section label: monospace, uppercase, muted, `//` prefixed as if a
- * code comment, letter-spacing 0.25em. The `//` is written as a JSX expression
- * ({"// …"}) so ESLint's react/jsx-no-comment-textnodes doesn't read it as a
- * comment (see MEMORY.md).
+ * Section label: Doto display, uppercase, muted, `//` prefixed as if a
+ * code comment. The `//` is written as a JSX expression ({"// …"}) so
+ * ESLint's react/jsx-no-comment-textnodes doesn't read it as a comment
+ * (see MEMORY.md).
  */
 export function SectionLabel({
   children,
@@ -17,10 +18,7 @@ export function SectionLabel({
 }) {
   return (
     <Tag
-      className={cn(
-        "font-sans text-[11px] uppercase leading-none tracking-[0.25em] text-muted-foreground",
-        className,
-      )}
+      className={cn(TYPE.label, "leading-none text-muted-foreground", className)}
     >
       {"// "}
       {children}

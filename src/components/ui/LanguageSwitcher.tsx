@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 import type { UiLocale } from "@/lib/i18n/locales";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { DESIGNS } from "@/lib/design/registry";
@@ -21,8 +22,8 @@ export function LanguageSwitcher({ className }: { className?: string }) {
       onClick={() => setLocale(value)}
       aria-pressed={locale === value}
       className={cn(
-        "px-3 py-1.5 font-sans text-[11px] uppercase tracking-[0.14em] transition",
-        isHmat ? "font-display text-[10px] tracking-[0.16em]" : "",
+        "px-3 py-1.5 transition",
+        isHmat ? TYPE.label : "font-sans text-[11px] uppercase tracking-[0.14em]",
         locale === value
           ? isHmat
             ? "rounded-full bg-accent/[0.14] text-accent"

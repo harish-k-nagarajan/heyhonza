@@ -1,6 +1,8 @@
 "use client";
 
 import { LANDING_SECTIONS } from "@/components/screens/welcome/welcome-content";
+import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 
 import { LandingDemoChat } from "./LandingDemoChat";
 import { LandingFooter } from "./LandingFooter";
@@ -18,7 +20,12 @@ export function HmatLanding() {
 
   if (!visitor.ready) {
     return (
-      <div className="flex min-h-[50dvh] items-center justify-center font-display text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+      <div
+        className={cn(
+          "flex min-h-[50dvh] items-center justify-center uppercase text-muted-foreground",
+          TYPE.meta,
+        )}
+      >
         Loading…
       </div>
     );

@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 
+import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
+
 export function LandingSectionHeader({
   num,
   title,
@@ -12,16 +15,10 @@ export function LandingSectionHeader({
   return (
     <header className="mb-4 space-y-2">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="font-display text-[11px] tracking-[0.14em] text-muted-foreground">
-          {num}
-        </span>
-        <h2 className="font-display text-xl tracking-[0.02em] text-foreground md:text-2xl">
-          {title}
-        </h2>
+        <span className={cn(TYPE.meta, "text-muted-foreground")}>{num}</span>
+        <h2 className={cn(TYPE.display, "text-foreground")}>{title}</h2>
       </div>
-      <p className="max-w-[52ch] font-sans text-sm leading-relaxed text-muted-foreground">
-        {lead}
-      </p>
+      <p className={cn("max-w-[52ch]", TYPE.subtitle)}>{lead}</p>
     </header>
   );
 }

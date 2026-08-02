@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 
 export function Label({
   className,
@@ -6,7 +7,7 @@ export function Label({
 }: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
     <label
-      className={cn("text-sm font-medium text-muted-foreground", className)}
+      className={cn(TYPE.label, "text-muted-foreground", className)}
       {...props}
     />
   );

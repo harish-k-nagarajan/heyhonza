@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { tapLight, tapMedium } from "@/lib/interaction/haptic";
 import { DESIGNS } from "@/lib/design/registry";
@@ -79,17 +80,19 @@ export function ChatActionBar({
             disabled={disabled}
             aria-label={t.chat.send}
             className={cn(
-              "w-full bg-transparent font-sans text-[15px] text-foreground outline-none disabled:opacity-50",
-              isHmat ? "rounded-full px-[18px] py-3.5" : "h-11 text-sm tracking-[0.06em]",
+              "w-full bg-transparent text-foreground outline-none disabled:opacity-50",
+              isHmat
+                ? cn(TYPE.body, "rounded-full px-[18px] py-3.5")
+                : "h-11 font-sans text-sm tracking-[0.06em]",
             )}
           />
           {empty ? (
             <span
               className={cn(
-                "pointer-events-none absolute inset-y-0 flex items-center font-sans text-muted-foreground",
+                "pointer-events-none absolute inset-y-0 flex items-center text-muted-foreground",
                 isHmat
-                  ? "left-[18px] text-[15px]"
-                  : "left-4 text-xs uppercase tracking-[0.15em]",
+                  ? cn("left-[18px]", TYPE.body)
+                  : "left-4 font-sans text-xs uppercase tracking-[0.15em]",
               )}
               aria-hidden
             >
@@ -137,8 +140,8 @@ export function ChatActionBar({
         }}
         disabled={disabled}
         className={cn(
-          "w-full py-2 font-sans text-[11px] uppercase tracking-[0.18em] text-muted-foreground underline transition hover:text-foreground disabled:opacity-50",
-          isHmat && "font-display text-[10px] tracking-[0.2em]",
+          "w-full py-2 underline transition hover:text-foreground disabled:opacity-50 text-muted-foreground",
+          isHmat ? TYPE.label : "font-sans text-[11px] uppercase tracking-[0.18em]",
         )}
       >
         {t.chat.endChat}

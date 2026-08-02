@@ -1,31 +1,46 @@
 /**
- * The type scale (system kit, P4) — one set of type roles, built once and used
- * by every Hmat surface so headings, labels, captions and body copy stay
- * consistent across Home / Chat / Call / Settings and both material variants.
+ * The type scale — one set of roles for the shipped look (Hmat Metal).
  *
- * Two axes, from the token contract (P1):
- *   `font-display` → the pixel display face (Geist Pixel Square on Hmat)
- *   `font-sans`    → the body face (Geist Sans on Hmat) — full Czech diacritics
+ * Fonts (locked — see `design update/SHIPPED_DESIGN.md`):
+ *   `font-display` → **Doto** (short labels / buttons)
+ *   `font-sans`    → **Space Grotesk** (Czech body — full diacritics)
  *
- * These are className strings, not components: drop them onto any element. Roles
- * carrying Czech prose deliberately use `font-sans` (never a display face), so
- * ě š č ř ž ů ď ť ň never fall back mid-word (the F0 fix).
+ * Weight rules:
+ *   **Display (Doto):** hierarchy via **size + tracking**, not Tailwind weight
+ *   utilities. Labels/kickers use `--font-display-weight` (500). Buttons and
+ *   mat-key CTAs use `font-display-ui` → `--font-display-weight-ui` (700).
+ *   **Body (Space Grotesk):** `font-medium` / `font-semibold` are allowed where
+ *   hierarchy needs weight (unlike Classic's mono, which synthesized faux bold).
+ *
+ * These are className strings, not components: drop them onto any element.
+ * Roles carrying Czech prose use `font-sans` (never a display face), so
+ * ě š č ř ž ů ď ť ň never fall back mid-word.
  */
 export const TYPE = {
-  /** Tiny monospaced/pixel eyebrow over a section. */
+  /** Tiny display eyebrow (mood badges, overlines). */
   kicker: "font-display text-[9px] uppercase tracking-[0.2em]",
-  /** `//`-style section label (chrome). */
+  /** Section / chrome labels (`// Nastavení`, form headings). */
   label: "font-display text-[10px] uppercase tracking-[0.16em]",
-  /** Numerals + status chips (call timer, badges). */
+  /** Numerals + status chips (call timer, section nums, loading). */
   meta: "font-display text-[11px] tracking-[0.14em]",
-  /** Screen title / hero display. */
+  /** Screen / card title — Doto; hierarchy via size + tracking. */
+  title: "font-display text-lg tracking-[0.04em]",
+  /**
+   * Supporting line under a title — Space Grotesk, muted.
+   * Use `font-medium` on the element when the lead needs extra weight.
+   */
+  subtitle: "font-sans text-sm leading-relaxed text-muted-foreground",
+  /** Hero / brand display (in-app). */
   display: "font-display text-2xl tracking-[-0.01em]",
+  /** Marketing hero brand (landing). */
+  displayLg:
+    "font-display text-[28px] leading-tight tracking-[0.04em] md:text-[34px]",
   /** Honza's Czech — body copy and corrections. Body face, always. */
   body: "font-sans text-[15px] leading-relaxed",
   /** Smaller Czech body (bubbles, captions). Body face. */
   bodySm: "font-sans text-sm leading-relaxed",
-  /** Buttons and mat-keys — uses the heavier display weight (e.g. Doto 700). */
-  button: "font-display font-display-ui text-sm uppercase tracking-[0.16em]",
+  /** Buttons and mat-keys — Doto 700 via `--font-display-weight-ui`. */
+  button: "font-display font-display-ui text-xs uppercase tracking-[0.18em]",
   /** Muted helper text. Body face. */
   helper: "font-sans text-xs leading-relaxed text-muted-foreground",
 } as const;

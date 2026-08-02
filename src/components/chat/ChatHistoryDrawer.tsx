@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { ROUTES } from "@/lib/constants";
 import { DESIGNS } from "@/lib/design/registry";
@@ -65,8 +66,9 @@ export function ChatHistoryDrawer({
           <h2
             id="chat-history-title"
             className={cn(
-              "font-sans text-sm uppercase tracking-[0.16em] text-foreground",
-              isHmat && "font-display text-[11px] tracking-[0.2em]",
+              isHmat
+                ? cn(TYPE.meta, "uppercase text-foreground")
+                : "font-sans text-sm uppercase tracking-[0.16em] text-foreground",
             )}
           >
             {t.chat.historyTitle}
@@ -78,16 +80,17 @@ export function ChatHistoryDrawer({
               tapLight();
               onClose();
             }}
-            className="font-sans text-[11px] uppercase tracking-[0.16em] text-muted-foreground underline"
+            className={cn(
+              "underline text-muted-foreground",
+              isHmat ? TYPE.label : "font-sans text-[11px] uppercase tracking-[0.16em]",
+            )}
           >
             {t.chat.backToChat}
           </button>
         </header>
         <div className="flex-1 overflow-y-auto p-3">
           {sessions.length === 0 ? (
-            <p className="px-2 py-6 text-center font-sans text-sm text-muted-foreground">
-              {t.chat.noHistory}
-            </p>
+            <p className={cn("px-2 py-6 text-center", TYPE.subtitle)}>{t.chat.noHistory}</p>
           ) : (
             <ul className="flex flex-col gap-2">
               {sessions.map((session) => (
@@ -103,13 +106,13 @@ export function ChatHistoryDrawer({
                       isHmat && "mat mat-tilt border-0",
                     )}
                   >
-                    <p className="font-sans text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                    <p className={cn(TYPE.meta, "uppercase text-muted-foreground")}>
                       {formatSessionDate(session.endedAt ?? session.startedAt, locale)}
                     </p>
-                    <p className="mt-1 line-clamp-2 font-sans text-sm leading-relaxed text-foreground">
+                    <p className={cn("mt-1 line-clamp-2", TYPE.bodySm, "text-foreground")}>
                       {session.preview || "…"}
                     </p>
-                    <p className="mt-1 font-sans text-[10px] text-muted-foreground">
+                    <p className={cn("mt-1", TYPE.helper)}>
                       {t.chat.messageCount(session.messageCount)}
                     </p>
                   </button>
@@ -122,7 +125,10 @@ export function ChatHistoryDrawer({
           <Link
             href={ROUTES.chat}
             onClick={onClose}
-            className="block text-center font-sans text-[11px] uppercase tracking-[0.16em] text-accent underline"
+            className={cn(
+              "block text-center underline text-accent",
+              isHmat ? TYPE.label : "font-sans text-[11px] uppercase tracking-[0.16em]",
+            )}
           >
             {t.chat.backToChat}
           </Link>

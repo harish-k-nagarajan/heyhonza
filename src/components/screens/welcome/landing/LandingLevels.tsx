@@ -3,6 +3,8 @@ import {
   LANDING_LEVEL_IDS,
   LEVEL_LANDING_BLURBS,
 } from "@/components/screens/welcome/welcome-content";
+import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 
 export function LandingLevels() {
   return (
@@ -14,10 +16,8 @@ export function LandingLevels() {
 
           return (
             <div key={id} className="landing-level-step mat-metal rounded-[16px] px-4 py-3">
-              <p className="font-display text-[10px] uppercase tracking-[0.12em] text-accent">
-                {option?.label ?? id}
-              </p>
-              <p className="mt-1 font-sans text-sm leading-relaxed text-foreground">{blurb}</p>
+              <p className={cn(TYPE.label, "text-accent")}>{option?.label ?? id}</p>
+              <p className={cn("mt-1", TYPE.bodySm, "text-foreground")}>{blurb}</p>
             </div>
           );
         })}

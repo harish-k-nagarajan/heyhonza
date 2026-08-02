@@ -2,7 +2,9 @@
 
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
+import { cn } from "@/lib/cn";
 import { DESIGNS } from "@/lib/design/registry";
+import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { useDesignStore } from "@/stores/useDesignStore";
 
@@ -35,7 +37,7 @@ export function SignInScreen({
         <p
           className={
             isHmat
-              ? "font-display text-[10px] uppercase tracking-[0.2em] text-accent"
+              ? cn(TYPE.label, "text-accent")
               : "font-sans text-[10px] uppercase tracking-[0.25em] text-muted-foreground"
           }
         >
@@ -44,13 +46,13 @@ export function SignInScreen({
         <h1
           className={
             isHmat
-              ? "font-display text-lg tracking-[0.1em] text-foreground"
+              ? cn(TYPE.title, "text-foreground")
               : "font-sans text-lg tracking-[0.12em] text-foreground"
           }
         >
           {t.signin.heading}
         </h1>
-        <p className="mx-auto max-w-[min(300px,100%)] font-sans text-xs leading-relaxed tracking-[0.08em] text-muted-foreground">
+        <p className={cn("mx-auto max-w-[min(300px,100%)]", TYPE.helper)}>
           {t.signin.subtitle}
         </p>
       </div>

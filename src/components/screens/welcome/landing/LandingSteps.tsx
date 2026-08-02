@@ -1,5 +1,7 @@
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import { WELCOME_STEPS } from "@/components/screens/welcome/welcome-content";
+import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 
 const STEP_ICONS = ["home", "send", "chat"] as const;
 
@@ -17,11 +19,11 @@ export function LandingSteps() {
               <span className="mat-key flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-accent">
                 <HardwareIcon name={icon} size={18} />
               </span>
-              <span className="font-display text-[11px] tracking-[0.14em] text-accent">{step.n}</span>
+              <span className={cn(TYPE.meta, "text-accent")}>{step.n}</span>
             </div>
             <div className="space-y-1.5">
-              <h3 className="font-sans text-[15px] text-foreground">{step.title}</h3>
-              <p className="font-sans text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+              <h3 className={cn(TYPE.body, "font-medium text-foreground")}>{step.title}</h3>
+              <p className={TYPE.subtitle}>{step.body}</p>
             </div>
           </article>
         );

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import type { SignInCopy } from "@/lib/i18n/locales";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -61,10 +62,8 @@ export function SignInForm({
   if (!configured) {
     return (
       <div className="w-full max-w-[min(320px,100%)] rounded-card border border-border bg-card p-4 text-left">
-        <p className="font-sans text-[10px] uppercase tracking-[0.25em] text-accent">
-          {c.notConfiguredLabel}
-        </p>
-        <p className="mt-2 font-sans text-xs leading-relaxed tracking-[0.06em] text-muted-foreground">
+        <p className={cn(TYPE.label, "text-accent")}>{c.notConfiguredLabel}</p>
+        <p className={cn("mt-2", TYPE.helper)}>
           Add <code className="text-foreground">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
           <code className="text-foreground">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> to
           <code className="text-foreground"> .env.local</code> (see{" "}
@@ -133,10 +132,8 @@ export function SignInForm({
   if (status === "confirm-sent") {
     return (
       <div className="w-full max-w-[min(320px,100%)] rounded-card border border-border bg-card p-5 text-center">
-        <p className="font-sans text-[10px] uppercase tracking-[0.25em] text-accent">
-          {c.confirmLabel}
-        </p>
-        <p className="mt-3 font-sans text-xs leading-relaxed tracking-[0.08em] text-foreground">
+        <p className={cn(TYPE.label, "text-accent")}>{c.confirmLabel}</p>
+        <p className={cn("mt-3", TYPE.helper, "text-foreground")}>
           {c.confirmLead}
           <br />
           <span className="text-accent">{email.trim().toLowerCase()}</span>
@@ -150,7 +147,11 @@ export function SignInForm({
             setMode("signin");
             setMessage(null);
           }}
-          className="mt-4 font-sans text-[11px] uppercase tracking-[0.2em] text-muted-foreground underline transition hover:text-foreground"
+          className={cn(
+            "mt-4 underline text-muted-foreground transition hover:text-foreground",
+            TYPE.meta,
+            "uppercase",
+          )}
         >
           {c.backToSignin}
         </button>
@@ -163,8 +164,11 @@ export function SignInForm({
     ? "mat-field px-4 py-2.5"
     : "rounded-full border-2 border-accent bg-card px-4 py-2";
   const submitBtn = isHmat
-    ? "mat-key press w-full rounded-full py-3 font-display text-xs uppercase tracking-[0.2em] text-accent disabled:opacity-60"
-    : "w-full rounded-full bg-accent py-3 font-sans text-xs uppercase tracking-[0.2em] text-accent-foreground transition hover:opacity-90 active:scale-[0.98] disabled:opacity-60";
+    ? cn("mat-key press w-full rounded-full py-3 text-accent disabled:opacity-60", TYPE.button)
+    : cn(
+        "w-full rounded-full bg-accent py-3 text-accent-foreground transition hover:opacity-90 active:scale-[0.98] disabled:opacity-60",
+        TYPE.button,
+      );
 
   return (
     <form onSubmit={onSubmit} className="w-full max-w-[min(320px,100%)] space-y-3">
@@ -182,7 +186,10 @@ export function SignInForm({
           placeholder={c.emailPlaceholder}
           aria-label={c.emailAria}
           disabled={working}
-          className="w-full bg-transparent font-sans text-sm tracking-[0.06em] text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-60"
+          className={cn(
+            "w-full bg-transparent text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-60",
+            TYPE.bodySm,
+          )}
         />
       </div>
 
@@ -195,20 +202,20 @@ export function SignInForm({
           placeholder={c.passwordPlaceholder}
           aria-label={c.passwordAria}
           disabled={working}
-          className="w-full bg-transparent font-sans text-sm tracking-[0.06em] text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-60"
+          className={cn(
+            "w-full bg-transparent text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-60",
+            TYPE.bodySm,
+          )}
         />
       </div>
 
       {message ? (
-        <p
-          role="alert"
-          className="font-sans text-[11px] leading-relaxed tracking-[0.06em] text-accent"
-        >
+        <p role="alert" className={cn(TYPE.helper, "text-accent")}>
           {message}
         </p>
       ) : null}
 
-      <button type="submit" disabled={working} className={cn(submitBtn)}>
+      <button type="submit" disabled={working} className={submitBtn}>
         {working
           ? mode === "signup"
             ? c.creating
@@ -224,7 +231,11 @@ export function SignInForm({
           setMode(mode === "signin" ? "signup" : "signin");
           setMessage(null);
         }}
-        className="w-full font-sans text-[11px] uppercase tracking-[0.2em] text-muted-foreground underline transition hover:text-foreground"
+        className={cn(
+          "w-full underline text-muted-foreground transition hover:text-foreground",
+          TYPE.meta,
+          "uppercase",
+        )}
       >
         {mode === "signin" ? c.toggleToSignup : c.toggleToSignin}
       </button>

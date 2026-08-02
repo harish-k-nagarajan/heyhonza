@@ -8,6 +8,7 @@ import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import type { IconName } from "@/components/icons/HardwareIcons";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 import { tapLight } from "@/lib/interaction/haptic";
 import { useLocale } from "@/lib/i18n/useLocale";
 
@@ -75,7 +76,7 @@ export function HmatDock() {
               className={cn("hmat-tab relative z-[1]", active && "on")}
             >
               <HardwareIcon name={tab.icon} size={21} />
-              <span className="lbl font-display text-[8px] uppercase tracking-[0.1em]">
+              <span className={cn("lbl", TYPE.kicker)}>
                 {t.nav[tab.labelKey]}
               </span>
             </Link>

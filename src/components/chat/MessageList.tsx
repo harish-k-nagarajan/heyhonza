@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { TYPE } from "@/lib/design/typography";
+import { cn } from "@/lib/cn";
 import type { ChatMessage } from "@/types";
 
 import { MessageBubble } from "./MessageBubble";
@@ -40,12 +42,12 @@ function CallTranscript({ messages }: { messages: ChatMessage[] }) {
       aria-label="Call transcript"
     >
       <header className="mb-3 flex items-baseline justify-between gap-2">
-        <SectionLabel as="p" className="text-[9px]">
+        <SectionLabel as="p" className={TYPE.kicker}>
           Call transcript
         </SectionLabel>
         {started ? (
           <time
-            className="font-sans text-[9px] text-muted-foreground"
+            className={cn(TYPE.kicker, "text-muted-foreground")}
             dateTime={new Date(started).toISOString()}
           >
             {new Date(started).toLocaleDateString("en-US", {
