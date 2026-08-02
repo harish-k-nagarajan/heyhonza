@@ -6,13 +6,15 @@ import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import { cn } from "@/lib/cn";
 import {
   activeFontPreset,
+  bodyFontsInGroup,
   DESIGNS,
   DESIGN_IDS,
   FONT_PAIRING_PRESETS,
   FONTS,
   fontFamilyVar,
-  LAB_BODY_FONTS,
+  LAB_BODY_GROUPS,
   LAB_DISPLAY_FONTS,
+  PENDING_USER_FONTS,
 } from "@/lib/design/registry";
 import type { DesignId, FontId } from "@/lib/design/registry";
 import { useDesignStore } from "@/stores/useDesignStore";
@@ -63,7 +65,7 @@ export function DesignLab() {
 
   const isHmat = DESIGNS[design].family === "hmat";
   const activePreset = activeFontPreset(displayFont, bodyFont);
-  const bodyIsDisplayFace = FONTS[bodyFont].displayOnly;
+  const bodyMeta = FONTS[bodyFont];
 
   const applyPreset = (display: FontId, body: FontId) => {
     setDisplayFont(display);
@@ -90,11 +92,10 @@ export function DesignLab() {
         </div>
       </div>
 
-      {/* Visual design (Classic / Hmat). */}
       <div className="flex flex-col gap-2">
         <p className="font-sans text-xs leading-relaxed text-muted-foreground">
-          <span className="text-foreground">Step 1 — Surface.</span> Cream flat (Classic) or brushed
-          metal / ceramic (Hmat).
+          <span className="text-foreground">Step 1 — Surface.</span> Classic flat cream, or Hmat metal /
+          ceramic.
         </p>
         {DESIGN_IDS.map((id) => {
           const meta = DESIGNS[id];
@@ -124,15 +125,12 @@ export function DesignLab() {
         })}
       </div>
 
-      {/* Font pairings. */}
       <div className="space-y-2">
         <p className="font-sans text-xs leading-relaxed text-muted-foreground">
-          <span className="text-foreground">Step 2 — Font pairing.</span> Honza uses{" "}
-          <strong className="font-normal text-foreground">two</strong> fonts:{" "}
-          <strong className="font-normal text-foreground">short labels</strong> (buttons, titles,{" "}
-          {"//"} sections) and <strong className="font-normal text-foreground">long Czech text</strong>{" "}
-          (chat bubbles, lessons). Pick a ready-made pair below — you usually do not need the custom
-          row.
+          <span className="text-foreground">Step 2 — Font pairing.</span> Two fonts:{" "}
+          <strong className="font-normal text-foreground">short labels</strong> (buttons, titles) and{" "}
+          <strong className="font-normal text-foreground">long Czech</strong> (chat). Doto labels use a{" "}
+          <strong className="font-normal text-foreground">bolder cut on buttons</strong> automatically.
         </p>
 
         <div className="flex flex-col gap-2">
@@ -151,7 +149,7 @@ export function DesignLab() {
                     : "border-border hover:bg-muted/40",
                 )}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex flex-wrap items-center gap-2">
                   <span className="font-sans text-sm text-foreground">{preset.label}</span>
                   {preset.recommended ? (
                     <span className="rounded-full bg-accent/10 px-2 py-0.5 font-display text-[9px] uppercase tracking-[0.12em] text-accent">
@@ -162,17 +160,26 @@ export function DesignLab() {
                 <span className="mt-0.5 block font-sans text-[11px] leading-snug text-muted-foreground">
                   {preset.description}
                 </span>
-                <span className="mt-1 block font-sans text-[10px] text-muted-foreground">
-                  Labels: {FONTS[preset.displayFont].label} · Reading:{" "}
-                  {FONTS[preset.bodyFont].label}
-                </span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Optional custom split — replaces confusing Nadpisy / Text dropdowns. */}
+      <div className="rounded-[14px] border border-border/80 bg-muted/25 p-3 space-y-2">
+        <p className="font-sans text-xs text-foreground">Fonts you mentioned</p>
+        <ul className="space-y-1.5 font-sans text-[11px] leading-snug text-muted-foreground">
+          <li>
+            <span className="text-foreground">Alan Sans</span> — in the body list below (partial Czech).
+          </li>
+          {PENDING_USER_FONTS.map((item) => (
+            <li key={item.name}>
+              <span className="text-foreground">{item.name}</span> — {item.note}
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <div className="space-y-2">
         <button
           type="button"
@@ -180,26 +187,23 @@ export function DesignLab() {
           className="font-sans text-xs text-muted-foreground underline"
           aria-expanded={showCustom}
         >
-          {showCustom ? "Hide custom font split" : "Custom font split (advanced)"}
+          {showCustom ? "Hide custom split" : "Mix your own (labels + reading font)"}
         </button>
 
         {showCustom ? (
           <div className="space-y-3 rounded-[14px] border border-border bg-muted/30 p-3">
             <div>
-              <label
-                htmlFor="dl-display"
-                className="mb-1 block font-sans text-sm text-foreground"
-              >
+              <label htmlFor="dl-display" className="mb-1 block font-sans text-sm text-foreground">
                 Short labels
               </label>
-              <p className="mb-1.5 font-sans text-[11px] leading-snug text-muted-foreground">
-                Buttons, screen titles, {"//"} section tags, timers.
+              <p className="mb-1.5 font-sans text-[11px] text-muted-foreground">
+                Buttons, titles, {"//"} tags. Doto is boldest on buttons.
               </p>
               <select
                 id="dl-display"
                 value={displayFont}
                 onChange={(e) => setDisplayFont(e.target.value as FontId)}
-                className="h-10 w-full rounded-[12px] border border-border bg-card px-3 font-sans text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
+                className="h-10 w-full rounded-[12px] border border-border bg-card px-3 font-sans text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
               >
                 {LAB_DISPLAY_FONTS.map((f) => (
                   <option key={f} value={f}>
@@ -213,24 +217,29 @@ export function DesignLab() {
               <label htmlFor="dl-body" className="mb-1 block font-sans text-sm text-foreground">
                 Long Czech text
               </label>
-              <p className="mb-1.5 font-sans text-[11px] leading-snug text-muted-foreground">
-                Chat messages, corrections, onboarding copy — must read well in paragraphs.
+              <p className="mb-1.5 font-sans text-[11px] text-muted-foreground">
+                Chat bubbles and lessons — pick from easy sans, mono, or your suggested faces.
               </p>
               <select
                 id="dl-body"
                 value={bodyFont}
                 onChange={(e) => setBodyFont(e.target.value as FontId)}
-                className="h-10 w-full rounded-[12px] border border-border bg-card px-3 font-sans text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
+                className="h-10 w-full rounded-[12px] border border-border bg-card px-3 font-sans text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
               >
-                {LAB_BODY_FONTS.map((f) => (
-                  <option key={f} value={f}>
-                    {FONTS[f].label} — {FONTS[f].roleHint}
-                  </option>
+                {LAB_BODY_GROUPS.map((group) => (
+                  <optgroup key={group.id} label={group.label}>
+                    {bodyFontsInGroup(group.id).map((f) => (
+                      <option key={f} value={f}>
+                        {FONTS[f].label}
+                        {FONTS[f].userPick ? " ★" : ""} — {FONTS[f].roleHint}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
-              {bodyIsDisplayFace ? (
-                <p className="mt-1.5 font-sans text-[11px] leading-snug text-accent">
-                  Pixel fonts are hard to read in long Czech text — try Geist Sans or IBM Plex.
+              {!bodyMeta.coversCzech ? (
+                <p className="mt-1.5 font-sans text-[11px] text-accent">
+                  Partial Czech — some letters may fall back. Watch the preview.
                 </p>
               ) : null}
             </div>
@@ -246,7 +255,6 @@ export function DesignLab() {
         Reset fonts to this design&apos;s default
       </button>
 
-      {/* Live preview. */}
       <div
         className={cn(
           "rounded-[14px] p-3.5 space-y-2",
@@ -256,6 +264,17 @@ export function DesignLab() {
         <p className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
           Preview
         </p>
+        <button
+          type="button"
+          className={cn(
+            "font-display-ui rounded-full px-4 py-2 text-xs uppercase tracking-[0.2em]",
+            isHmat
+              ? "mat-key text-accent"
+              : "bg-accent text-accent-foreground shadow-sm shadow-black/10",
+          )}
+        >
+          Sample button
+        </button>
         <p
           className="font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground"
           style={{ fontFamily: fontFamilyVar(displayFont) }}

@@ -15,6 +15,33 @@
   --f-doto: var(--font-doto), ui-monospace, monospace;
   --f-jetbrains-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
   --f-ibm-plex-sans: var(--font-ibm-plex-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-geist-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --f-alan-sans: var(--font-alan-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-dm-sans: var(--font-dm-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-space-grotesk: var(--font-space-grotesk), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-space-mono: var(--font-space-mono), ui-monospace, monospace;
+}
+
+/*
+ * Display-face weights — Doto uses a heavier cut on buttons (see registry
+ * displayWeight / displayWeightUi). Set on <html> by DesignScript + DesignRoot.
+ */
+:root {
+  --font-display-weight: 400;
+  --font-display-weight-ui: 400;
+}
+
+@layer base {
+  .font-display {
+    font-weight: var(--font-display-weight, 400);
+  }
+
+  button.font-display,
+  a.font-display,
+  .mat-key.font-display,
+  .font-display-ui {
+    font-weight: var(--font-display-weight-ui, var(--font-display-weight, 400));
+  }
 }
 
 /*

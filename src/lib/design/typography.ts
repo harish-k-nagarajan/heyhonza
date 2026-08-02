@@ -24,6 +24,8 @@ export const TYPE = {
   body: "font-sans text-[15px] leading-relaxed",
   /** Smaller Czech body (bubbles, captions). Body face. */
   bodySm: "font-sans text-sm leading-relaxed",
+  /** Buttons and mat-keys — uses the heavier display weight (e.g. Doto 700). */
+  button: "font-display font-display-ui text-sm uppercase tracking-[0.16em]",
   /** Muted helper text. Body face. */
   helper: "font-sans text-xs leading-relaxed text-muted-foreground",
 } as const;
