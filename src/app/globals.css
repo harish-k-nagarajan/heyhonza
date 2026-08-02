@@ -543,7 +543,7 @@ body {
   flex-shrink: 0;
 }
 
-/* Orb lead stack — backdrop layer behind face (Phase 4). */
+/* Orb lead stack — border dots in frame margin; face centered, never overlapped. */
 .orb-lead-stack {
   position: relative;
   display: inline-grid;
@@ -556,28 +556,33 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: calc(0.28 + var(--energy, 0.35) * 0.42);
 }
-.orb-lead-stack .hmat-orb,
-.orb-lead-stack [data-honza-state] {
+.orb-lead-stack .orb-lead-face {
   position: relative;
   z-index: 1;
+  display: inline-grid;
+  place-items: center;
 }
 
-/* Live dot-field waveform — amplitude from --energy, hue from --accent only. */
-.honza-orb-backdrop svg rect {
-  opacity: calc(0.45 + var(--energy, 0.35) * 0.45);
+/* Perimeter dot ring — ripple travels the border; amplitude from --energy. */
+.honza-orb-backdrop .orb-border-dot {
+  opacity: calc(0.18 + var(--energy, 0.35) * 0.22);
+  transform-origin: center;
+  transform-box: fill-box;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .honza-orb-backdrop[data-live="true"] .orb-backdrop-col--live {
-    animation: orb-backdrop-col calc(1.15s - var(--energy, 0.35) * 0.35s) ease-in-out infinite;
+  .honza-orb-backdrop[data-live="true"] .orb-border-dot--live {
+    animation: orb-border-ripple calc(2.4s - var(--energy, 0.35) * 0.7s) ease-in-out infinite;
+    animation-delay: calc(var(--dot-i) / var(--ring-count, 80) * 1.6s);
   }
 }
-@keyframes orb-backdrop-col {
+@keyframes orb-border-ripple {
   0%, 100% {
-    transform: scaleY(calc(0.42 + var(--energy, 0.35) * 0.22));
+    opacity: calc(0.14 + var(--energy, 0.35) * 0.16);
+    transform: scale(1);
   }
-  50% {
-    transform: scaleY(calc(0.62 + var(--energy, 0.35) * 0.52));
+  45% {
+    opacity: calc(0.5 + var(--energy, 0.35) * 0.45);
+    transform: scale(calc(1.15 + var(--energy, 0.35) * 0.25));
   }
 }

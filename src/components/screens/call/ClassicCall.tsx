@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from "react";
 
-import { HonzaOrbBackdrop } from "@/components/honza/HonzaOrbBackdrop";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
+import { OrbLeadStack } from "@/components/honza/OrbLeadStack";
+import { CLASSIC_ORB_PX } from "@/components/honza/orbFrame";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import { Button } from "@/components/ui/Button";
@@ -71,10 +72,9 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
             className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             aria-label="Honza"
           >
-            <span className="orb-lead-stack" style={{ width: 200, height: 200 }}>
-              <HonzaOrbBackdrop state={orbState} size={200} />
+            <OrbLeadStack state={orbState} orbSize={CLASSIC_ORB_PX.hero}>
               <HonzaOrb state={orbState} size="hero" stackClassName={stackClassName} />
-            </span>
+            </OrbLeadStack>
           </button>
           {phase === "listening" && listening ? (
             <span

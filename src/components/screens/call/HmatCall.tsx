@@ -3,8 +3,8 @@
 import { useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { HonzaOrbBackdrop } from "@/components/honza/HonzaOrbBackdrop";
 import { HmatOrb } from "@/components/honza/HmatOrb";
+import { OrbLeadStack } from "@/components/honza/OrbLeadStack";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import { HmatScreenLoading } from "@/components/screens/hmat/HmatChrome";
@@ -79,10 +79,9 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
           className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           aria-label="Honza"
         >
-          <span className="orb-lead-stack" style={{ width: 172, height: 172 }}>
-            <HonzaOrbBackdrop state={orbState} size={172} />
+          <OrbLeadStack state={orbState} orbSize={172}>
             <HmatOrb state={orbState} size={172} stackClassName={stackClassName} />
-          </span>
+          </OrbLeadStack>
         </button>
         <MoodOrbStrip
           expression={screen.expression}

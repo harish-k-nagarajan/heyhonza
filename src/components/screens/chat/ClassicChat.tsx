@@ -5,8 +5,9 @@ import { useEffect, useRef } from "react";
 import { ChatActionBar } from "@/components/chat/ChatActionBar";
 import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
 import { MessageList } from "@/components/chat/MessageList";
-import { HonzaOrbBackdrop } from "@/components/honza/HonzaOrbBackdrop";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
+import { OrbLeadStack } from "@/components/honza/OrbLeadStack";
+import { CLASSIC_ORB_PX } from "@/components/honza/orbFrame";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { Card } from "@/components/ui/Card";
 import type { ChatScreen } from "@/hooks/useChatScreen";
@@ -81,23 +82,16 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
             className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             aria-label="Honza"
           >
-            <span
-              className="orb-lead-stack"
-              style={{
-                width: heroMode ? 200 : 64,
-                height: heroMode ? 200 : 64,
-              }}
+            <OrbLeadStack
+              state={expression.mood}
+              orbSize={heroMode ? CLASSIC_ORB_PX.hero : CLASSIC_ORB_PX.avatar}
             >
-              <HonzaOrbBackdrop
-                state={expression.mood}
-                size={heroMode ? 200 : 64}
-              />
               <HonzaOrb
                 state={expression.mood}
                 size={heroMode ? "hero" : "avatar"}
                 stackClassName={stackClassName}
               />
-            </span>
+            </OrbLeadStack>
           </button>
           {!heroMode ? (
             <MoodOrbStrip

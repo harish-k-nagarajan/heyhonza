@@ -84,7 +84,7 @@ Canonical cream behind everything: **`#F5F2EE`**. State backgrounds are overlays
 - **Shape:** square **dot matrix** face — not a circle, not a soft blob.
 - **Pixels:** small **rounded squares** (`<rect>` with small `rx`, ~1.5px at hero scale).
 - **Matrix:** faint background grid of dots so the inactive matrix reads as hardware / Nothing-like.
-- **Live backdrop (chat/call):** `HonzaOrbBackdrop` — animated dot-field waveform behind the face; amplitude from `--energy`. See § Hmat — the orb, re-authored.
+- **Live backdrop (chat/call):** `HonzaOrbBackdrop` + `OrbLeadStack` — border dot ring with traveling ripple; margin sized so dots never cover the face. See § Hmat — the orb, re-authored.
 - **Features:** built from dot combinations:
   - Eyes: **2×2** or **3×2** blocks.
   - Smile: arc of individual squares; **frown:** inverted arc.
@@ -224,12 +224,11 @@ exploration variant; **only Metal ships**.
 
 `HmatOrb` keeps the 15×15 dot matrix but adds an energy-scaled backlight,
 emissive drop-shadow, specular dome, a **blink loop** (~5s, faster with energy),
-and a `react-pop`. **`HonzaOrbBackdrop`** (Phase 4) renders a live dot-field /
-waveform grid **behind** the face inside the recess well — amplitude scales from
-`--energy`, hue from `--accent` only (no re-hueing). Animates during
-thinking / speaking / excited; idle and oops stay calm. `prefers-reduced-motion`:
-static grid. Component: `src/components/honza/HonzaOrbBackdrop.tsx`; stacked via
-`.orb-lead-stack` on chat hero, compact header, and call (Hmat + Classic).
+and a `react-pop`. **`HonzaOrbBackdrop`** + **`OrbLeadStack`** (Phase 4) render a
+**perimeter dot ring** in the frame margin around the face (inside the recess well)
+— a ripple travels the border during thinking / speaking / excited. Amplitude from
+`--energy`, hue from `--accent` only. Frame is ~14% larger than the orb so dots
+never overlap the matrix. `prefers-reduced-motion`: static ring.
 
 ## Icon set (system kit)
 

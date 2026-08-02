@@ -924,12 +924,11 @@ Next: Phase 4 live orb dot backdrop (`cursor/orb-backdrop-phase-4-1034`).
 
 ### Phase 4 live orb backdrop (2026-08-02)
 
-Branch `cursor/orb-backdrop-phase-4-1034`. Added `HonzaOrbBackdrop` —
-energy-scaled dot-field waveform behind the face (`--accent` hue, `--energy`
-amplitude only). Integrated via `.orb-lead-stack` on Hmat + Classic chat (hero +
-compact header) and call. Animates on thinking / speaking / excited; idle / oops
-static calm grid. `prefers-reduced-motion`: no column animation. Face maps in
-`HmatOrb` / `HonzaOrb` unchanged.
+Branch `cursor/orb-backdrop-phase-4-1034`. Added `HonzaOrbBackdrop` +
+`OrbLeadStack` — live dot **ring around the face** (frame ~14% larger than orb;
+dots in margin only, ripple on thinking/speaking/excited). Amplitude from
+`--energy`, hue from `--accent`. Idle/oops static. `prefers-reduced-motion`: no
+ripple. Face maps unchanged.
 
 Next design phase: Phase 5 polish audit (`design update/DESIGN_ELEVATION_PLAN.md`).
 

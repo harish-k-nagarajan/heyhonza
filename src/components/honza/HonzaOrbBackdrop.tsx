@@ -4,28 +4,61 @@ import { useMemo } from "react";
 
 import { cn } from "@/lib/cn";
 import { moodExpression } from "@/lib/mood/expression";
+import { ORB_FRAME_SCALE } from "./orbFrame";
 import type { HonzaOrbState } from "./theme";
 
 /**
- * Live dot-field / waveform backdrop behind the orb face. Amplitude scales from
- * mood `--energy` (not a hue change). Sits inside the recess well, under the face
- * pixels — separate layer from `HmatOrb` / `HonzaOrb` maps.
+ * Live dot ring around the orb face — inside the recess frame, never over the
+ * 15×15 matrix. A ripple travels the perimeter during thinking / speaking /
+ * excited; amplitude scales from `--energy` (hue stays `--accent`).
  */
 
-const COLS = 13;
-const ROWS = 7;
 const VIEW = 100;
-const DOT = 2.4;
-const GAP = (VIEW * 0.72) / (ROWS - 1);
+const DOT = 2.2;
 
-/** Moods that drive live waveform motion; idle/oops stay calm. */
+/** Moods that drive the border ripple; idle / oops stay calm. */
 function isLiveState(state: HonzaOrbState): boolean {
   return state === "thinking" || state === "speaking" || state === "excited";
 }
 
+type RingDot = { x: number; y: number; i: number };
+
+/** Two rings in the frame margin only (outside the centered face). */
+function buildRingDots(): RingDot[] {
+  const margin = (VIEW - VIEW / ORB_FRAME_SCALE) / 2;
+  const rings = [
+    { inset: Math.max(2, margin * 0.35), step: 4.8 },
+    { inset: Math.max(3.5, margin * 0.78), step: 5.2 },
+  ];
+  const dots: RingDot[] = [];
+  let idx = 0;
+
+  for (const { inset, step } of rings) {
+    const min = inset;
+    const max = VIEW - inset;
+
+    for (let x = min; x <= max; x += step) {
+      dots.push({ x: x - DOT / 2, y: min - DOT / 2, i: idx++ });
+    }
+    for (let y = min + step; y <= max; y += step) {
+      dots.push({ x: max - DOT / 2, y: y - DOT / 2, i: idx++ });
+    }
+    for (let x = max - step; x >= min; x -= step) {
+      dots.push({ x: x - DOT / 2, y: max - DOT / 2, i: idx++ });
+    }
+    for (let y = max - step; y >= min + step; y -= step) {
+      dots.push({ x: min - DOT / 2, y: y - DOT / 2, i: idx++ });
+    }
+  }
+
+  return dots;
+}
+
+const RING_DOTS = buildRingDots();
+const RING_COUNT = RING_DOTS.length;
+
 export type HonzaOrbBackdropProps = {
   state?: HonzaOrbState;
-  /** Square size matching the orb it sits behind. */
   size?: number;
   className?: string;
 };
@@ -38,25 +71,7 @@ export function HonzaOrbBackdrop({
   const expr = moodExpression(state);
   const live = isLiveState(state);
 
-  const columns = useMemo(() => {
-    const colW = VIEW / COLS;
-    const midY = VIEW / 2;
-
-    return Array.from({ length: COLS }, (_, i) => {
-      const originX = i * colW + colW / 2;
-      const t = i / (COLS - 1);
-      const wave = Math.sin(t * Math.PI * 2.4 + 0.4) * 0.5 + 0.5;
-      const center = 1 - Math.abs(i - (COLS - 1) / 2) / ((COLS - 1) / 2);
-      const heightNorm = 0.28 + wave * 0.32 + center * 0.18;
-      const activeRows = Math.max(2, Math.round(ROWS * heightNorm));
-      const startY = midY - ((activeRows - 1) * GAP) / 2;
-      const dots = Array.from({ length: activeRows }, (_, r) => ({
-        x: originX - DOT / 2,
-        y: startY + r * GAP - DOT / 2,
-      }));
-      return { i, dots, delay: i * 0.07, originX };
-    });
-  }, []);
+  const dots = useMemo(() => RING_DOTS, []);
 
   return (
     <div
@@ -69,30 +84,22 @@ export function HonzaOrbBackdrop({
         height: size,
         ["--accent" as string]: expr.accent,
         ["--energy" as string]: expr.energy,
+        ["--ring-count" as string]: RING_COUNT,
       }}
     >
       <svg width="100%" height="100%" viewBox={`0 0 ${VIEW} ${VIEW}`} className="block">
-        {columns.map(({ i, dots, delay, originX }) => (
-          <g
+        {dots.map(({ x, y, i }) => (
+          <rect
             key={i}
-            className={cn("orb-backdrop-col", live && "orb-backdrop-col--live")}
-            style={{
-              animationDelay: `${delay}s`,
-              transformOrigin: `${originX}px ${VIEW / 2}px`,
-            }}
-          >
-            {dots.map((d, r) => (
-              <rect
-                key={r}
-                x={d.x}
-                y={d.y}
-                width={DOT}
-                height={DOT}
-                rx={DOT * 0.35}
-                fill="var(--accent)"
-              />
-            ))}
-          </g>
+            x={x}
+            y={y}
+            width={DOT}
+            height={DOT}
+            rx={DOT * 0.35}
+            fill="var(--accent)"
+            className={cn("orb-border-dot", live && "orb-border-dot--live")}
+            style={{ ["--dot-i" as string]: i }}
+          />
         ))}
       </svg>
     </div>
