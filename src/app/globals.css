@@ -542,3 +542,42 @@ body {
   transition: transform 0.3s ease;
   flex-shrink: 0;
 }
+
+/* Orb lead stack — backdrop layer behind face (Phase 4). */
+.orb-lead-stack {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  isolation: isolate;
+  flex-shrink: 0;
+}
+.orb-lead-stack .honza-orb-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: calc(0.28 + var(--energy, 0.35) * 0.42);
+}
+.orb-lead-stack .hmat-orb,
+.orb-lead-stack [data-honza-state] {
+  position: relative;
+  z-index: 1;
+}
+
+/* Live dot-field waveform — amplitude from --energy, hue from --accent only. */
+.honza-orb-backdrop svg rect {
+  opacity: calc(0.45 + var(--energy, 0.35) * 0.45);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .honza-orb-backdrop[data-live="true"] .orb-backdrop-col--live {
+    animation: orb-backdrop-col calc(1.15s - var(--energy, 0.35) * 0.35s) ease-in-out infinite;
+  }
+}
+@keyframes orb-backdrop-col {
+  0%, 100% {
+    transform: scaleY(calc(0.42 + var(--energy, 0.35) * 0.22));
+  }
+  50% {
+    transform: scaleY(calc(0.62 + var(--energy, 0.35) * 0.52));
+  }
+}

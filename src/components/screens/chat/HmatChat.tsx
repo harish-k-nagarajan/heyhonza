@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { ChatActionBar } from "@/components/chat/ChatActionBar";
 import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
+import { HonzaOrbBackdrop } from "@/components/honza/HonzaOrbBackdrop";
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
@@ -141,12 +142,21 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
             className="chat-orb-wrap rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             aria-label="Honza"
           >
-            <HmatOrb
-              state={expression.mood}
-              size={heroMode ? 150 : 48}
-              breathe={heroMode}
-              stackClassName={stackClassName}
-            />
+            <span
+              className="orb-lead-stack"
+              style={{ width: heroMode ? 150 : 48, height: heroMode ? 150 : 48 }}
+            >
+              <HonzaOrbBackdrop
+                state={expression.mood}
+                size={heroMode ? 150 : 48}
+              />
+              <HmatOrb
+                state={expression.mood}
+                size={heroMode ? 150 : 48}
+                breathe={heroMode}
+                stackClassName={stackClassName}
+              />
+            </span>
           </button>
           <MoodOrbStrip
             expression={expression}

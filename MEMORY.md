@@ -922,6 +922,17 @@ Classic screens left as legacy baselines (not selectable).
 
 Next: Phase 4 live orb dot backdrop (`cursor/orb-backdrop-phase-4-1034`).
 
+### Phase 4 live orb backdrop (2026-08-02)
+
+Branch `cursor/orb-backdrop-phase-4-1034`. Added `HonzaOrbBackdrop` —
+energy-scaled dot-field waveform behind the face (`--accent` hue, `--energy`
+amplitude only). Integrated via `.orb-lead-stack` on Hmat + Classic chat (hero +
+compact header) and call. Animates on thinking / speaking / excited; idle / oops
+static calm grid. `prefers-reduced-motion`: no column animation. Face maps in
+`HmatOrb` / `HonzaOrb` unchanged.
+
+Next design phase: Phase 5 polish audit (`design update/DESIGN_ELEVATION_PLAN.md`).
+
 ### Phase 3 button unification (2026-08-02)
 
 Branch `cursor/button-depth-phase-3-1034`. Unified Hmat + Classic buttons behind
@@ -934,4 +945,4 @@ sign-in, onboarding/settings, chat send/history, call connect/mic/hang, push,
 install, file picker). Classic screens unchanged (`surface="flat"` default).
 `Pressable` is now a thin alias over mat-key `Button`.
 
-Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 4 live orb dot backdrop.
+Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 5 polish audit.
