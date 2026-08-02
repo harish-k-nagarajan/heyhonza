@@ -14,7 +14,7 @@
 const SCRIPT = `(function(){try{
 var KEY="honza-design";
 var DESIGNS=["classic","hmat-metal","hmat-ceramic"];
-var FV={"share-tech-mono":"--f-share-tech-mono","geist-sans":"--f-geist-sans","geist-mono":"--f-geist-mono","geist-pixel-square":"--f-geist-pixel-square","geist-pixel-grid":"--f-geist-pixel-grid","geist-pixel-circle":"--f-geist-pixel-circle","geist-pixel-line":"--f-geist-pixel-line","geist-pixel-triangle":"--f-geist-pixel-triangle"};
+var FV={"share-tech-mono":"--f-share-tech-mono","geist-sans":"--f-geist-sans","geist-mono":"--f-geist-mono","geist-pixel-square":"--f-geist-pixel-square","geist-pixel-grid":"--f-geist-pixel-grid","geist-pixel-circle":"--f-geist-pixel-circle","geist-pixel-line":"--f-geist-pixel-line","geist-pixel-triangle":"--f-geist-pixel-triangle","doto":"--f-doto","press-start-2p":"--f-press-start-2p","syne-mono":"--f-syne-mono","jetbrains-mono":"--f-jetbrains-mono","space-mono":"--f-space-mono","roboto-mono":"--f-roboto-mono","ibm-plex-sans":"--f-ibm-plex-sans","dm-sans":"--f-dm-sans","space-grotesk":"--f-space-grotesk","alan-sans":"--f-alan-sans"};
 var DEF={"classic":["share-tech-mono","share-tech-mono"],"hmat-metal":["geist-pixel-square","geist-sans"],"hmat-ceramic":["geist-pixel-square","geist-sans"]};
 var design="hmat-metal",df="geist-pixel-square",bf="geist-sans";
 var raw=localStorage.getItem(KEY);

@@ -21,8 +21,8 @@ This plan tackles all four in dependency order: **fonts + typography system → 
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **0** | Branch, plan doc, ui-ux-pro-max skill, audit checklist | In progress |
-| **1** | Font expansion + Design Lab UX (grouped picker, weight preview, Czech badge) | Pending |
+| **0** | Branch, plan doc, ui-ux-pro-max skill, audit checklist | Done |
+| **1** | Font expansion + Design Lab UX (grouped picker, weight preview, Czech badge) | Done |
 | **2** | Typography system (`TYPE` roles, migration) | Pending |
 | **3** | Button unification (depth, focus rings, shared API) | Pending |
 | **4** | Live orb dot/waveform backdrop | Pending |
