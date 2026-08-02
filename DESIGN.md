@@ -33,7 +33,7 @@ surface plus accent (see Colors).
 
 | Role | Face | Notes |
 |------|------|--------|
-| Short labels, kickers, buttons, section chrome | **Doto** (`font-display`) | Labels weight **500** (`--font-display-weight`). Buttons / mat-keys weight **700** (`--font-display-weight-ui` via `font-display-ui`). Hierarchy via **size + tracking**, not Tailwind weight utilities. |
+| Short labels, kickers, buttons, section chrome | **Doto** (`font-display`) | Labels weight **500** (`--font-display-weight`). Buttons / mat-keys weight **700** (`--font-display-weight-ui` via `display-ui-weight`). Hierarchy via **size + tracking**, not Tailwind weight utilities. |
 | Long Czech text (bubbles, captions, body) | **Space Grotesk** (`font-sans`) | Full diacritics (`ě š č ř ž ů ď ť ň`). `font-medium` / `font-semibold` allowed where hierarchy needs weight. |
 
 **Type scale** — use `TYPE` roles from `src/lib/design/typography.ts`. Do not

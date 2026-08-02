@@ -27,7 +27,7 @@
   button.font-display,
   a.font-display,
   .mat-key.font-display,
-  .font-display-ui {
+  .display-ui-weight {
     font-weight: var(--font-display-weight-ui, var(--font-display-weight, 400));
   }
 }
@@ -60,8 +60,8 @@
  */
 [data-design="hmat-metal"],
 [data-design="hmat-ceramic"] {
-  --font-display: var(--f-geist-pixel-square);
-  --font-body: var(--f-geist-sans);
+  --font-display: var(--f-doto);
+  --font-body: var(--f-space-grotesk);
   --radius-card: 18px;
 
   /* Shared Hmat ink/scale on the cream base. */

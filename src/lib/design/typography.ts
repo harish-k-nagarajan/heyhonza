@@ -8,7 +8,9 @@
  * Weight rules:
  *   **Display (Doto):** hierarchy via **size + tracking**, not Tailwind weight
  *   utilities. Labels/kickers use `--font-display-weight` (500). Buttons and
- *   mat-key CTAs use `font-display-ui` → `--font-display-weight-ui` (700).
+ *   mat-key CTAs use `display-ui-weight` → `--font-display-weight-ui` (700).
+ *   (Named `display-ui-weight`, not `font-display-ui`, so tailwind-merge does
+ *   not treat it as a font-family utility and strip `font-display`.)
  *   **Body (Space Grotesk):** `font-medium` / `font-semibold` are allowed where
  *   hierarchy needs weight (unlike Classic's mono, which synthesized faux bold).
  *
@@ -40,7 +42,7 @@ export const TYPE = {
   /** Smaller Czech body (bubbles, captions). Body face. */
   bodySm: "font-sans text-sm leading-relaxed",
   /** Buttons and mat-keys — Doto 700 via `--font-display-weight-ui`. */
-  button: "font-display font-display-ui text-xs uppercase tracking-[0.18em]",
+  button: "font-display display-ui-weight text-xs uppercase tracking-[0.18em]",
   /** Muted helper text. Body face. */
   helper: "font-sans text-xs leading-relaxed text-muted-foreground",
 } as const;
