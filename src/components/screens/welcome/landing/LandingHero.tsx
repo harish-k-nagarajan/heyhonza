@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import type { HonzaOrbState } from "@/components/honza/theme";
-import { moodExpression } from "@/lib/mood/expression";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import {
   LANDING_HERO_FIRST,
   LANDING_HERO_RETURN,
@@ -14,6 +13,7 @@ import {
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+import { moodExpression } from "@/lib/mood/expression";
 
 import type { LandingVisitor } from "./useLandingVisitor";
 
@@ -81,15 +81,9 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
       </div>
 
       <div className="hidden w-full max-w-[360px] flex-col items-center gap-3 md:flex">
-        <Link
-          href={ROUTES.signin}
-          className={cn(
-            "mat-key press flex w-full items-center justify-center rounded-full py-3.5 text-accent",
-            TYPE.button,
-          )}
-        >
+        <ButtonLink href={ROUTES.signin} shape="pill" size="lg" className="flex w-full">
           {ctaLabel}
-        </Link>
+        </ButtonLink>
         <p className={cn(TYPE.label, "text-muted-foreground")}>{ctaHint}</p>
       </div>
     </header>

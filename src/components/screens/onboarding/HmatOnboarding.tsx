@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { Button } from "@/components/ui/Button";
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { LEVEL_OPTIONS, ROUTES, TOPIC_OPTIONS } from "@/lib/constants";
 import type { LevelId } from "@/lib/constants";
@@ -119,17 +120,16 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
         {screen.docError ? (
           <p className={cn(TYPE.helper, "text-accent")}>{screen.docError}</p>
         ) : null}
-        <button
+        <Button
           type="button"
+          surface="mat-key"
+          shape="card"
+          size="md"
           onClick={screen.importGoogleDoc}
           disabled={screen.docLoading}
-          className={cn(
-            "mat-key press w-full rounded-[14px] py-2.5 text-accent disabled:opacity-40",
-            TYPE.button,
-          )}
         >
           {screen.docLoading ? "Načítám…" : "Přidat dokument"}
-        </button>
+        </Button>
       </section>
 
       <section className="mat space-y-3 px-4 py-4">
@@ -149,25 +149,14 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
         {screen.fileError ? (
           <p className={cn(TYPE.helper, "text-accent")}>{screen.fileError}</p>
         ) : null}
-        <button
-          type="button"
-          onClick={screen.addPaste}
-          className={cn("mat-key press w-full rounded-[14px] py-2.5 text-accent", TYPE.button)}
-        >
+        <Button type="button" surface="mat-key" shape="card" size="md" onClick={screen.addPaste}>
           Přidat text
-        </button>
+        </Button>
       </section>
 
-      <button
-        type="button"
-        onClick={screen.finish}
-        className={cn(
-          "mat-key press w-full rounded-full py-3.5 text-accent",
-          TYPE.button,
-        )}
-      >
+      <Button type="button" surface="mat-key" shape="pill" size="lg" onClick={screen.finish}>
         Začít mluvit s Honzou
-      </button>
+      </Button>
 
       <p className={cn("text-center", TYPE.helper)}>
         Už nastaveno?{" "}

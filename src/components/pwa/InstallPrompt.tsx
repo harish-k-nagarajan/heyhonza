@@ -190,16 +190,16 @@ export function InstallPrompt() {
           <div className="mt-2 flex items-center justify-between gap-3">
             <p className={cn(TYPE.bodySm, "text-foreground")}>{c.body}</p>
             {isHmat ? (
-              <button
+              <Button
                 type="button"
-                className={cn(
-                  "mat-key press shrink-0 rounded-full px-4 py-2 text-accent",
-                  TYPE.button,
-                )}
+                surface="mat-key"
+                shape="pill"
+                size="sm"
+                className="shrink-0"
                 onClick={install}
               >
                 {c.install}
-              </button>
+              </Button>
             ) : (
               <Button type="button" className="shrink-0" onClick={install}>
                 {c.install}

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 
@@ -27,16 +28,15 @@ export function HmatFileInput({
 
   return (
     <div className="flex items-center gap-3">
-      <button
+      <Button
         type="button"
+        surface="mat-key"
+        shape="pill"
+        size="sm"
         onClick={() => inputRef.current?.click()}
-        className={cn(
-          "mat-key press shrink-0 rounded-full px-4 py-2 text-accent",
-          TYPE.button,
-        )}
       >
         Vybrat soubor
-      </button>
+      </Button>
       <span className={cn("min-w-0 flex-1 truncate", TYPE.helper)}>
         {name ?? "Žádný soubor"}
       </span>

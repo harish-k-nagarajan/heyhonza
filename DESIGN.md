@@ -154,6 +154,25 @@ All motion respects **`prefers-reduced-motion`**: prefer static or near-static p
 
 ---
 
+## Buttons
+
+Shared API: `src/components/ui/Button.tsx` + `src/lib/design/button.ts`.
+
+| Prop | Values | Notes |
+|------|--------|-------|
+| `surface` | `flat` (default) · `mat-key` | `flat` = Classic accent-filled / bordered. `mat-key` = globals.css mechanical depth + 6px `:active` travel. |
+| `variant` | `primary` · `secondary` · `ghost` · `danger` | `danger` = hang / destructive mat-key (white label). |
+| `shape` | `pill` · `card` · `circle` | Mat-key only. Pill = full-width CTAs; card = section actions; circle = icon keys. |
+| `size` | `sm` · `md` · `lg` · `call` · `icon` · `icon-md` · `icon-lg` | Pair with `shape` (see `buttonClassName` in `button.ts`). |
+| `haptic` | `light` · `medium` · `none` | Mat-key defaults to `light`; send / call connect use `medium`. Respects `disabled`. |
+
+- **Typography:** all buttons use `TYPE.button` (Doto 700 via `display-ui-weight`).
+- **Focus:** `focus-visible:outline` ring using mood `--accent` (`BUTTON_FOCUS`); works on all five mood backgrounds.
+- **Links:** landing CTAs that must stay `<Link>` use `ButtonLink` (`src/components/ui/ButtonLink.tsx`).
+- **Classic baselines** (`ClassicOnboarding`, `ClassicSettings`, `ClassicCall`) keep `surface="flat"` (default) — unchanged.
+
+---
+
 ## Implementation notes
 
 - Export **`HONZA_STATE_COLORS`** from `HonzaOrb` (or a tiny `honza/theme` module if split later) so screens can set CSS variables or Tailwind arbitrary values for full-screen mood.
@@ -194,8 +213,7 @@ exploration variant; **only Metal ships**.
 - **Recess (`mat-recess`)** — the character leads every screen from inside an
   inset well (inner top shadow + bottom highlight).
 - **Cards** — `mat` (outset) and `mat-metal` (brushed-gradient).
-- **Deep keys (`mat-key`)** — 6px mechanical travel. Send / call controls are keys.
-  Button depth unification is Phase 3 of the elevation plan.
+- **Deep keys (`mat-key`)** — 6px mechanical travel via `Button surface="mat-key"` (not raw `className` on `<button>`). Send / call controls are keys.
 - **Lit channel (`mat-channel`)** — recessed channel whose inner glow is the mood
   accent, brightness × `--energy`.
 - **Floating dock (`fdock`)** — Chat · Hovor · Nastavení; content padded to clear it.

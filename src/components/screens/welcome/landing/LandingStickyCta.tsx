@@ -1,12 +1,9 @@
-import Link from "next/link";
-
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import {
   LANDING_HERO_FIRST,
   LANDING_HERO_SIGNED_OUT,
 } from "@/components/screens/welcome/welcome-content";
 import { ROUTES } from "@/lib/constants";
-import { cn } from "@/lib/cn";
-import { TYPE } from "@/lib/design/typography";
 
 import type { LandingVisitor } from "./useLandingVisitor";
 
@@ -15,15 +12,14 @@ export function LandingStickyCta({ visitor }: { visitor: LandingVisitor }) {
 
   return (
     <div className="landing-sticky-cta md:hidden">
-      <Link
+      <ButtonLink
         href={ROUTES.signin}
-        className={cn(
-          "mat-key press mx-auto flex w-full max-w-app items-center justify-center rounded-full py-3.5 text-accent",
-          TYPE.button,
-        )}
+        shape="pill"
+        size="lg"
+        className="mx-auto flex w-full max-w-app"
       >
         {ctaLabel}
-      </Link>
+      </ButtonLink>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
@@ -163,12 +164,6 @@ export function SignInForm({
   const fieldWrap = isHmat
     ? "mat-field px-4 py-2.5"
     : "rounded-full border-2 border-accent bg-card px-4 py-2";
-  const submitBtn = isHmat
-    ? cn("mat-key press w-full rounded-full py-3 text-accent disabled:opacity-60", TYPE.button)
-    : cn(
-        "w-full rounded-full bg-accent py-3 text-accent-foreground transition hover:opacity-90 active:scale-[0.98] disabled:opacity-60",
-        TYPE.button,
-      );
 
   return (
     <form onSubmit={onSubmit} className="w-full max-w-[min(320px,100%)] space-y-3">
@@ -215,7 +210,18 @@ export function SignInForm({
         </p>
       ) : null}
 
-      <button type="submit" disabled={working} className={submitBtn}>
+      <Button
+        type="submit"
+        disabled={working}
+        surface={isHmat ? "mat-key" : "flat"}
+        shape={isHmat ? "pill" : undefined}
+        size={isHmat ? "md" : undefined}
+        className={
+          isHmat
+            ? "disabled:opacity-60"
+            : "w-full rounded-full py-3 hover:opacity-90 disabled:opacity-60"
+        }
+      >
         {working
           ? mode === "signup"
             ? c.creating
@@ -223,7 +229,7 @@ export function SignInForm({
           : mode === "signup"
             ? c.createAccount
             : c.signIn}
-      </button>
+      </Button>
 
       <button
         type="button"
