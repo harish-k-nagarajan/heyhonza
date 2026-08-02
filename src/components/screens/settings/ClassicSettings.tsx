@@ -11,14 +11,12 @@ import { LEVEL_OPTIONS, MODEL_OPTIONS, TOPIC_OPTIONS } from "@/lib/constants";
 import type { LevelId, ModelId } from "@/lib/constants";
 import type { SettingsScreen } from "@/hooks/useSettingsScreen";
 
-import { DesignLab } from "./DesignLab";
 import { PushNotificationSettings } from "@/components/pwa/PushNotificationSettings";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/useLocale";
 
 /**
- * Classic Settings presentation — the shipped app, byte-for-byte, plus the
- * Design Lab section (Phase 6). Behaviour comes from `useSettingsScreen`.
+ * Classic Settings presentation. Behaviour comes from `useSettingsScreen`.
  */
 export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
   const { expression, contextChunks, lastSynced } = screen;
@@ -48,8 +46,6 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
       <p className="-mt-3 font-sans text-xs leading-relaxed tracking-[0.08em] text-muted-foreground">
         Change your level, your topics, and what Honza knows about you.
       </p>
-
-      <DesignLab />
 
       <Card className="space-y-3">
         <SectionLabel as="p">{t.settings.appLanguage}</SectionLabel>
