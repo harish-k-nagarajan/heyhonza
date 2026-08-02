@@ -1,5 +1,6 @@
 import {
   DEFAULT_DESIGN,
+  displayWeightVars,
   fontFamilyVar,
   isDesignId,
   isFontId,
@@ -28,6 +29,12 @@ export function applyDesignToRoot(
   if (d === "classic") root.removeAttribute("data-design");
   else root.setAttribute("data-design", d);
 
+  root.setAttribute("data-display-font", df);
+  root.setAttribute("data-body-font", bf);
+
+  const weights = displayWeightVars(df);
   root.style.setProperty("--font-display", fontFamilyVar(df));
   root.style.setProperty("--font-body", fontFamilyVar(bf));
+  root.style.setProperty("--font-display-weight", String(weights.displayWeight));
+  root.style.setProperty("--font-display-weight-ui", String(weights.displayWeightUi));
 }
