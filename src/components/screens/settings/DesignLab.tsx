@@ -6,10 +6,13 @@ import {
   DESIGNS,
   DESIGN_IDS,
   FONTS,
-  FONT_IDS,
+  FONT_GROUPS,
   fontFamilyVar,
+  fontsInGroup,
+  weightLabel,
 } from "@/lib/design/registry";
 import type { DesignId, FontId } from "@/lib/design/registry";
+import { TYPE } from "@/lib/design/typography";
 import { useDesignStore } from "@/stores/useDesignStore";
 
 /**
@@ -85,15 +88,63 @@ function FontSelect({
         onChange={(e) => onChange(e.target.value as FontId)}
         className="h-10 w-full rounded-[12px] border border-border bg-card px-3 font-sans text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
       >
-        {FONT_IDS.map((f) => (
-          <option key={f} value={f}>
-            {FONTS[f].label}
-            {FONTS[f].displayOnly ? displaySuffix : ""}
-          </option>
+        {FONT_GROUPS.map((group) => (
+          <optgroup key={group.id} label={group.label}>
+            {fontsInGroup(group.id).map((f) => (
+              <option key={f} value={f}>
+                {FONTS[f].label}
+                {FONTS[f].displayOnly ? displaySuffix : ""}
+              </option>
+            ))}
+          </optgroup>
         ))}
       </select>
       {warn ? <p className="font-sans text-[11px] leading-snug text-accent">{warn}</p> : null}
     </div>
+  );
+}
+
+function WeightPreview({ fontId }: { fontId: FontId }) {
+  const meta = FONTS[fontId];
+  const unique = [...new Set(meta.weights)];
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        Weights — {meta.label}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {unique.map((w) => (
+          <span
+            key={w}
+            className="rounded-[10px] border border-border bg-card px-2.5 py-1.5 font-sans text-xs text-foreground"
+            style={{ fontFamily: fontFamilyVar(fontId), fontWeight: w }}
+          >
+            {weightLabel(w)}
+          </span>
+        ))}
+      </div>
+      {unique.length === 1 ? (
+        <p className="font-sans text-[10px] leading-snug text-muted-foreground">
+          Single weight — use size and tracking for hierarchy, not bold.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function CzechBadge({ covers }: { covers: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-display text-[9px] uppercase tracking-[0.14em]",
+        covers
+          ? "border border-[#2E7D32]/30 bg-[#EEFFEE]/80 text-[#2E7D32]"
+          : "border border-accent/30 bg-accent/[0.08] text-accent",
+      )}
+    >
+      {covers ? "Czech OK" : "Czech partial"}
+    </span>
   );
 }
 
@@ -108,6 +159,7 @@ export function DesignLab() {
 
   const isHmat = DESIGNS[design].family === "hmat";
   const bodyIsDisplayFace = FONTS[bodyFont].displayOnly;
+  const bodyMeta = FONTS[bodyFont];
 
   // Hmat leads in full Czech; Classic keeps its shipped English chrome.
   const t = isHmat
@@ -117,6 +169,8 @@ export function DesignLab() {
         reset: "Zpět na výchozí písmo",
         displaySuffix: " · nadpisové",
         warn: "Nadpisové písmo jako text — pixelové řezy se v odstavcích čtou špatně. Sleduj ukázku.",
+        specimenTitle: "Ukázka typografie",
+        hierarchy: "Hierarchie",
       }
     : {
         display: "Display",
@@ -124,6 +178,8 @@ export function DesignLab() {
         reset: "Reset to design default",
         displaySuffix: " · display",
         warn: "Display face as body — pixel faces are hard to read in prose. Watch the specimen.",
+        specimenTitle: "Typography specimen",
+        hierarchy: "Hierarchy",
       };
 
   return (
@@ -142,7 +198,9 @@ export function DesignLab() {
           <p className="font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             Design Lab
           </p>
-          <p className="font-sans text-[13px] text-foreground">Vzhled a písmo</p>
+          <p className="font-sans text-[13px] text-foreground">
+            Vzhled a písmo · {FONT_GROUPS.reduce((n, g) => n + fontsInGroup(g.id).length, 0)} fonts
+          </p>
         </div>
       </div>
 
@@ -202,6 +260,8 @@ export function DesignLab() {
         />
       </div>
 
+      <WeightPreview fontId={bodyFont} />
+
       <button
         type="button"
         onClick={resetFonts}
@@ -210,25 +270,58 @@ export function DesignLab() {
         {t.reset}
       </button>
 
-      {/* Live specimen — full Czech diacritics. */}
+      {/* Live specimen — full Czech diacritics + hierarchy preview. */}
       <div
         className={cn(
-          "rounded-[14px] p-3.5",
+          "rounded-[14px] p-3.5 space-y-3",
           isHmat ? "mat-recess" : "border border-border bg-muted/40",
         )}
       >
-        <p
-          className="mb-1.5 text-[15px] tracking-[0.02em] text-foreground"
-          style={{ fontFamily: fontFamilyVar(displayFont) }}
-        >
-          Ahoj, jsem Honza
-        </p>
-        <p
-          className="text-[15px] leading-relaxed text-foreground"
-          style={{ fontFamily: fontFamilyVar(bodyFont) }}
-        >
-          {SPECIMEN}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            {t.specimenTitle}
+          </p>
+          <CzechBadge covers={bodyMeta.coversCzech} />
+        </div>
+
+        <div className="space-y-2.5 border-b border-border/60 pb-3">
+          <p className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            {t.hierarchy}
+          </p>
+          <p className={TYPE.kicker} style={{ fontFamily: fontFamilyVar(displayFont) }}>
+            {"// SECTION"}
+          </p>
+          <p className={TYPE.display} style={{ fontFamily: fontFamilyVar(displayFont) }}>
+            Screen Title
+          </p>
+          <p
+            className="font-sans text-[15px] leading-relaxed text-foreground"
+            style={{ fontFamily: fontFamilyVar(bodyFont) }}
+          >
+            {SPECIMEN}
+          </p>
+          <p
+            className="font-sans text-xs leading-relaxed text-muted-foreground"
+            style={{ fontFamily: fontFamilyVar(bodyFont) }}
+          >
+            Helper text — settings and hints.
+          </p>
+        </div>
+
+        <div>
+          <p
+            className="mb-1.5 text-[15px] tracking-[0.02em] text-foreground"
+            style={{ fontFamily: fontFamilyVar(displayFont) }}
+          >
+            Ahoj, jsem Honza
+          </p>
+          <p
+            className="text-[15px] leading-relaxed text-foreground"
+            style={{ fontFamily: fontFamilyVar(bodyFont) }}
+          >
+            {SPECIMEN}
+          </p>
+        </div>
       </div>
     </section>
   );

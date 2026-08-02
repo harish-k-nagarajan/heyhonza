@@ -1,5 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Share_Tech_Mono } from "next/font/google";
+import localFont from "next/font/local";
+import {
+  DM_Sans,
+  Doto,
+  IBM_Plex_Sans,
+  JetBrains_Mono,
+  Press_Start_2P,
+  Roboto_Mono,
+  Share_Tech_Mono,
+  Space_Grotesk,
+  Space_Mono,
+  Syne_Mono,
+} from "next/font/google";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import {
@@ -25,10 +37,83 @@ const shareTechMono = Share_Tech_Mono({
   display: "swap",
 });
 
-// The Design Lab font axis. Geist Sans/Mono cover the full Czech diacritic set
-// (fixes F0 for Hmat body copy); the five Pixel faces share the orb's DNA and
-// are display-only by default. Each exposes a `--font-…` CSS variable that the
-// `--f-*` stacks in globals.css chain into.
+// Design Lab faces — Geist + Google Fonts. Czech body copy uses latin-ext where
+// available; pixel/display faces are display-only by default in the registry.
+const doto = Doto({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-doto",
+  display: "swap",
+});
+
+const pressStart2P = Press_Start_2P({
+  weight: "400",
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-press-start-2p",
+  display: "swap",
+});
+
+const syneMono = Syne_Mono({
+  weight: "400",
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-syne-mono",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+});
+
+const spaceMono = Space_Mono({
+  weight: ["400", "700"],
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-space-mono",
+  display: "swap",
+});
+
+const robotoMono = Roboto_Mono({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-roboto-mono",
+  display: "swap",
+});
+
+const ibmPlexSans = IBM_Plex_Sans({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-ibm-plex-sans",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
+
+const alanSans = localFont({
+  src: [
+    {
+      path: "../../node_modules/@fontsource-variable/alan-sans/files/alan-sans-latin-ext-wght-normal.woff2",
+      weight: "300 900",
+      style: "normal",
+    },
+    {
+      path: "../../node_modules/@fontsource-variable/alan-sans/files/alan-sans-latin-wght-normal.woff2",
+      weight: "300 900",
+      style: "normal",
+    },
+  ],
+  variable: "--font-alan-sans",
+  display: "swap",
+});
+
 const FONT_VARS = [
   shareTechMono.variable,
   GeistSans.variable,
@@ -38,6 +123,16 @@ const FONT_VARS = [
   GeistPixelCircle.variable,
   GeistPixelLine.variable,
   GeistPixelTriangle.variable,
+  doto.variable,
+  pressStart2P.variable,
+  syneMono.variable,
+  jetbrainsMono.variable,
+  spaceMono.variable,
+  robotoMono.variable,
+  ibmPlexSans.variable,
+  dmSans.variable,
+  spaceGrotesk.variable,
+  alanSans.variable,
 ].join(" ");
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
