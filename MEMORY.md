@@ -891,3 +891,13 @@ cron approval.
 
 **Verify:** `npm run lint` + `npm run build` green (16 routes incl. `/api/push/subscribe`).
 Apply `0003_push_subscriptions.sql` on Supabase for push persistence.
+
+---
+
+## Design finalized (2026-08-02)
+
+**Shipped look:** Hmat Metal · **Doto** (labels/buttons, 500/700 weight) · **Space Grotesk** (Czech body).
+
+Design Lab removed from Settings; `useDesignStore` is read-only constants in `registry.ts` (`SHIPPED_*`). Pre-paint script hardcodes fonts — no `localStorage` design axis.
+
+Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 2 typography migration, Phase 3 button depth, Phase 4 live orb dot backdrop.
