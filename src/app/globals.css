@@ -11,22 +11,10 @@
 :root {
   --f-share-tech-mono: var(--font-share-tech-mono), ui-monospace, "Courier New", monospace;
   --f-geist-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-geist-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
-  --f-geist-pixel-square: var(--font-geist-pixel-square), var(--font-geist-mono), ui-monospace, monospace;
-  --f-geist-pixel-grid: var(--font-geist-pixel-grid), var(--font-geist-mono), ui-monospace, monospace;
-  --f-geist-pixel-circle: var(--font-geist-pixel-circle), var(--font-geist-mono), ui-monospace, monospace;
-  --f-geist-pixel-line: var(--font-geist-pixel-line), var(--font-geist-mono), ui-monospace, monospace;
-  --f-geist-pixel-triangle: var(--font-geist-pixel-triangle), var(--font-geist-mono), ui-monospace, monospace;
-  --f-doto: var(--font-doto), var(--font-geist-mono), ui-monospace, monospace;
-  --f-press-start-2p: var(--font-press-start-2p), var(--font-geist-mono), ui-monospace, monospace;
-  --f-syne-mono: var(--font-syne-mono), ui-monospace, monospace;
+  --f-geist-pixel-square: var(--font-geist-pixel-square), ui-monospace, monospace;
+  --f-doto: var(--font-doto), ui-monospace, monospace;
   --f-jetbrains-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
-  --f-space-mono: var(--font-space-mono), ui-monospace, monospace;
-  --f-roboto-mono: var(--font-roboto-mono), ui-monospace, monospace;
   --f-ibm-plex-sans: var(--font-ibm-plex-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-dm-sans: var(--font-dm-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-space-grotesk: var(--font-space-grotesk), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-alan-sans: var(--font-alan-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 /*

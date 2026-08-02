@@ -3,244 +3,149 @@
  *
  * Two independent axes:
  *   1. `DesignId`  — which visual world renders (Classic, Hmat Metal, Hmat Ceramic).
- *   2. `FontId`    — display face and body face, chosen *separately* so a user can
- *                    (e.g.) try Geist Pixel Square as body copy and watch it fail
- *                    on their own (DESIGN §4.5).
+ *   2. `FontId`    — display face and body face (short labels vs long Czech text).
  *
- * Nothing here imports React or `next/font`: the pre-paint inline script, the
- * persisted store, and the Tailwind-driven CSS all validate against these same
- * tables. `classic` is deliberately the fallback everywhere — an unknown or
- * corrupt saved value resolves to Classic, which also renders with no
- * `data-design` attribute at all (see `:root` in globals.css).
+ * The Lab exposes a small curated set + ready-made pairings. Legacy font ids from
+ * earlier Lab builds are remapped on load via `normalizeFontId`.
  */
 
 export type DesignId = "classic" | "hmat-metal" | "hmat-ceramic";
 export type DesignFamily = "classic" | "hmat";
 export type HmatVariant = "metal" | "ceramic";
 
-/** Picker grouping in Design Lab (display order). */
-export type FontGroup = "pixel" | "mono" | "sans";
-
 export type FontId =
   | "share-tech-mono"
   | "geist-sans"
-  | "geist-mono"
   | "geist-pixel-square"
-  | "geist-pixel-grid"
-  | "geist-pixel-circle"
-  | "geist-pixel-line"
-  | "geist-pixel-triangle"
   | "doto"
-  | "press-start-2p"
-  | "syne-mono"
   | "jetbrains-mono"
-  | "space-mono"
-  | "roboto-mono"
-  | "ibm-plex-sans"
-  | "dm-sans"
-  | "space-grotesk"
-  | "alan-sans";
+  | "ibm-plex-sans";
 
 export type FontMeta = {
   id: FontId;
+  /** Short name in the Lab picker. */
   label: string;
-  group: FontGroup;
-  /**
-   * The CSS custom property that resolves to this face's full font stack. Both
-   * the pre-paint script and the runtime store set `--font-display` /
-   * `--font-body` to `var(<cssVar>)`. The `--f-*` vars themselves are declared
-   * once in globals.css, chaining into the `next/font` variables.
-   */
+  /** One line: where this font shows up in the app. */
+  roleHint: string;
   cssVar: `--f-${string}`;
-  /**
-   * A face built for headings/chrome/numerals, not for reading Czech prose. The
-   * Lab warns when one is chosen for body copy (DESIGN §4.5).
-   */
+  /** Pixel / dot faces — not for long Czech paragraphs. */
   displayOnly: boolean;
-  /** Covers the full Czech diacritic set (ě š č ř ž ů ď ť ň). Classic's mono does not — that's F0. */
   coversCzech: boolean;
-  /** Weights available for the Lab weight-preview row (400-only faces omit or use [400]). */
-  weights: readonly number[];
 };
-
-export const FONT_GROUPS: { id: FontGroup; label: string }[] = [
-  { id: "pixel", label: "Dot-matrix & pixel" },
-  { id: "mono", label: "Monospace" },
-  { id: "sans", label: "Sans-serif" },
-];
 
 export const FONTS: Record<FontId, FontMeta> = {
   "share-tech-mono": {
     id: "share-tech-mono",
     label: "Share Tech Mono",
-    group: "mono",
+    roleHint: "Classic dot-matrix mono",
     cssVar: "--f-share-tech-mono",
     displayOnly: false,
     coversCzech: false,
-    weights: [400],
   },
   "geist-sans": {
     id: "geist-sans",
     label: "Geist Sans",
-    group: "sans",
+    roleHint: "Easy to read — best for Czech chat",
     cssVar: "--f-geist-sans",
     displayOnly: false,
     coversCzech: true,
-    weights: [400, 500, 600, 700],
-  },
-  "geist-mono": {
-    id: "geist-mono",
-    label: "Geist Mono",
-    group: "mono",
-    cssVar: "--f-geist-mono",
-    displayOnly: false,
-    coversCzech: true,
-    weights: [400, 500, 600, 700],
   },
   "geist-pixel-square": {
     id: "geist-pixel-square",
-    label: "Geist Pixel Square",
-    group: "pixel",
+    label: "Geist Pixel",
+    roleHint: "Matches Honza's dot face",
     cssVar: "--f-geist-pixel-square",
     displayOnly: true,
     coversCzech: true,
-    weights: [400],
-  },
-  "geist-pixel-grid": {
-    id: "geist-pixel-grid",
-    label: "Geist Pixel Grid",
-    group: "pixel",
-    cssVar: "--f-geist-pixel-grid",
-    displayOnly: true,
-    coversCzech: true,
-    weights: [400],
-  },
-  "geist-pixel-circle": {
-    id: "geist-pixel-circle",
-    label: "Geist Pixel Circle",
-    group: "pixel",
-    cssVar: "--f-geist-pixel-circle",
-    displayOnly: true,
-    coversCzech: true,
-    weights: [400],
-  },
-  "geist-pixel-line": {
-    id: "geist-pixel-line",
-    label: "Geist Pixel Line",
-    group: "pixel",
-    cssVar: "--f-geist-pixel-line",
-    displayOnly: true,
-    coversCzech: true,
-    weights: [400],
-  },
-  "geist-pixel-triangle": {
-    id: "geist-pixel-triangle",
-    label: "Geist Pixel Triangle",
-    group: "pixel",
-    cssVar: "--f-geist-pixel-triangle",
-    displayOnly: true,
-    coversCzech: true,
-    weights: [400],
   },
   doto: {
     id: "doto",
     label: "Doto",
-    group: "pixel",
+    roleHint: "Pure dot-matrix display",
     cssVar: "--f-doto",
     displayOnly: true,
     coversCzech: true,
-    weights: [400, 500, 600, 700],
-  },
-  "press-start-2p": {
-    id: "press-start-2p",
-    label: "Press Start 2P",
-    group: "pixel",
-    cssVar: "--f-press-start-2p",
-    displayOnly: true,
-    coversCzech: false,
-    weights: [400],
-  },
-  "syne-mono": {
-    id: "syne-mono",
-    label: "Syne Mono",
-    group: "mono",
-    cssVar: "--f-syne-mono",
-    displayOnly: true,
-    coversCzech: true,
-    weights: [400],
   },
   "jetbrains-mono": {
     id: "jetbrains-mono",
     label: "JetBrains Mono",
-    group: "mono",
+    roleHint: "Terminal mono — full Czech",
     cssVar: "--f-jetbrains-mono",
     displayOnly: false,
     coversCzech: true,
-    weights: [400, 500, 600, 700],
-  },
-  "space-mono": {
-    id: "space-mono",
-    label: "Space Mono",
-    group: "mono",
-    cssVar: "--f-space-mono",
-    displayOnly: false,
-    coversCzech: true,
-    weights: [400, 700],
-  },
-  "roboto-mono": {
-    id: "roboto-mono",
-    label: "Roboto Mono",
-    group: "mono",
-    cssVar: "--f-roboto-mono",
-    displayOnly: false,
-    coversCzech: true,
-    weights: [400, 500, 600, 700],
   },
   "ibm-plex-sans": {
     id: "ibm-plex-sans",
     label: "IBM Plex Sans",
-    group: "sans",
+    roleHint: "Clean sans — full Czech",
     cssVar: "--f-ibm-plex-sans",
     displayOnly: false,
     coversCzech: true,
-    weights: [400, 500, 600, 700],
-  },
-  "dm-sans": {
-    id: "dm-sans",
-    label: "DM Sans",
-    group: "sans",
-    cssVar: "--f-dm-sans",
-    displayOnly: false,
-    coversCzech: true,
-    weights: [400, 500, 600, 700],
-  },
-  "space-grotesk": {
-    id: "space-grotesk",
-    label: "Space Grotesk",
-    group: "sans",
-    cssVar: "--f-space-grotesk",
-    displayOnly: false,
-    coversCzech: true,
-    weights: [400, 500, 600, 700],
-  },
-  "alan-sans": {
-    id: "alan-sans",
-    label: "Alan Sans",
-    group: "sans",
-    cssVar: "--f-alan-sans",
-    displayOnly: false,
-    coversCzech: false,
-    weights: [300, 400, 500, 600, 700],
   },
 };
+
+/** Curated faces for the optional “custom” row in the Lab. */
+export const LAB_DISPLAY_FONTS: FontId[] = [
+  "geist-pixel-square",
+  "share-tech-mono",
+  "doto",
+];
+
+export const LAB_BODY_FONTS: FontId[] = ["geist-sans", "jetbrains-mono", "ibm-plex-sans"];
+
+export type FontPairingPresetId =
+  | "hmat-default"
+  | "classic"
+  | "dot-matrix"
+  | "soft-readable";
+
+export type FontPairingPreset = {
+  id: FontPairingPresetId;
+  label: string;
+  description: string;
+  displayFont: FontId;
+  bodyFont: FontId;
+  recommended?: boolean;
+};
+
+/** Ready-made pairings — what most people should pick. */
+export const FONT_PAIRING_PRESETS: FontPairingPreset[] = [
+  {
+    id: "hmat-default",
+    label: "Hmat (recommended)",
+    description: "Pixel labels + easy Czech reading. Default for Metal & Ceramic.",
+    displayFont: "geist-pixel-square",
+    bodyFont: "geist-sans",
+    recommended: true,
+  },
+  {
+    id: "classic",
+    label: "Classic Honza",
+    description: "One mono font everywhere — the original shipped look.",
+    displayFont: "share-tech-mono",
+    bodyFont: "share-tech-mono",
+  },
+  {
+    id: "dot-matrix",
+    label: "Full dot-matrix",
+    description: "Dot labels + mono Czech text. Very hardware / Nothing-like.",
+    displayFont: "doto",
+    bodyFont: "jetbrains-mono",
+  },
+  {
+    id: "soft-readable",
+    label: "Soft & clear",
+    description: "Pixel labels + calm sans body. Gentle on long reading.",
+    displayFont: "geist-pixel-square",
+    bodyFont: "ibm-plex-sans",
+  },
+];
 
 export type DesignMeta = {
   id: DesignId;
   label: string;
-  /** One-line description shown on the Lab swatch. Real Czech, full diacritics. */
   tagline: string;
   family: DesignFamily;
-  /** Only present on Hmat designs; selects the surface token block. */
   variant?: HmatVariant;
   defaultDisplayFont: FontId;
   defaultBodyFont: FontId;
@@ -278,12 +183,29 @@ export const DESIGNS: Record<DesignId, DesignMeta> = {
 export const DESIGN_IDS = Object.keys(DESIGNS) as DesignId[];
 export const FONT_IDS = Object.keys(FONTS) as FontId[];
 
-/** Fonts in a group, stable label order within the group. */
-export function fontsInGroup(group: FontGroup): FontId[] {
-  return FONT_IDS.filter((id) => FONTS[id].group === group);
-}
-
 export const DEFAULT_DESIGN: DesignId = "hmat-metal";
+
+/** Maps retired Lab font ids (Phase 1 expansion) to a supported face. */
+const LEGACY_FONT_MAP: Record<string, FontId> = {
+  "geist-mono": "jetbrains-mono",
+  "geist-pixel-grid": "geist-pixel-square",
+  "geist-pixel-circle": "geist-pixel-square",
+  "geist-pixel-line": "geist-pixel-square",
+  "geist-pixel-triangle": "geist-pixel-square",
+  "press-start-2p": "doto",
+  "syne-mono": "share-tech-mono",
+  "space-mono": "jetbrains-mono",
+  "roboto-mono": "jetbrains-mono",
+  "dm-sans": "geist-sans",
+  "space-grotesk": "geist-sans",
+  "alan-sans": "geist-sans",
+};
+
+export function normalizeFontId(value: unknown, fallback: FontId): FontId {
+  if (typeof value !== "string") return fallback;
+  if (value in FONTS) return value as FontId;
+  return LEGACY_FONT_MAP[value] ?? fallback;
+}
 
 export function isDesignId(v: unknown): v is DesignId {
   return typeof v === "string" && v in DESIGNS;
@@ -293,17 +215,16 @@ export function isFontId(v: unknown): v is FontId {
   return typeof v === "string" && v in FONTS;
 }
 
-/** The `var(--f-…)` expression a resolved display/body font points `<html>` at. */
 export function fontFamilyVar(id: FontId): string {
   return `var(${FONTS[id].cssVar})`;
 }
 
-/** CSS font-weight value for a weight preview chip. */
-export function weightLabel(w: number): string {
-  if (w <= 300) return "Light";
-  if (w === 400) return "Regular";
-  if (w === 500) return "Medium";
-  if (w === 600) return "Semi";
-  if (w >= 700) return "Bold";
-  return String(w);
+export function activeFontPreset(
+  displayFont: FontId,
+  bodyFont: FontId,
+): FontPairingPresetId | null {
+  const match = FONT_PAIRING_PRESETS.find(
+    (p) => p.displayFont === displayFont && p.bodyFont === bodyFont,
+  );
+  return match?.id ?? null;
 }
