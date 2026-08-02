@@ -3,23 +3,11 @@
 @tailwind utilities;
 
 /*
- * Font faces (two axes, resolved by the Design Lab). Each `--f-*` chains into a
- * `next/font` CSS variable that the root <html> carries, with a matching
- * fallback stack. `--font-display` / `--font-body` point at one of these; the
- * pre-paint script and DesignRoot set them per the saved design + font choice.
+ * Shipped fonts: Doto (labels/buttons) + Space Grotesk (Czech body).
  */
 :root {
-  --f-share-tech-mono: var(--font-share-tech-mono), ui-monospace, "Courier New", monospace;
-  --f-geist-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-geist-pixel-square: var(--font-geist-pixel-square), ui-monospace, monospace;
   --f-doto: var(--font-doto), ui-monospace, monospace;
-  --f-jetbrains-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
-  --f-ibm-plex-sans: var(--font-ibm-plex-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-geist-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --f-alan-sans: var(--font-alan-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-dm-sans: var(--font-dm-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-space-grotesk: var(--font-space-grotesk), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-space-mono: var(--font-space-mono), ui-monospace, monospace;
 }
 
 /*
@@ -45,14 +33,11 @@
 }
 
 /*
- * :root == Classic. Classic renders with NO `data-design` attribute — on the
- * server, with JS off, and before the pre-paint script runs — which is what
- * keeps the shipped app byte-for-byte the default. Design axis overrides live in
- * the `[data-design=…]` blocks below.
+ * :root defaults — overwritten on <html> by DesignScript before paint.
  */
 :root {
-  --font-display: var(--f-share-tech-mono);
-  --font-body: var(--f-share-tech-mono);
+  --font-display: var(--f-doto);
+  --font-body: var(--f-space-grotesk);
   --radius-card: 16px;
 
   --background: #f5f2ee;

@@ -6,8 +6,7 @@ import { ClassicSettings } from "./ClassicSettings";
 import { HmatSettings } from "./HmatSettings";
 
 /**
- * Settings selector. Behaviour from `useSettingsScreen`; picks presentation by
- * design family. Both host the shared Design Lab.
+ * Settings — Hmat Metal presentation (`useSettingsScreen`).
  */
 export function SettingsScreen() {
   const screen = useSettingsScreen();

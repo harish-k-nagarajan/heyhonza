@@ -1,17 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
-import {
-  DM_Sans,
-  Doto,
-  IBM_Plex_Sans,
-  JetBrains_Mono,
-  Share_Tech_Mono,
-  Space_Grotesk,
-  Space_Mono,
-} from "next/font/google";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
-import { GeistPixelSquare } from "geist/font/pixel";
+import { Doto, Space_Grotesk } from "next/font/google";
 
 import { DesignRoot } from "@/components/design/DesignRoot";
 import { DesignScript } from "@/components/design/DesignScript";
@@ -20,35 +8,9 @@ import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 
 import "./globals.css";
 
-const shareTechMono = Share_Tech_Mono({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-share-tech-mono",
-  display: "swap",
-});
-
 const doto = Doto({
   subsets: ["latin", "latin-ext"],
   variable: "--font-doto",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-jetbrains-mono",
-  display: "swap",
-});
-
-const ibmPlexSans = IBM_Plex_Sans({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-ibm-plex-sans",
-  display: "swap",
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-dm-sans",
   display: "swap",
 });
 
@@ -58,43 +20,7 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 });
 
-const spaceMono = Space_Mono({
-  weight: ["400", "700"],
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-space-mono",
-  display: "swap",
-});
-
-const alanSans = localFont({
-  src: [
-    {
-      path: "../../node_modules/@fontsource-variable/alan-sans/files/alan-sans-latin-ext-wght-normal.woff2",
-      weight: "300 900",
-      style: "normal",
-    },
-    {
-      path: "../../node_modules/@fontsource-variable/alan-sans/files/alan-sans-latin-wght-normal.woff2",
-      weight: "300 900",
-      style: "normal",
-    },
-  ],
-  variable: "--font-alan-sans",
-  display: "swap",
-});
-
-const FONT_VARS = [
-  shareTechMono.variable,
-  GeistSans.variable,
-  GeistMono.variable,
-  GeistPixelSquare.variable,
-  doto.variable,
-  jetbrainsMono.variable,
-  ibmPlexSans.variable,
-  dmSans.variable,
-  spaceGrotesk.variable,
-  spaceMono.variable,
-  alanSans.variable,
-].join(" ");
+const FONT_VARS = [doto.variable, spaceGrotesk.variable].join(" ");
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 

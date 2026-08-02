@@ -3,25 +3,17 @@
 import { useEffect } from "react";
 
 import { applyDesignToRoot } from "@/lib/design/apply";
-import { useDesignStore } from "@/stores/useDesignStore";
+import {
+  SHIPPED_BODY_FONT,
+  SHIPPED_DESIGN,
+  SHIPPED_DISPLAY_FONT,
+} from "@/lib/design/registry";
 
-/**
- * Keeps `<html>` in sync with the design store *after* hydration. The pre-paint
- * script already painted the correct design before React ran, so on a cold load
- * this only re-applies the identical value (idempotent — no flash). Its real job
- * is live switching: when the Lab changes design or a font, the DOM follows
- * immediately, on the very page you're standing on.
- *
- * Renders nothing.
- */
+/** Stamps the shipped design onto `<html>` after hydration (idempotent). */
 export function DesignRoot() {
-  const design = useDesignStore((s) => s.design);
-  const displayFont = useDesignStore((s) => s.displayFont);
-  const bodyFont = useDesignStore((s) => s.bodyFont);
-
   useEffect(() => {
-    applyDesignToRoot(design, displayFont, bodyFont);
-  }, [design, displayFont, bodyFont]);
+    applyDesignToRoot(SHIPPED_DESIGN, SHIPPED_DISPLAY_FONT, SHIPPED_BODY_FONT);
+  }, []);
 
   return null;
 }
