@@ -908,7 +908,18 @@ weight rules). Migrated Hmat surfaces (chat, call, settings, landing, dock,
 onboarding, sign-in, history, install/push chrome) and shared primitives
 (`SectionLabel`, `Button`, `Label`, `LanguageSwitcher`) onto `TYPE` roles.
 `DESIGN.md` typography + Hmat sections updated; Design Lab picker docs removed.
-Classic screens left as legacy baselines (not selectable). Next: Phase 3 button
-depth (`cursor/button-depth-phase-3-1034`).
+Classic screens left as legacy baselines (not selectable).
+
+**Gotchas fixed while verifying:**
+1. Tailwind `content` must include `src/lib/**` — otherwise `TYPE` class strings
+   never enter the CSS (DOM had the classes; sizes/fonts fell through to body).
+2. Do not name the button weight helper `font-display-ui` — `tailwind-merge`
+   treats `font-*` as one family group and strips `font-display`. Use
+   `display-ui-weight` instead.
+3. Hmat `[data-design]` token block still pointed at removed Geist faces; updated
+   defaults to Doto / Space Grotesk (inline DesignScript already won, but CSS
+   safety net was wrong).
+
+Next: Phase 3 button depth (`cursor/button-depth-phase-3-1034`).
 
 Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 3 button depth, Phase 4 live orb dot backdrop.
