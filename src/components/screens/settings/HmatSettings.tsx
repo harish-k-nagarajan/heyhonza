@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { LEVEL_OPTIONS, MODEL_OPTIONS, TOPIC_OPTIONS } from "@/lib/constants";
 import type { LevelId, ModelId } from "@/lib/constants";
@@ -164,17 +165,16 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
         {screen.docError ? (
           <p className={cn(TYPE.helper, "text-accent")}>{screen.docError}</p>
         ) : null}
-        <button
+        <Button
           type="button"
+          surface="mat-key"
+          shape="card"
+          size="md"
           onClick={screen.importGoogleDoc}
           disabled={screen.docLoading}
-          className={cn(
-            "mat-key press w-full rounded-[14px] py-2.5 text-accent disabled:opacity-40",
-            TYPE.button,
-          )}
         >
           {screen.docLoading ? "Načítám…" : "Přidat z Google Docs"}
-        </button>
+        </Button>
         <textarea
           value={screen.paste}
           onChange={(e) => screen.setPaste(e.target.value)}
@@ -183,13 +183,9 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
           aria-label="Pasted text"
           className="mat-field w-full resize-none rounded-[14px] bg-transparent px-3.5 py-2.5 font-sans text-sm text-foreground outline-none"
         />
-        <button
-          type="button"
-          onClick={screen.addPaste}
-          className={cn("mat-key press w-full rounded-[14px] py-2.5 text-accent", TYPE.button)}
-        >
+        <Button type="button" surface="mat-key" shape="card" size="md" onClick={screen.addPaste}>
           Přidat text
-        </button>
+        </Button>
         <div className="space-y-1.5">
           <p className={TYPE.helper}>Soubor (.txt, .md)</p>
           <HmatFileInput onFile={screen.onFile} />
@@ -224,13 +220,9 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
 
       <section className="mat space-y-3 px-4 py-4">
         <FieldLabel>Data zařízení</FieldLabel>
-        <button
-          type="button"
-          onClick={screen.resetData}
-          className={cn("mat-key press w-full rounded-[14px] py-2.5 text-accent", TYPE.button)}
-        >
+        <Button type="button" surface="mat-key" shape="card" size="md" onClick={screen.resetData}>
           Smazat data a projít onboarding znovu
-        </button>
+        </Button>
         {/* Hmat Home leads with the character, not chrome — so sign-out lives
             here (Classic keeps it on Home). No dead ends. */}
         <form action="/auth/signout" method="post">

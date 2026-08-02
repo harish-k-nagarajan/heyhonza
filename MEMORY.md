@@ -920,6 +920,18 @@ Classic screens left as legacy baselines (not selectable).
    defaults to Doto / Space Grotesk (inline DesignScript already won, but CSS
    safety net was wrong).
 
-Next: Phase 3 button depth (`cursor/button-depth-phase-3-1034`).
+Next: Phase 4 live orb dot backdrop (`cursor/orb-backdrop-phase-4-1034`).
 
-Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 3 button depth, Phase 4 live orb dot backdrop.
+### Phase 3 button unification (2026-08-02)
+
+Branch `cursor/button-depth-phase-3-1034`. Unified Hmat + Classic buttons behind
+`Button` (`surface: flat | mat-key`) and `buttonClassName` in
+`src/lib/design/button.ts`. Mat-key applies globals.css `.mat-key` depth +
+`.press` travel; `TYPE.button` typography; `BUTTON_FOCUS` ring on keyboard nav;
+haptics via `haptic` prop (`light` default, `medium` for send / call connect).
+`ButtonLink` for landing CTAs. Migrated all raw `mat-key press` usages (landing,
+sign-in, onboarding/settings, chat send/history, call connect/mic/hang, push,
+install, file picker). Classic screens unchanged (`surface="flat"` default).
+`Pressable` is now a thin alias over mat-key `Button`.
+
+Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 4 live orb dot backdrop.

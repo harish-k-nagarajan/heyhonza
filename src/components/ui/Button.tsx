@@ -1,23 +1,51 @@
-import { cn } from "@/lib/cn";
-import { TYPE } from "@/lib/design/typography";
+"use client";
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "ghost";
-};
+import { tapLight, tapMedium } from "@/lib/interaction/haptic";
+import {
+  buttonClassName,
+  type ButtonClassOptions,
+  type ButtonHaptic,
+} from "@/lib/design/button";
+
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
+  ButtonClassOptions & {
+    haptic?: ButtonHaptic;
+  };
 
 export function Button({
   className,
   variant = "primary",
+  surface = "flat",
+  shape,
+  size = "md",
+  haptic,
+  onPointerDown,
   ...props
 }: ButtonProps) {
-  const base = cn(
-    "inline-flex min-h-11 items-center justify-center rounded-card px-4 transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40",
-    TYPE.button,
+  const resolvedHaptic: ButtonHaptic =
+    haptic ?? (surface === "mat-key" ? "light" : "none");
+
+  return (
+    <button
+      className={buttonClassName({ surface, variant, shape, size, className })}
+      onPointerDown={(e) => {
+        if (resolvedHaptic !== "none" && !props.disabled) {
+          if (resolvedHaptic === "medium") tapMedium();
+          else tapLight();
+        }
+        onPointerDown?.(e);
+      }}
+      {...props}
+    />
   );
-  const styles = {
-    primary: "bg-accent text-accent-foreground shadow-sm shadow-black/10",
-    secondary: "border border-border bg-muted text-foreground hover:bg-muted/80",
-    ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
-  }[variant];
-  return <button className={cn(base, styles, className)} {...props} />;
 }
+
+/** Re-export for link CTAs and one-off class composition. */
+export { buttonClassName, BUTTON_FOCUS } from "@/lib/design/button";
+export type {
+  ButtonSurface,
+  ButtonVariant,
+  ButtonShape,
+  ButtonSize,
+  ButtonHaptic,
+} from "@/lib/design/button";

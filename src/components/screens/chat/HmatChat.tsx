@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
+import { Button } from "@/components/ui/Button";
 import { ChatActionBar } from "@/components/chat/ChatActionBar";
 import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
 import { HmatOrb } from "@/components/honza/HmatOrb";
@@ -111,17 +112,18 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     <>
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex shrink-0 items-center justify-end">
-          <button
+          <Button
             type="button"
+            surface="mat-key"
+            shape="circle"
+            size="icon"
             onClick={() => {
-              tapLight();
               setHistoryOpen(true);
             }}
             aria-label={t.chat.history}
-            className="mat-key press flex h-10 w-10 items-center justify-center rounded-full text-accent"
           >
             <HardwareIcon name="history" size={20} />
-          </button>
+          </Button>
         </div>
 
         <div

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import {
   LANDING_HERO_FIRST,
   LANDING_PWA_HINT,
@@ -11,15 +12,14 @@ import { TYPE } from "@/lib/design/typography";
 export function LandingFooter() {
   return (
     <footer className="landing-section flex flex-col items-center gap-4 pb-6 text-center">
-      <Link
+      <ButtonLink
         href={ROUTES.signin}
-        className={cn(
-          "mat-key press hidden w-full max-w-[360px] items-center justify-center rounded-full py-3.5 text-accent md:flex",
-          TYPE.button,
-        )}
+        shape="pill"
+        size="lg"
+        className="hidden w-full max-w-[360px] md:flex"
       >
         {LANDING_HERO_FIRST.cta}
-      </Link>
+      </ButtonLink>
       <Link
         href={ROUTES.signin}
         className={cn(TYPE.button, "text-accent underline underline-offset-4 md:hidden")}

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { DESIGNS } from "@/lib/design/registry";
 import { TYPE } from "@/lib/design/typography";
@@ -11,7 +12,6 @@ import {
   unsubscribeFromPush,
   type PushSupport,
 } from "@/lib/push/client";
-import { tapLight } from "@/lib/interaction/haptic";
 import { useDesignStore } from "@/stores/useDesignStore";
 
 /**
@@ -38,7 +38,6 @@ export function PushNotificationSettings() {
   const toggle = useCallback(async () => {
     setBusy(true);
     setNote(null);
-    tapLight();
     try {
       if (enabled) {
         await unsubscribeFromPush();
@@ -78,17 +77,15 @@ export function PushNotificationSettings() {
           ? "Upozornění, až bude Honza připraven psát ti první — zatím jen příprava."
           : "Get notified when Honza is ready to write first — foundation only until scheduling ships."}
       </p>
-      <button
+      <Button
         type="button"
         disabled={busy || support === "denied"}
         onClick={() => void toggle()}
-        className={cn(
-          "rounded-full px-4 py-2 transition disabled:opacity-40",
-          TYPE.button,
-          isHmat
-            ? "mat-key press text-accent"
-            : "bg-accent text-accent-foreground",
-        )}
+        surface={isHmat ? "mat-key" : "flat"}
+        shape={isHmat ? "pill" : undefined}
+        size={isHmat ? "sm" : undefined}
+        haptic="light"
+        className={isHmat ? undefined : "rounded-full px-4 py-2"}
       >
         {enabled
           ? isHmat
@@ -97,7 +94,7 @@ export function PushNotificationSettings() {
           : isHmat
             ? "Zapnout"
             : "Turn on"}
-      </button>
+      </Button>
       {support === "denied" ? (
         <p className={cn(TYPE.helper, "text-accent")}>
           {isHmat ? "Povol oznámení v nastavení prohlížeče." : "Allow notifications in browser settings."}

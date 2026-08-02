@@ -1,41 +1,13 @@
 "use client";
 
-import { tapLight } from "@/lib/interaction/haptic";
-import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/Button";
 
-type PressableProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  haptic?: boolean;
-};
+type PressableProps = React.ComponentProps<typeof Button>;
 
 /**
- * Button wrapper that fires a light haptic on pointer down (mat-key feel on device).
+ * Thin alias for mat-key `<Button>` with light haptic on pointer down.
+ * Prefer `<Button surface="mat-key" />` directly in new code.
  */
-export function Pressable({
-  className,
-  haptic = true,
-  onPointerDown,
-  children,
-  ...props
-}: PressableProps) {
-  return (
-    <button
-      type="button"
-      className={className}
-      onPointerDown={(e) => {
-        if (haptic && !props.disabled) tapLight();
-        onPointerDown?.(e);
-      }}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
-
-/** className helper for mat-key + press surfaces that need haptic on pointer down. */
-export function useMatKeyPress() {
-  return {
-    onPointerDown: () => tapLight(),
-    className: cn("mat-key press"),
-  };
+export function Pressable({ surface = "mat-key", haptic = "light", ...props }: PressableProps) {
+  return <Button surface={surface} haptic={haptic} {...props} />;
 }

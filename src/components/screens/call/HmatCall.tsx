@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
+import { Button } from "@/components/ui/Button";
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
@@ -120,36 +121,33 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
 
       <div className="flex shrink-0 flex-col items-center gap-3">
         {!inCall ? (
-          <button
+          <Button
             type="button"
+            surface="mat-key"
+            shape="pill"
+            size="call"
+            haptic="medium"
             onClick={() => {
-              tapMedium();
               screen.startCall();
             }}
             disabled={!supported}
-            className={cn(
-              "mat-key press flex h-14 w-full max-w-[280px] items-center justify-center rounded-full text-accent disabled:opacity-40",
-              TYPE.button,
-              "text-base tracking-[0.2em]",
-            )}
           >
             ZAVOLAT
-          </button>
+          </Button>
         ) : (
           <div className="flex items-center gap-5">
-            <button
+            <Button
               type="button"
+              surface="mat-key"
+              shape="circle"
+              size="icon-lg"
               onClick={() => {
-                tapLight();
                 screen.toggleMic();
               }}
               disabled={phase === "connecting" || phase === "thinking"}
               aria-pressed={listening}
               aria-label={listening ? "Stop speaking" : "Speak"}
-              className={cn(
-                "mat-key press flex h-[60px] w-[60px] items-center justify-center rounded-full disabled:opacity-40",
-                listening ? "text-white" : "text-accent",
-              )}
+              className={listening ? "text-white" : undefined}
               style={
                 listening
                   ? {
@@ -160,19 +158,21 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
               }
             >
               <HardwareIcon name="mic" size={24} emboss={!listening} />
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              surface="mat-key"
+              shape="circle"
+              size="icon-lg"
+              variant="danger"
               onClick={() => {
-                tapLight();
                 screen.endCall(true);
               }}
               aria-label="End call"
-              className="mat-key press flex h-[60px] w-[60px] items-center justify-center rounded-full text-white"
               style={{ background: "linear-gradient(180deg, #ef5b60, #E5484D)" }}
             >
               <HardwareIcon name="hang" size={24} emboss={false} />
-            </button>
+            </Button>
           </div>
         )}
         {inCall ? (

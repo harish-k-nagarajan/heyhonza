@@ -2,11 +2,12 @@
 
 import { useCallback, useState } from "react";
 
+import { Button } from "@/components/ui/Button";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
-import { tapLight, tapMedium } from "@/lib/interaction/haptic";
+import { tapLight } from "@/lib/interaction/haptic";
 import { DESIGNS } from "@/lib/design/registry";
 import { useDesignStore } from "@/stores/useDesignStore";
 
@@ -54,7 +55,6 @@ export function ChatActionBar({
     const text = value.trim();
     if (!text || disabled) return;
     setValue("");
-    tapMedium();
     onSend(text);
     onSent?.();
   }, [disabled, onSend, onSent, value]);
@@ -110,27 +110,34 @@ export function ChatActionBar({
             </span>
           ) : null}
         </div>
-        <button
-          type="button"
-          onClick={submit}
-          onPointerDown={() => {
-            if (!disabled && !empty) tapLight();
-          }}
-          disabled={disabled || empty}
-          aria-label={t.chat.send}
-          className={cn(
-            "flex shrink-0 items-center justify-center transition-all duration-300 motion-reduce:transition-none",
-            isHmat
-              ? "mat-key press h-[52px] w-[52px] rounded-full text-accent disabled:opacity-40"
-              : "h-11 w-11 rounded-full bg-accent text-accent-foreground shadow-sm shadow-black/10 active:scale-[0.95] disabled:opacity-40",
-          )}
-        >
-          {isHmat ? (
+        {isHmat ? (
+          <Button
+            type="button"
+            surface="mat-key"
+            shape="circle"
+            size="icon-md"
+            haptic="medium"
+            onClick={submit}
+            disabled={disabled || empty}
+            aria-label={t.chat.send}
+            className="transition-all duration-300 motion-reduce:transition-none"
+          >
             <HardwareIcon name="send" size={22} />
-          ) : (
+          </Button>
+        ) : (
+          <button
+            type="button"
+            onClick={submit}
+            onPointerDown={() => {
+              if (!disabled && !empty) tapLight();
+            }}
+            disabled={disabled || empty}
+            aria-label={t.chat.send}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-sm shadow-black/10 transition-all duration-300 active:scale-[0.95] disabled:opacity-40 motion-reduce:transition-none"
+          >
             <SendArrowIcon />
-          )}
-        </button>
+          </button>
+        )}
       </div>
       <button
         type="button"
