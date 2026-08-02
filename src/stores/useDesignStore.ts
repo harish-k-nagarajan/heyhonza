@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { DEFAULT_DESIGN, DESIGNS, isDesignId, isFontId } from "@/lib/design/registry";
+import { DEFAULT_DESIGN, DESIGNS, isDesignId, normalizeFontId } from "@/lib/design/registry";
 import type { DesignId, FontId } from "@/lib/design/registry";
 
 /**
@@ -47,10 +47,10 @@ export const useDesignStore = create<DesignState>()(
         set({ design, ...defaultsFor(design) });
       },
       setDisplayFont: (font) => {
-        if (isFontId(font)) set({ displayFont: font });
+        set({ displayFont: normalizeFontId(font, defaultsFor(get().design).displayFont) });
       },
       setBodyFont: (font) => {
-        if (isFontId(font)) set({ bodyFont: font });
+        set({ bodyFont: normalizeFontId(font, defaultsFor(get().design).bodyFont) });
       },
       resetFonts: () => set(defaultsFor(get().design)),
     }),
@@ -64,8 +64,8 @@ export const useDesignStore = create<DesignState>()(
         return {
           ...current,
           design,
-          displayFont: isFontId(p.displayFont) ? p.displayFont : defaultsFor(design).displayFont,
-          bodyFont: isFontId(p.bodyFont) ? p.bodyFont : defaultsFor(design).bodyFont,
+          displayFont: normalizeFontId(p.displayFont, defaultsFor(design).displayFont),
+          bodyFont: normalizeFontId(p.bodyFont, defaultsFor(design).bodyFont),
         };
       },
     },
