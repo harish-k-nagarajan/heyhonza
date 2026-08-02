@@ -1,12 +1,14 @@
 # Honza — design system
 
-> **The design system is now plural (2026-07-16).** There are **three selectable
-> designs**, switched live in Settings → Design Lab: **Classic** (the original,
-> documented in the body of this file), **Hmat Metal**, and **Hmat Ceramic**.
-> Classic is preserved **byte-for-byte** — it keeps Share Tech Mono and the F0
-> font bug on purpose, as the baseline the Lab compares against. The Hmat spec,
-> the re-authored orb maps, and the icon set are in **§ Design Lab** at the end
-> of this file. Everything above that section describes **Classic**.
+> **Shipped look (2026-08):** **Hmat Metal** surface · **Doto** (short labels /
+> buttons) · **Space Grotesk** (Czech body). Design Lab and live font switching
+> were removed after finalization — see
+> [`design update/SHIPPED_DESIGN.md`](./design%20update/SHIPPED_DESIGN.md).
+> Constants: `SHIPPED_*` in `src/lib/design/registry.ts`. Type roles:
+> `src/lib/design/typography.ts` (`TYPE`).
+>
+> Sections below that still describe cream cards / Share Tech Mono document the
+> **Classic** baseline kept in-repo for comparison; product chrome is Hmat Metal.
 
 ## Identity
 
@@ -16,19 +18,48 @@ The app is **Honza**. The character **is** the app: Nothing OS dot matrix meets 
 
 ## Background
 
-**Global canvas:** warm cream / off-white `#F5F2EE`. Not pure white, not cold grey. Cards and bubbles sit on this base.
+**Shipped (Hmat Metal):** brushed cream-metal canvas with visible grain; mood
+tints via the expression engine (`--bg`, `--accent`, `--energy`). See § Hmat.
 
-**Per emotional state**, the whole screen shifts mood using a tinted surface plus accent (see Colors). Background tints are applied app-wide when Honza’s state changes.
+**Classic baseline:** warm cream / off-white `#F5F2EE`. Cards and bubbles sit on
+this base. Per emotional state, the whole screen shifts mood using a tinted
+surface plus accent (see Colors).
 
 ---
 
 ## Typography
 
-- **Font:** [Share Tech Mono](https://fonts.google.com/specimen/Share+Tech+Mono) (Google Fonts), loaded app-wide.
-- **All UI text** uses this monospace dot-matrix voice. **No Inter** (or other rounded humanist UI fonts) for product chrome.
-- **Letter-spacing:** `0.2em` on general monospace labels; section labels use **`0.25em`**.
-- **Section labels:** uppercase, muted, prefixed with `//` as if code comments (e.g. `// TODAY'S LESSON`, `// REPLY NOW`, `// SETTINGS`).
-- **Czech** in chat bubbles and teaching copy; **English** for navigation, settings, and meta labels where clarity for the learner is the goal (adjust per screen copy deck).
+### Shipped (authoritative)
+
+| Role | Face | Notes |
+|------|------|--------|
+| Short labels, kickers, buttons, section chrome | **Doto** (`font-display`) | Labels weight **500** (`--font-display-weight`). Buttons / mat-keys weight **700** (`--font-display-weight-ui` via `font-display-ui`). Hierarchy via **size + tracking**, not Tailwind weight utilities. |
+| Long Czech text (bubbles, captions, body) | **Space Grotesk** (`font-sans`) | Full diacritics (`ě š č ř ž ů ď ť ň`). `font-medium` / `font-semibold` allowed where hierarchy needs weight. |
+
+**Type scale** — use `TYPE` roles from `src/lib/design/typography.ts`. Do not
+scatter ad-hoc `text-[11px] tracking-[…]` classes on primary screens.
+
+| Role | Use |
+|------|-----|
+| `kicker` | Tiny display eyebrow / mood overlines |
+| `label` | Section / chrome labels (`// Nastavení`) |
+| `meta` | Numerals, status chips, loading |
+| `title` | Screen / card title (Doto) |
+| `subtitle` | Supporting line under a title (Space Grotesk, muted) |
+| `display` / `displayLg` | Hero / brand (in-app vs landing) |
+| `body` / `bodySm` | Czech prose |
+| `button` | Mat-keys and CTAs (Doto 700) |
+| `helper` | Muted helper copy |
+
+**Section labels:** uppercase, muted, often prefixed with `//` (see
+`SectionLabel`). **Czech** in chat bubbles and teaching copy; **English** on the
+marketing landing (Czech only in showcase samples). In-app Hmat chrome is Czech.
+
+### Classic baseline (legacy)
+
+- **Font:** Share Tech Mono (monospace). No Inter for product chrome.
+- Letter-spacing `0.2em` on general labels; section labels `0.25em`.
+- Do not extend Classic; new work uses `TYPE` + shipped fonts.
 
 ---
 
@@ -44,7 +75,7 @@ Each state defines a **tinted background** and **accent**. The accent drives bor
 | **oops** | `#FFF0F5`        | `#C2185B` | Grammar slip — gentle, not punitive |
 | **excited** | `#FFF4EE`     | `#E8432D` | Perfect reply — same palette as idle, bigger expression |
 
-Canonical cream behind everything: **`#F5F2EE`**. State backgrounds are overlays or section tints on top of that mental model.
+Canonical cream behind everything: **`#F5F2EE`**. State backgrounds are overlays or section tints on top of that mental model. Accent hues are locked; idle vs excited is distinguished by **`--energy`** (0.35 → 1.0), never by re-hueing.
 
 ---
 
@@ -64,6 +95,9 @@ Canonical cream behind everything: **`#F5F2EE`**. State backgrounds are overlays
 - **Sizes:**
   - **Hero (home / lesson lead):** minimum **200×200** px.
   - **Avatar (chat header / inline):** **64×64** px.
+
+Hmat uses `HmatOrb` (round-4 maps, backlight, blink). Classic keeps `HonzaOrb`
+maps. Do not merge the two map sets.
 
 ---
 
@@ -97,34 +131,35 @@ All motion respects **`prefers-reduced-motion`**: prefer static or near-static p
 
 ## Cards and layout
 
-- **Cards:** white (`#FFFFFF` or near-white) on cream; **`border-radius: 16px`**; border **`1px solid rgba(0, 0, 0, 0.07)`**.
-- **Section labels:** monospace, **~8px** effective size (or scale with rem), **`letter-spacing: 0.25em`**, muted color, **`//` prefix**.
-- **Max width:** ~**430px** centered “phone stage” on large viewports.
-- **Bottom navigation:** monospace tab labels; **dot indicator** (or equivalent) for the active tab — no bubbly pill primary nav.
+- **Hmat:** `mat` / `mat-metal` cards, `mat-recess` for the character well, floating `fdock`. Max width ~**430px** phone stage (`max-w-landing` on `/welcome`).
+- **Classic baseline:** white cards on cream; **`border-radius: 16px`**; border **`1px solid rgba(0, 0, 0, 0.07)`**.
+- **Bottom navigation (Hmat):** floating dock — Chat · Hovor · Nastavení; active tab accent-tinted with a sliding pill.
 
 ---
 
 ## Chat
 
-- **Honza bubble:** left-aligned, **white card**, body text in **accent** (or accent-tinted) monospace as appropriate.
-- **User bubble:** right-aligned, **accent fill**, **white** text.
-- **Timestamps:** monospace, muted, **~9px**.
+- **Honza bubble:** left-aligned material card; Czech body via `TYPE.bodySm`.
+- **User bubble:** right-aligned, **accent** fill, **white** text.
+- **Timestamps / labels:** `TYPE.kicker` / `TYPE.label`.
 - **Highlights** inside Czech copy (e.g. key phrase) may use accent at full strength.
 
 ---
 
 ## Reply composer
 
-- **Placeholder:** `REPLY IN CZECH_` with a **blinking underscore** cursor (monospace).
-- **Field:** pill shape, **accent-colored** border (2px class of weight is fine).
-- **Send:** filled **circle**, **accent** fill, icon in white.
+- **Placeholder:** Czech reply prompt with a **blinking underscore** cursor.
+- **Field:** Hmat `mat-field` pill; Classic accent-border pill.
+- **Send:** Hmat `mat-key` circle with hardware send icon; Classic filled accent circle.
 
 ---
 
 ## Implementation notes
 
 - Export **`HONZA_STATE_COLORS`** from `HonzaOrb` (or a tiny `honza/theme` module if split later) so screens can set CSS variables or Tailwind arbitrary values for full-screen mood.
+- Mood expression: `src/lib/mood/expression.ts` → `{ background, accent, energy, czLabel, caption }` via `useMoodExpression`; `AppShell` sets `--accent`, `--energy`, `--bg`.
 - Keep tokens in sync with this document when adding new states or marketing surfaces.
+- To change shipped fonts, edit `SHIPPED_*` in `registry.ts` and font loading in `src/app/layout.tsx` — do not re-add a Design Lab picker.
 
 ---
 
@@ -134,113 +169,63 @@ Design screenshots and exports:
 
 `/Users/harishnagarajan/Documents/Cursor/Honza/Design Reference`
 
-Use this folder for reviews so Figma / exports stay traceable.
+Elevation plan: [`design update/DESIGN_ELEVATION_PLAN.md`](./design%20update/DESIGN_ELEVATION_PLAN.md).
 
 ---
 
-# Design Lab (multiple designs)
+# Hmat Metal (shipped surface)
 
-Since 2026-07-16 the app ships **three designs**, switchable live in **Settings →
-Design Lab**. Everything above is **Classic**. This section documents the
-architecture and the **Hmat** design (Metal + Ceramic).
-
-## The three designs
-
-| Design | Family | Surface | Display font | Body font |
-|---|---|---|---|---|
-| **Classic** | classic | cream, flat cards | Share Tech Mono | Share Tech Mono (F0 bug kept on purpose) |
-| **Hmat Metal** | hmat | brushed cream-metal, visible grain | Geist Pixel Square | Geist Sans |
-| **Hmat Ceramic** | hmat | warm matte ceramic, grain off | Geist Pixel Square | Geist Sans |
-
-Metal and Ceramic are the **same layout and component tree** — they differ only
-in a token block (material gradient, grain, warmth). Do not fork components for
-them.
+Source of truth for material: `design-lab/round4-hmat.html`. CSS lives in
+`globals.css` (the `.mat*` / `.fdock` / `.hmat-orb` utilities). Ceramic was an
+exploration variant; **only Metal ships**.
 
 ## Token contract + theme runtime
 
-- `data-design` on `<html>` selects a token block in `globals.css`. `:root` holds
-  **Classic**, so Classic renders with **no attribute** — on the server, JS off,
-  before any script. Non-Classic designs stamp `data-design="hmat-metal|hmat-ceramic"`.
-- **Fonts are a separate axis:** `--font-display` / `--font-body`, chosen
-  independently in the Lab. Tailwind: `font-display → var(--font-display)`,
-  `font-sans → var(--font-body)`, `rounded-card → var(--radius-card)`.
-- Registry: `src/lib/design/registry.ts` (designs, fonts, per-design defaults).
-  Persisted store: `useDesignStore` (`localStorage` `honza-design`). A **pre-paint
-  inline script** (`DesignScript`, first child of `<body>`) applies the saved
-  design before first paint — **no flash**; falls back to Classic in a `try/catch`.
-  `DesignRoot` keeps `<html>` in sync after hydration for live switching.
-- **F0 is fixed for Hmat:** Czech body copy uses Geist Sans (full diacritics —
-  `ě š č ř ž ů ď ť ň`). Pixel faces are **display-only**; the Lab **warns** when a
-  display face is chosen for body. Classic deliberately keeps Share Tech Mono and
-  the mid-word fallback.
-
-## Mood expression engine
-
-`src/lib/mood/expression.ts` — one `mood + design → expression` map:
-`{ background, accent, energy, czLabel, caption }`. Every surface reads it via
-`useMoodExpression`; `AppShell` sets `--accent`, `--energy`, and `--bg` app-wide.
-**Accent hues are locked** (idle/excited `#E8432D`, thinking `#3A7BD5`, speaking
-`#2E7D32`, oops `#C2185B`). idle and excited **share the hue** — the difference is
-the **energy** channel (0.35 → 1.0), which drives the Hmat lit channel + orb
-backlight brightness + motion amplitude. Never fix idle-vs-excited by re-hueing.
+- `data-design="hmat-metal"` on `<html>` selects the Hmat token block.
+  Pre-paint script (`DesignScript`) and `DesignRoot` stamp shipped design +
+  fonts (Doto / Space Grotesk) — **no flash**, no user-selectable Lab.
+- Tailwind: `font-display → var(--font-display)`, `font-sans → var(--font-body)`,
+  `rounded-card → var(--radius-card)`.
+- Registry: `src/lib/design/registry.ts` (`SHIPPED_DESIGN`, `SHIPPED_DISPLAY_FONT`,
+  `SHIPPED_BODY_FONT`).
 
 ## Hmat — the tactile-material spec
 
-Source of truth: `design-lab/round4-hmat.html`. CSS lives in `globals.css`
-(the `.mat*` / `.fdock` / `.hmat-orb` utilities).
-
-- **Recess (`mat-recess`)** — the signature move: the character leads every screen
-  from inside an inset well (inner top shadow + bottom highlight).
-- **Cards** — `mat` (outset: inset top-light + bottom-shadow + soft warm drop) and
-  `mat-metal` (brushed-gradient variant).
-- **Deep keys (`mat-key`)** — 6px mechanical travel (`box-shadow: 0 6px 0 …` →
-  `translateY(5px)` on `:active`). Send / call controls are keys.
+- **Recess (`mat-recess`)** — the character leads every screen from inside an
+  inset well (inner top shadow + bottom highlight).
+- **Cards** — `mat` (outset) and `mat-metal` (brushed-gradient).
+- **Deep keys (`mat-key`)** — 6px mechanical travel. Send / call controls are keys.
+  Button depth unification is Phase 3 of the elevation plan.
 - **Lit channel (`mat-channel`)** — recessed channel whose inner glow is the mood
   accent, brightness × `--energy`.
-- **Floating dock (`fdock`)** — detached from the bottom edge, rounded, material
-  (not glass), the three tabs (**Chat · Hovor · Nastavení** — chat-first since
-  2026-07-27; no separate Home tab), active tab accent-tinted with a sliding pill.
-  Content is padded to clear it; nothing overlaps.
-- **Metal vs Ceramic** — tokens only: `--mat-grain-opacity` (Metal `0.5`, Ceramic
-  `0`) and the warmth mixes (`--mat-surface-warm`, `--mat-metal-warm`,
-  `--mat-recess-warm`).
+- **Floating dock (`fdock`)** — Chat · Hovor · Nastavení; content padded to clear it.
+- **Metal grain** — `--mat-grain-opacity` and warmth mixes on the surface tokens.
 
 ## The orb, re-authored (Hmat)
 
 `HmatOrb` keeps the 15×15 dot matrix but adds an energy-scaled backlight,
 emissive drop-shadow, specular dome, a **blink loop** (~5s, faster with energy),
-and a `react-pop`. It uses the **round-4 pixel maps** (MLUVÍ = open-mouth "O",
-MYSLÍ = up-looking eyes + thought bubble; every state a readable 2×2 eye pair +
-distinct mouth). **Classic keeps its original maps** in `HonzaOrb` — the two map
-sets are design-dependent, never merged.
+and a `react-pop`. Live orb backdrop (dot/waveform field) is Phase 4.
 
 ## Icon set (system kit)
 
 `src/components/icons/HardwareIcons.tsx` — geometric, square-cap, **embossed**
-glyphs inheriting `currentColor` (→ the mood accent): `home` (2×2 dot-matrix
-window), `chat` (3 square dots), `call` (**phone handset, not a mic**),
-`settings` (machined sliders), `send`, `mic` (in-call mute only), `hang`. Built
-once; used by both Hmat variants. Classic keeps its own minimal iconography on
-nav labels but uses hardware icons on Call mic/hang (2026-07-28).
-Type scale: `src/lib/design/typography.ts` (`TYPE` roles) — adopted on Hmat chat
-bubbles and chrome.
+glyphs inheriting `currentColor` (→ the mood accent): `home`, `chat`, `call`
+(phone handset), `settings`, `send`, `mic`, `hang`, `history`.
 
-## Interaction layer (2026-07-28)
+## Interaction layer
 
 Shared primitives in `src/lib/interaction/haptic.ts` + hooks:
 
-- **`tapLight` / `tapMedium` / `hapticSuccess`** — `navigator.vibrate` wrappers;
-  no-op on desktop/unsupported. Wired to mat-keys, send, dock tabs, call connect.
-- **`useReactPop`** — one-shot orb pop on send, mood beats (excited/oops/speaking),
-  call connect, orb tap. Hmat: `.hmat-orb .react-pop`; Classic: `.honza-pop`.
+- **`tapLight` / `tapMedium` / `hapticSuccess`** — `navigator.vibrate` wrappers.
+- **`useReactPop`** — one-shot orb pop on send, mood beats, call connect, orb tap.
 - **`useMoodReactions`** — mood transition → haptic + pop.
 - **Micro-animations** — `animate-message-in`, `animate-drawer-in`, dock pill
   slide, channel pulse, card tilt on desktop (`.mat-tilt`).
 
 **Chat layout (Hmat):** dual-mode — **hero** recess + `mat-metal` opener card until
 the learner sends their first reply; then **compact** header (48px orb + channel).
-Honza auto-initiates on load (no Start Chat gate). Classic gets the same behaviour
-with flat chrome.
+Honza auto-initiates on load (no Start Chat gate).
 
 **Push (foundation):** Settings toggle + `/api/push/subscribe` + Supabase
 `push_subscriptions` table. Scheduled sends not wired — copy stays honest until

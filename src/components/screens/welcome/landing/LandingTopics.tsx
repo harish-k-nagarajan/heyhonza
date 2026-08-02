@@ -4,6 +4,8 @@ import {
   TOPIC_LANDING_SAMPLES,
 } from "@/components/screens/welcome/welcome-content";
 import { TOPIC_OPTIONS } from "@/lib/constants";
+import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 
 const TOPIC_ICONS = ["chat", "home", "call", "settings", "send", "mic"] as const;
 
@@ -19,11 +21,9 @@ export function LandingTopics() {
           <article key={id} className="landing-topic-tile mat-metal rounded-[20px] p-4 text-left">
             <div className="mb-3 flex items-center gap-2 text-accent">
               <HardwareIcon name={icon} size={20} />
-              <span className="font-display text-[9px] uppercase tracking-[0.14em]">
-                {option?.label ?? id}
-              </span>
+              <span className={TYPE.kicker}>{option?.label ?? id}</span>
             </div>
-            <p className="font-sans text-[15px] leading-snug text-foreground">{sample}</p>
+            <p className={cn(TYPE.body, "leading-snug text-foreground")}>{sample}</p>
           </article>
         );
       })}

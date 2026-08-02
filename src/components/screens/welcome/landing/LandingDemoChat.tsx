@@ -1,23 +1,21 @@
 "use client";
 
 import { DEMO_CHAT_BEATS } from "@/components/screens/welcome/welcome-content";
+import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 
 export function LandingDemoChat() {
   return (
     <div className="landing-panel landing-demo-frame mx-auto max-w-[380px] md:max-w-none">
       <div className="mb-3 flex items-center justify-between">
-        <p className="font-display text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
-          Conversation preview
-        </p>
+        <p className={cn(TYPE.kicker, "text-muted-foreground")}>Conversation preview</p>
         <span className="mat inline-flex items-center gap-1.5 rounded-full px-2.5 py-1">
           <span
             className="h-[6px] w-[6px] rounded-full bg-accent"
             style={{ boxShadow: "0 0 6px var(--accent)" }}
             aria-hidden
           />
-          <span className="font-display text-[8px] uppercase tracking-[0.12em] text-accent">
-            Preview
-          </span>
+          <span className={cn(TYPE.kicker, "text-accent")}>Preview</span>
         </span>
       </div>
 
@@ -30,10 +28,8 @@ export function LandingDemoChat() {
           >
             <div className="flex justify-start">
               <div className="mat-metal max-w-[88%] rounded-[18px] px-4 py-3 text-left">
-                <p className="mb-1 font-display text-[8px] uppercase tracking-[0.14em] text-muted-foreground">
-                  Honza
-                </p>
-                <p className="font-sans text-[14px] leading-snug text-foreground">{beat.honza}</p>
+                <p className={cn("mb-1", TYPE.kicker, "text-muted-foreground")}>Honza</p>
+                <p className={cn(TYPE.bodySm, "leading-snug text-foreground")}>{beat.honza}</p>
               </div>
             </div>
             <div className="flex justify-end">
@@ -44,18 +40,14 @@ export function LandingDemoChat() {
                   color: "var(--accent-foreground, #fff)",
                 }}
               >
-                <p className="mb-1 font-display text-[8px] uppercase tracking-[0.14em] opacity-80">
-                  You
-                </p>
-                <p className="font-sans text-[14px] leading-snug">{beat.user}</p>
+                <p className={cn("mb-1", TYPE.kicker, "opacity-80")}>You</p>
+                <p className={cn(TYPE.bodySm, "leading-snug")}>{beat.user}</p>
               </div>
             </div>
             <div className="flex justify-start">
               <div className="mat max-w-[88%] rounded-[18px] border border-accent/20 px-4 py-3 text-left">
-                <p className="mb-1 font-display text-[8px] uppercase tracking-[0.14em] text-accent">
-                  Correction
-                </p>
-                <p className="font-sans text-[13px] leading-snug text-foreground">{beat.honzaFix}</p>
+                <p className={cn("mb-1", TYPE.kicker, "text-accent")}>Correction</p>
+                <p className={cn(TYPE.bodySm, "leading-snug text-foreground")}>{beat.honzaFix}</p>
               </div>
             </div>
           </div>

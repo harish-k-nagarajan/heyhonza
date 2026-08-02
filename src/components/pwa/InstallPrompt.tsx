@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { cn } from "@/lib/cn";
 import { DESIGNS } from "@/lib/design/registry";
+import { TYPE } from "@/lib/design/typography";
 import { useDesignStore } from "@/stores/useDesignStore";
 
 type BeforeInstallPromptEvent = Event & {
@@ -167,17 +168,15 @@ export function InstallPrompt() {
       >
         <div className="flex items-center justify-between gap-3">
           {isHmat ? (
-            <p className="font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              {c.label}
-            </p>
+            <p className={cn(TYPE.label, "text-muted-foreground")}>{c.label}</p>
           ) : (
             <SectionLabel as="p">{c.label}</SectionLabel>
           )}
           <button
             type="button"
             className={cn(
-              "text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground",
-              isHmat ? "font-display" : "font-sans",
+              "text-muted-foreground hover:text-foreground",
+              isHmat ? TYPE.label : "font-sans text-[11px] uppercase tracking-[0.2em]",
             )}
             onClick={dismiss}
           >
@@ -186,18 +185,17 @@ export function InstallPrompt() {
         </div>
 
         {iosHint ? (
-          <p className={cn("mt-2 text-sm text-foreground", isHmat ? "font-sans" : undefined)}>
-            {c.ios}
-          </p>
+          <p className={cn("mt-2", TYPE.bodySm, "text-foreground")}>{c.ios}</p>
         ) : (
           <div className="mt-2 flex items-center justify-between gap-3">
-            <p className={cn("text-sm text-foreground", isHmat ? "font-sans" : undefined)}>
-              {c.body}
-            </p>
+            <p className={cn(TYPE.bodySm, "text-foreground")}>{c.body}</p>
             {isHmat ? (
               <button
                 type="button"
-                className="mat-key press shrink-0 rounded-full px-4 py-2 font-display text-[10px] uppercase tracking-[0.2em] text-accent"
+                className={cn(
+                  "mat-key press shrink-0 rounded-full px-4 py-2 text-accent",
+                  TYPE.button,
+                )}
                 onClick={install}
               >
                 {c.install}

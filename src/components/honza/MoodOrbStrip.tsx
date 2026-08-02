@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 import type { MoodExpression } from "@/lib/mood/expression";
 
 /**
@@ -37,14 +38,15 @@ export function MoodOrbStrip({
       ) : null}
       <p
         className={cn(
-          "font-display uppercase tracking-[0.16em] text-accent",
-          compact ? "text-[8px]" : "text-[9px]",
+          TYPE.kicker,
+          "text-accent",
+          compact && "text-[8px]",
         )}
       >
         {loading ? thinkingLabel : expression.czLabel}
       </p>
       {!compact ? (
-        <p className="font-sans text-xs text-muted-foreground">{expression.caption}</p>
+        <p className={TYPE.helper}>{expression.caption}</p>
       ) : null}
     </div>
   );

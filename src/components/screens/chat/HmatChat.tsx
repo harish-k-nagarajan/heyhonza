@@ -171,7 +171,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
                 <button
                   type="button"
                   onClick={screen.retryOpener}
-                  className="mt-2 font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground underline"
+                  className={cn("mt-2 underline text-muted-foreground", TYPE.label)}
                 >
                   {t.chat.tryAgain}
                 </button>

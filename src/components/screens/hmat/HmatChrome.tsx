@@ -2,6 +2,9 @@
 
 import { useRef, useState } from "react";
 
+import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
+
 /**
  * Shared Hmat chrome — the header row, the mood badge, and the per-screen
  * loading placeholder. Built once so Home / Chat / Call / Settings stay
@@ -27,11 +30,14 @@ export function HmatFileInput({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="mat-key press shrink-0 rounded-full px-4 py-2 font-display text-[11px] uppercase tracking-[0.14em] text-accent"
+        className={cn(
+          "mat-key press shrink-0 rounded-full px-4 py-2 text-accent",
+          TYPE.button,
+        )}
       >
         Vybrat soubor
       </button>
-      <span className="min-w-0 flex-1 truncate font-sans text-xs text-muted-foreground">
+      <span className={cn("min-w-0 flex-1 truncate", TYPE.helper)}>
         {name ?? "Žádný soubor"}
       </span>
       <input
@@ -58,9 +64,7 @@ export function HmatHeader({
 }) {
   return (
     <header className="flex shrink-0 items-center justify-between">
-      <span className="font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-        {brand}
-      </span>
+      <span className={cn(TYPE.label, "text-muted-foreground")}>{brand}</span>
       {right}
     </header>
   );
@@ -75,9 +79,7 @@ export function HmatBadge({ label }: { label: string }) {
         style={{ boxShadow: "0 0 7px var(--accent)" }}
         aria-hidden
       />
-      <span className="font-display text-[9px] uppercase tracking-[0.14em] text-accent">
-        {label}
-      </span>
+      <span className={cn(TYPE.kicker, "text-accent")}>{label}</span>
     </span>
   );
 }
@@ -94,9 +96,7 @@ export function HmatScreenLoading() {
         </div>
       </div>
       <div className="mat h-3 w-28 animate-pulse rounded-full opacity-50" aria-hidden />
-      <p className="font-display text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-        Načítání…
-      </p>
+      <p className={cn(TYPE.meta, "uppercase text-muted-foreground")}>Načítání…</p>
     </div>
   );
 }

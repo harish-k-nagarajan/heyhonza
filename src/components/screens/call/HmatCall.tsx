@@ -11,6 +11,7 @@ import { useMoodReactions } from "@/hooks/useMoodReactions";
 import { useReactPop } from "@/hooks/useReactPop";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 import { tapLight, tapMedium } from "@/lib/interaction/haptic";
 
 function czStatusLine(phase: CallScreen["phase"], listening: boolean): string {
@@ -25,6 +26,10 @@ function czStatusLine(phase: CallScreen["phase"], listening: boolean): string {
       return listening ? "Poslouchám… mluv česky" : "Klepni na mikrofon a odpověz";
     case "thinking":
       return "Honza přemýšlí…";
+    default: {
+      const _exhaustive: never = phase;
+      return _exhaustive;
+    }
   }
 }
 
@@ -53,14 +58,12 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
       <header className="flex shrink-0 items-center justify-center">
         {inCall ? (
           <span className="mat rounded-full px-4 py-1.5" aria-label="Call duration">
-            <span className="font-display text-[11px] tracking-[0.14em] text-accent tabular-nums">
+            <span className={cn(TYPE.meta, "text-accent tabular-nums")}>
               {screen.durationLabel}
             </span>
           </span>
         ) : (
-          <span className="font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            Hovor s Honzou
-          </span>
+          <span className={cn(TYPE.label, "text-muted-foreground")}>Hovor s Honzou</span>
         )}
       </header>
 
@@ -84,31 +87,27 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
         />
       </div>
 
-      <p
-        className="mt-4 text-center font-sans text-xs text-muted-foreground"
-        role="status"
-        aria-live="polite"
-      >
+      <p className={cn("mt-4 text-center", TYPE.helper)} role="status" aria-live="polite">
         {czStatusLine(phase, listening)}
       </p>
 
       {caption ? (
         <div className="mat mat-tilt mx-auto mt-5 w-full max-w-[340px] px-4 py-3 motion-safe:animate-message-in motion-reduce:animate-none">
-          <p className="mb-1 font-display text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+          <p className={cn("mb-1", TYPE.kicker, "text-muted-foreground")}>
             {captionWho === "honza" ? "Honza" : "Ty"}
           </p>
-          <p className="font-sans text-sm leading-relaxed text-foreground">{caption}</p>
+          <p className={cn(TYPE.bodySm, "text-foreground")}>{caption}</p>
         </div>
       ) : null}
 
       {error ? (
-        <p className="mx-auto mt-4 max-w-[320px] text-center font-sans text-xs text-accent">
+        <p className={cn("mx-auto mt-4 max-w-[320px] text-center", TYPE.helper, "text-accent")}>
           {error}
         </p>
       ) : null}
 
       {!supported && !inCall ? (
-        <p className="mx-auto mt-4 max-w-[320px] text-center font-sans text-xs text-muted-foreground">
+        <p className={cn("mx-auto mt-4 max-w-[320px] text-center", TYPE.helper)}>
           Rozpoznávání řeči potřebuje Chrome, Edge nebo Safari. Jinde použij{" "}
           <a href={ROUTES.chat} className="text-accent underline">
             Chat
@@ -128,7 +127,11 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
               screen.startCall();
             }}
             disabled={!supported}
-            className="mat-key press flex h-14 w-full max-w-[280px] items-center justify-center rounded-full font-display text-base tracking-[0.2em] text-accent disabled:opacity-40"
+            className={cn(
+              "mat-key press flex h-14 w-full max-w-[280px] items-center justify-center rounded-full text-accent disabled:opacity-40",
+              TYPE.button,
+              "text-base tracking-[0.2em]",
+            )}
           >
             ZAVOLAT
           </button>
@@ -173,7 +176,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
           </div>
         )}
         {inCall ? (
-          <span className="font-display text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+          <span className={cn(TYPE.kicker, "text-muted-foreground")}>
             Zavěsit → přepis v Chatu
           </span>
         ) : null}

@@ -9,6 +9,8 @@ import { HmatOrb } from "@/components/honza/HmatOrb";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
 import { fetchSessionMessages } from "@/lib/client/chat-actions";
 import { ROUTES } from "@/lib/constants";
+import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { DESIGNS } from "@/lib/design/registry";
 import { useDesignStore } from "@/stores/useDesignStore";
@@ -28,13 +30,13 @@ function HmatBubble({ message }: { message: ChatMessage }) {
           color: "#fff",
         }}
       >
-        <p className="font-sans text-[14.5px] leading-relaxed">{message.content}</p>
+        <p className={TYPE.bodySm}>{message.content}</p>
       </div>
     );
   }
   return (
     <div className="mat max-w-[82%] self-start px-3.5 py-2.5" style={{ borderRadius: "16px 16px 16px 5px" }}>
-      <p className="font-sans text-[14.5px] leading-relaxed text-foreground">{message.content}</p>
+      <p className={cn(TYPE.bodySm, "text-foreground")}>{message.content}</p>
     </div>
   );
 }
@@ -85,14 +87,12 @@ export function ChatHistoryScreen() {
       <header className="flex shrink-0 items-center justify-between gap-3">
         <Link
           href={ROUTES.chat}
-          className="font-sans text-[11px] uppercase tracking-[0.16em] text-muted-foreground underline"
+          className={cn(TYPE.meta, "uppercase text-muted-foreground underline")}
         >
           {t.chat.backToChat}
         </Link>
         {dateLabel ? (
-          <span className="font-sans text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-            {dateLabel}
-          </span>
+          <span className={cn(TYPE.label, "text-muted-foreground")}>{dateLabel}</span>
         ) : null}
       </header>
 
@@ -102,16 +102,14 @@ export function ChatHistoryScreen() {
         ) : (
           <HonzaOrb state="idle" size="avatar" />
         )}
-        <p className="font-sans text-xs text-muted-foreground">{t.chat.transcript}</p>
+        <p className={TYPE.helper}>{t.chat.transcript}</p>
       </div>
 
       <div className={isHmat ? "mat flex min-h-0 flex-1 flex-col overflow-y-auto p-3" : "flex min-h-0 flex-1 flex-col overflow-y-auto rounded-card border border-border bg-card p-3"}>
         {loading ? (
-          <p className="py-8 text-center font-sans text-sm text-muted-foreground">…</p>
+          <p className={cn("py-8 text-center", TYPE.subtitle)}>…</p>
         ) : messages.length === 0 ? (
-          <p className="py-8 text-center font-sans text-sm text-muted-foreground">
-            {t.chat.noHistory}
-          </p>
+          <p className={cn("py-8 text-center", TYPE.subtitle)}>{t.chat.noHistory}</p>
         ) : isHmat ? (
           <div className="flex flex-col gap-2.5">
             {messages.map((m) => (

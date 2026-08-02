@@ -45,7 +45,7 @@ Order: **Phase 2 typography → Phase 3 buttons → Phase 4 live dots → Phase 
 | **0** | Plan + audit checklist | `cursor/design-elevation-1034` | Done |
 | **1** | Font exploration + Lab (later removed) | `cursor/design-elevation-1034` | Done → **finalized** |
 | **1b** | Lock Hmat Metal + Doto + Space Grotesk; remove Lab | `cursor/design-elevation-1034` | Done |
-| **2** | Typography system (`TYPE` roles, migration) | **`cursor/typography-phase-2-1034`** off **`main`** | **Next** |
+| **2** | Typography system (`TYPE` roles, migration) | **`cursor/typography-phase-2-1034`** off **`main`** | **Done** |
 | **3** | Button unification (depth, focus rings, shared API) | `cursor/button-depth-phase-3-1034` off `main` | Pending |
 | **4** | Live orb dot/waveform backdrop | `cursor/orb-backdrop-phase-4-1034` off `main` | Pending |
 | **5** | Polish audit closure | TBD | Pending |
@@ -90,7 +90,7 @@ Prototype reference: `design-lab/round2-premium-gallery.html` (waveform comment)
 
 ## Success criteria (remaining)
 
-- [ ] Every primary screen uses **`TYPE` roles** (no scattered ad-hoc typography)
+- [x] Every primary screen uses **`TYPE` roles** (no scattered ad-hoc typography)
 - [ ] Buttons have **depth + press travel + focus rings**
 - [ ] Orb shows **animated dot field** during thinking/speaking
 - [ ] `npm run lint` + `npm run build` pass; mobile check at 430px

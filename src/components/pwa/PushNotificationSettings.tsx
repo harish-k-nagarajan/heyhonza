@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { cn } from "@/lib/cn";
 import { DESIGNS } from "@/lib/design/registry";
+import { TYPE } from "@/lib/design/typography";
 import {
   pushSupport,
   subscribeToPush,
@@ -66,15 +67,13 @@ export function PushNotificationSettings() {
   return (
     <div className={cn("space-y-2", isHmat ? "" : "rounded-card border border-border bg-card p-4")}>
       {isHmat ? (
-        <p className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          Oznámení
-        </p>
+        <p className={cn(TYPE.label, "text-muted-foreground")}>Oznámení</p>
       ) : (
         <p className="font-sans text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
           {"// NOTIFICATIONS"}
         </p>
       )}
-      <p className={cn("text-sm text-muted-foreground", isHmat ? "font-sans" : "font-sans text-xs")}>
+      <p className={isHmat ? TYPE.subtitle : cn(TYPE.helper)}>
         {isHmat
           ? "Upozornění, až bude Honza připraven psát ti první — zatím jen příprava."
           : "Get notified when Honza is ready to write first — foundation only until scheduling ships."}
@@ -84,10 +83,11 @@ export function PushNotificationSettings() {
         disabled={busy || support === "denied"}
         onClick={() => void toggle()}
         className={cn(
-          "rounded-full px-4 py-2 text-xs uppercase tracking-[0.16em] transition disabled:opacity-40",
+          "rounded-full px-4 py-2 transition disabled:opacity-40",
+          TYPE.button,
           isHmat
-            ? "mat-key press font-display text-accent"
-            : "bg-accent font-sans text-accent-foreground",
+            ? "mat-key press text-accent"
+            : "bg-accent text-accent-foreground",
         )}
       >
         {enabled
@@ -99,11 +99,11 @@ export function PushNotificationSettings() {
             : "Turn on"}
       </button>
       {support === "denied" ? (
-        <p className="font-sans text-xs text-accent">
+        <p className={cn(TYPE.helper, "text-accent")}>
           {isHmat ? "Povol oznámení v nastavení prohlížeče." : "Allow notifications in browser settings."}
         </p>
       ) : null}
-      {note ? <p className="font-sans text-xs text-muted-foreground">{note}</p> : null}
+      {note ? <p className={TYPE.helper}>{note}</p> : null}
     </div>
   );
 }

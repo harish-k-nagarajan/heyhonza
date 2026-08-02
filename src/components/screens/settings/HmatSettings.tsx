@@ -4,6 +4,7 @@ import { HmatOrb } from "@/components/honza/HmatOrb";
 import { LEVEL_OPTIONS, MODEL_OPTIONS, TOPIC_OPTIONS } from "@/lib/constants";
 import type { LevelId, ModelId } from "@/lib/constants";
 import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 import type { SettingsScreen } from "@/hooks/useSettingsScreen";
 import { HmatBadge, HmatFileInput } from "@/components/screens/hmat/HmatChrome";
 
@@ -44,12 +45,8 @@ function Chip({
   );
 }
 
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-display text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-      {children}
-    </p>
-  );
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <p className={cn(TYPE.label, "text-muted-foreground")}>{children}</p>;
 }
 
 export function HmatSettings({ screen }: { screen: SettingsScreen }) {
@@ -58,7 +55,12 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
 
   if (!screen.ready) {
     return (
-      <div className="flex flex-1 items-center justify-center font-display text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+      <div
+        className={cn(
+          "flex flex-1 items-center justify-center uppercase text-muted-foreground",
+          TYPE.meta,
+        )}
+      >
         Načítání…
       </div>
     );
@@ -70,10 +72,8 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
         <div className="flex items-center gap-3">
           <HmatOrb state={expression.mood} size={44} breathe={false} />
           <div>
-            <p className="font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              {"// Nastavení"}
-            </p>
-            <p className="font-sans text-[15px] text-foreground">Jak s tebou Honza mluví</p>
+            <p className={cn(TYPE.label, "text-muted-foreground")}>{"// Nastavení"}</p>
+            <p className={cn(TYPE.body, "text-foreground")}>Jak s tebou Honza mluví</p>
           </div>
         </div>
         <HmatBadge label={expression.czLabel} />
@@ -84,13 +84,13 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       </section>
 
       <section className="mat space-y-3 px-4 py-4">
-        <Label>{t.settings.appLanguage}</Label>
+        <FieldLabel>{t.settings.appLanguage}</FieldLabel>
         <LanguageSwitcher />
       </section>
 
       <section className="mat space-y-2 px-4 py-4">
-        <Label>Server</Label>
-        <p className="font-sans text-sm text-muted-foreground">
+        <FieldLabel>Server</FieldLabel>
+        <p className={TYPE.subtitle}>
           OpenRouter:{" "}
           {screen.serverOk === null
             ? "…"
@@ -101,7 +101,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       </section>
 
       <section className="mat space-y-3 px-4 py-4">
-        <Label>Úroveň češtiny</Label>
+        <FieldLabel>Úroveň češtiny</FieldLabel>
         <div className="flex flex-wrap gap-2">
           {LEVEL_OPTIONS.map((l) => (
             <Chip
@@ -117,7 +117,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       </section>
 
       <section className="mat space-y-3 px-4 py-4">
-        <Label>Model</Label>
+        <FieldLabel>Model</FieldLabel>
         <select
           aria-label="Model"
           className="h-11 w-full rounded-[14px] border border-border bg-card px-3 font-sans text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
@@ -133,23 +133,23 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       </section>
 
       <section className="mat space-y-3 px-4 py-4">
-        <Label>Témata</Label>
+        <FieldLabel>Témata</FieldLabel>
         <div className="flex flex-wrap gap-2">
-          {TOPIC_OPTIONS.map((t) => (
+          {TOPIC_OPTIONS.map((topic) => (
             <Chip
-              key={t.id}
-              on={screen.topics.includes(t.id)}
-              onClick={() => screen.toggleTopic(t.id)}
+              key={topic.id}
+              on={screen.topics.includes(topic.id)}
+              onClick={() => screen.toggleTopic(topic.id)}
             >
-              {t.label}
+              {topic.label}
             </Chip>
           ))}
         </div>
       </section>
 
       <section className="mat space-y-3 px-4 py-4">
-        <Label>Kontext</Label>
-        <p className="font-sans text-xs leading-relaxed text-muted-foreground">
+        <FieldLabel>Kontext</FieldLabel>
+        <p className={TYPE.helper}>
           {lastSynced > 0
             ? `Naposledy ${new Date(lastSynced).toLocaleDateString()} · ${contextChunks.length} zdroj${contextChunks.length === 1 ? "" : "ů"}, ze kterých Honza čte.`
             : "Zatím nic. Přidej Google Doc, soubor nebo text, ať Honza ví, co se učíš."}
@@ -162,13 +162,16 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
           className="mat-field w-full rounded-[14px] bg-transparent px-3.5 py-2.5 font-sans text-sm text-foreground outline-none"
         />
         {screen.docError ? (
-          <p className="font-sans text-xs text-accent">{screen.docError}</p>
+          <p className={cn(TYPE.helper, "text-accent")}>{screen.docError}</p>
         ) : null}
         <button
           type="button"
           onClick={screen.importGoogleDoc}
           disabled={screen.docLoading}
-          className="mat-key press w-full rounded-[14px] py-2.5 font-display text-[11px] uppercase tracking-[0.14em] text-accent disabled:opacity-40"
+          className={cn(
+            "mat-key press w-full rounded-[14px] py-2.5 text-accent disabled:opacity-40",
+            TYPE.button,
+          )}
         >
           {screen.docLoading ? "Načítám…" : "Přidat z Google Docs"}
         </button>
@@ -183,12 +186,12 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
         <button
           type="button"
           onClick={screen.addPaste}
-          className="mat-key press w-full rounded-[14px] py-2.5 font-display text-[11px] uppercase tracking-[0.14em] text-accent"
+          className={cn("mat-key press w-full rounded-[14px] py-2.5 text-accent", TYPE.button)}
         >
           Přidat text
         </button>
         <div className="space-y-1.5">
-          <p className="font-sans text-xs text-muted-foreground">Soubor (.txt, .md)</p>
+          <p className={TYPE.helper}>Soubor (.txt, .md)</p>
           <HmatFileInput onFile={screen.onFile} />
         </div>
         <ul className="space-y-2">
@@ -220,11 +223,11 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       </section>
 
       <section className="mat space-y-3 px-4 py-4">
-        <Label>Data zařízení</Label>
+        <FieldLabel>Data zařízení</FieldLabel>
         <button
           type="button"
           onClick={screen.resetData}
-          className="mat-key press w-full rounded-[14px] py-2.5 font-display text-[11px] uppercase tracking-[0.14em] text-accent"
+          className={cn("mat-key press w-full rounded-[14px] py-2.5 text-accent", TYPE.button)}
         >
           Smazat data a projít onboarding znovu
         </button>
@@ -233,7 +236,10 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
         <form action="/auth/signout" method="post">
           <button
             type="submit"
-            className="w-full py-1 font-display text-[10px] uppercase tracking-[0.18em] text-muted-foreground underline"
+            className={cn(
+              "w-full py-1 underline text-muted-foreground",
+              TYPE.label,
+            )}
           >
             Odhlásit se
           </button>

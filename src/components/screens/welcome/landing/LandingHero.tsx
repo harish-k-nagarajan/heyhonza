@@ -12,6 +12,8 @@ import {
   LANDING_HERO_SIGNED_OUT,
 } from "@/components/screens/welcome/welcome-content";
 import { ROUTES } from "@/lib/constants";
+import { cn } from "@/lib/cn";
+import { TYPE } from "@/lib/design/typography";
 
 import type { LandingVisitor } from "./useLandingVisitor";
 
@@ -47,23 +49,19 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
       <div className="mat-recess mt-1 flex w-full flex-col items-center px-4 py-8 md:py-10">
         <HmatOrb state={mood} size={148} />
         <div className="mat-channel mt-6" style={{ width: "62%" }} aria-hidden />
-        <p className="mt-3 min-h-[1.25rem] font-display text-[9px] uppercase tracking-[0.16em] text-accent">
+        <p className={cn("mt-3 min-h-[1.25rem]", TYPE.kicker, "text-accent")}>
           {visitor.isSignedOut
             ? "NA SHLEDANOU!"
             : moodExpression(mood).czLabel}
         </p>
         {!visitor.isSignedOut ? (
-          <p className="font-sans text-xs text-muted-foreground">
-            {moodExpression(mood).caption}
-          </p>
+          <p className={TYPE.helper}>{moodExpression(mood).caption}</p>
         ) : null}
       </div>
 
       <div className="space-y-3">
-        <p className="font-display text-[10px] uppercase tracking-[0.2em] text-accent">
-          {copy.kicker}
-        </p>
-        <h1 className="font-display text-[28px] leading-tight tracking-[0.04em] text-foreground md:text-[34px]">
+        <p className={cn(TYPE.label, "text-accent")}>{copy.kicker}</p>
+        <h1 className={cn(TYPE.displayLg, "text-foreground")}>
           {headlineLines.map((line, i) => (
             <span key={line}>
               {line}
@@ -71,7 +69,13 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
             </span>
           ))}
         </h1>
-        <p className="mx-auto max-w-[340px] font-sans text-[14px] leading-relaxed text-muted-foreground md:max-w-[480px] md:text-[15px]">
+        <p
+          className={cn(
+            "mx-auto max-w-[340px] md:max-w-[480px]",
+            TYPE.subtitle,
+            "md:text-[15px]",
+          )}
+        >
           {copy.subcopy}
         </p>
       </div>
@@ -79,13 +83,14 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
       <div className="hidden w-full max-w-[360px] flex-col items-center gap-3 md:flex">
         <Link
           href={ROUTES.signin}
-          className="mat-key press flex w-full items-center justify-center rounded-full py-3.5 font-display text-xs uppercase tracking-[0.2em] text-accent"
+          className={cn(
+            "mat-key press flex w-full items-center justify-center rounded-full py-3.5 text-accent",
+            TYPE.button,
+          )}
         >
           {ctaLabel}
         </Link>
-        <p className="font-display text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          {ctaHint}
-        </p>
+        <p className={cn(TYPE.label, "text-muted-foreground")}>{ctaHint}</p>
       </div>
     </header>
   );
