@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useDesignHydrated } from "@/hooks/useDesignHydrated";
 import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { ROUTES } from "@/lib/constants";
+import { cn } from "@/lib/cn";
 import { DESIGNS } from "@/lib/design/registry";
 import { useDesignStore } from "@/stores/useDesignStore";
 
@@ -56,11 +57,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         data-mood={expression.mood}
       >
         <div className={`relative mx-auto flex min-h-dvh ${stageMax} flex-col`}>
-          <div className="mat-bg" aria-hidden />
+          {!isWelcome ? <div className="mat-bg" aria-hidden /> : null}
           <div
-            className="relative z-10 flex flex-1 flex-col px-5"
+            className={cn(
+              "relative z-10 flex flex-1 flex-col",
+              isWelcome ? "px-5 pt-0" : "px-5",
+            )}
             style={{
-              paddingTop: "max(20px, env(safe-area-inset-top))",
+              paddingTop: isWelcome
+                ? "env(safe-area-inset-top)"
+                : "max(20px, env(safe-area-inset-top))",
               paddingBottom: hideNav ? welcomeBottomPad : "calc(88px + env(safe-area-inset-bottom))",
             }}
           >

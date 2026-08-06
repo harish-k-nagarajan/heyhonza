@@ -355,89 +355,89 @@ body {
 }
 
 /* ===== Landing-only utilities (welcome / marketing surface) ===== */
-.landing-section {
-  margin-top: 2.75rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+.landing-page {
+  color: #2a2420;
 }
-.landing-panel {
-  padding: 1.25rem;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.55);
+.landing-nav {
+  background: color-mix(in srgb, var(--background) 88%, transparent);
+  backdrop-filter: blur(10px);
 }
-.landing-demo-frame {
-  transform: rotate(-1.5deg);
-  transform-origin: center top;
+.landing-fold-hero {
+  background: linear-gradient(180deg, #fff8f5 0%, #fff4ee 100%);
 }
-@media (min-width: 768px) {
-  .landing-demo-frame {
-    transform: rotate(-0.75deg);
+.landing-fold-chat {
+  background: #ffffff;
+}
+.landing-fold-call {
+  background: linear-gradient(180deg, #eeffee 0%, var(--background) 100%);
+}
+.landing-supporting {
+  background: var(--background);
+}
+.landing-fold-footer {
+  background: #fff4ee;
+}
+.landing-cta-primary {
+  background: linear-gradient(90deg, var(--accent) 0%, #ff6b4a 100%);
+  box-shadow: 0 4px 12px rgba(232, 67, 45, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.landing-cta-primary:active {
+  transform: scale(0.98);
+}
+.landing-float-bubble {
+  animation: landing-float 7s ease-in-out infinite;
+}
+.landing-float-bubble:nth-child(2) {
+  animation-delay: -1.4s;
+}
+.landing-float-bubble:nth-child(3) {
+  animation-delay: -2.8s;
+}
+.landing-float-bubble:nth-child(4) {
+  animation-delay: -4.2s;
+}
+.landing-float-bubble:nth-child(5) {
+  animation-delay: -5.6s;
+}
+.landing-ticker-row {
+  height: 52px;
+}
+.landing-ticker-fade-left {
+  background: linear-gradient(90deg, var(--background) 0%, transparent 100%);
+}
+.landing-ticker-fade-right {
+  background: linear-gradient(270deg, var(--background) 0%, transparent 100%);
+}
+.landing-ticker-left {
+  animation: landing-marquee-left 38s linear infinite;
+}
+.landing-ticker-right {
+  animation: landing-marquee-right 42s linear infinite;
+}
+@keyframes landing-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
   }
 }
-.landing-topic-strip {
-  display: flex;
-  gap: 0.75rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 0.25rem;
-  scrollbar-width: none;
-}
-.landing-topic-strip::-webkit-scrollbar {
-  display: none;
-}
-.landing-topic-tile {
-  flex: 0 0 min(78vw, 240px);
-  scroll-snap-align: start;
-}
-@media (min-width: 768px) {
-  .landing-topic-strip {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    overflow: visible;
-    scroll-snap-type: none;
+@keyframes landing-marquee-left {
+  0% {
+    transform: translateX(0);
   }
-  .landing-topic-tile {
-    flex: unset;
+  100% {
+    transform: translateX(-50%);
   }
 }
-.landing-level-rail {
-  position: relative;
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 0.625rem;
-  padding-left: 1.75rem;
-}
-.landing-level-rail::before {
-  content: "";
-  position: absolute;
-  left: 0.45rem;
-  top: 0.5rem;
-  bottom: 0.5rem;
-  width: 3px;
-  border-radius: 3px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--accent) 70%, #fff),
-    color-mix(in srgb, var(--accent) 25%, #d6ccc1)
-  );
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
-}
-.landing-level-step {
-  position: relative;
-}
-.landing-level-step::before {
-  content: "";
-  position: absolute;
-  left: -1.45rem;
-  top: 50%;
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  transform: translateY(-50%);
-  background: var(--accent);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 55%, transparent);
+@keyframes landing-marquee-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 .landing-sticky-cta {
   position: fixed;
@@ -458,27 +458,10 @@ body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .landing-demo-beat {
+  .landing-float-bubble,
+  .landing-ticker-left,
+  .landing-ticker-right {
     animation: none !important;
-    opacity: 1 !important;
-  }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .landing-demo-beat {
-    animation: landing-demo-cycle 9s ease-in-out infinite;
-  }
-  .landing-demo-beat:nth-child(2) {
-    animation-delay: 4.5s;
-  }
-}
-@keyframes landing-demo-cycle {
-  0%, 44%, 100% {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  8%, 36% {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 

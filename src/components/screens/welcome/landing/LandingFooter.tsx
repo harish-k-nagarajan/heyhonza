@@ -1,32 +1,24 @@
-import Link from "next/link";
-
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import {
-  LANDING_HERO_FIRST,
-  LANDING_PWA_HINT,
+  LANDING_FOOTER,
 } from "@/components/screens/welcome/welcome-content";
-import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 
-export function LandingFooter() {
+import { LandingAuthButtons } from "./LandingAuthButtons";
+import type { LandingVisitor } from "./useLandingVisitor";
+
+export function LandingFooter({ visitor }: { visitor: LandingVisitor }) {
   return (
-    <footer className="landing-section flex flex-col items-center gap-4 pb-6 text-center">
-      <ButtonLink
-        href={ROUTES.signin}
-        shape="pill"
-        size="lg"
-        className="hidden w-full max-w-[360px] md:flex"
-      >
-        {LANDING_HERO_FIRST.cta}
-      </ButtonLink>
-      <Link
-        href={ROUTES.signin}
-        className={cn(TYPE.button, "text-accent underline underline-offset-4 md:hidden")}
-      >
-        Get started
-      </Link>
-      <p className={cn("mx-auto max-w-[340px]", TYPE.helper)}>{LANDING_PWA_HINT}</p>
+    <footer className="landing-fold-footer flex flex-col items-center gap-5 px-6 pb-16 pt-14 text-center md:px-10 md:pb-20">
+      <h2 className={cn(TYPE.display, "max-w-[480px] text-[28px] text-foreground")}>
+        {LANDING_FOOTER.headline}
+      </h2>
+
+      <LandingAuthButtons visitor={visitor} />
+
+      <p className={cn("max-w-[420px]", TYPE.bodySm, "leading-[1.5] text-muted-foreground")}>
+        {LANDING_FOOTER.note}
+      </p>
     </footer>
   );
 }

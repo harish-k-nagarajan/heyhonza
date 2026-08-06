@@ -1,20 +1,20 @@
 "use client";
 
-import { LANDING_SECTIONS } from "@/components/screens/welcome/welcome-content";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 
-import { LandingDemoChat } from "./LandingDemoChat";
+import { LandingCallFold } from "./LandingCallFold";
+import { LandingChatFold } from "./LandingChatFold";
 import { LandingFooter } from "./LandingFooter";
 import { LandingHero } from "./LandingHero";
 import { LandingLevels } from "./LandingLevels";
-import { LandingSection } from "./LandingSection";
-import { LandingSteps } from "./LandingSteps";
+import { LandingNav } from "./LandingNav";
+import { LandingPushNote } from "./LandingPushNote";
 import { LandingStickyCta } from "./LandingStickyCta";
 import { LandingTopics } from "./LandingTopics";
 import { useLandingVisitor } from "./useLandingVisitor";
 
-/** Hmat marketing landing — shown on `/welcome` when the saved design is Hmat. */
+/** Hmat marketing landing — shown on `/welcome`. */
 export function HmatLanding() {
   const visitor = useLandingVisitor();
 
@@ -33,26 +33,19 @@ export function HmatLanding() {
 
   return (
     <>
-      <div className="mx-auto w-full max-w-[430px] md:max-w-none">
+      <div className="landing-page -mx-5 w-[calc(100%+2.5rem)] overflow-x-clip bg-background md:-mx-0 md:w-full">
+        <LandingNav />
         <LandingHero visitor={visitor} />
+        <LandingChatFold />
+        <LandingCallFold />
 
-        <LandingSection {...LANDING_SECTIONS.demo}>
-          <LandingDemoChat />
-        </LandingSection>
-
-        <LandingSection {...LANDING_SECTIONS.topics}>
+        <div className="landing-supporting flex flex-col gap-12 py-14 md:gap-14 md:py-16">
           <LandingTopics />
-        </LandingSection>
-
-        <LandingSection {...LANDING_SECTIONS.levels}>
           <LandingLevels />
-        </LandingSection>
+          <LandingPushNote />
+        </div>
 
-        <LandingSection {...LANDING_SECTIONS.steps}>
-          <LandingSteps />
-        </LandingSection>
-
-        <LandingFooter />
+        <LandingFooter visitor={visitor} />
       </div>
 
       <LandingStickyCta visitor={visitor} />
