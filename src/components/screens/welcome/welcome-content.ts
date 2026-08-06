@@ -2,12 +2,8 @@ import type { LevelId, TopicId } from "@/lib/constants";
 import { LEVEL_OPTIONS, TOPIC_OPTIONS } from "@/lib/constants";
 
 /**
- * Marketing copy for the Welcome front door "how it works" steps.
- *
- * Classic keeps its shipped English (`WELCOME_STEPS`) byte-for-byte. Hmat in-app
- * chrome uses `WELCOME_STEPS_CS`. The **landing page** uses English for all
- * product explanation and Czech only inside showcase samples (demo chat, topic
- * lines) — learners may not read Czech yet.
+ * Marketing copy for the Welcome front door.
+ * English for product explanation; Czech only inside showcase samples.
  */
 export const WELCOME_STEPS = [
   {
@@ -46,48 +42,6 @@ export const WELCOME_STEPS_CS = [
   },
 ] as const;
 
-/** First-visit hero — English product copy for Czech learners. */
-export const LANDING_HERO_FIRST = {
-  kicker: "Hi, I'm Honza",
-  headline: "Learn Czech by\ntexting a friend",
-  subcopy:
-    "Not a streak. Not a leaderboard. Open the app — Honza is already writing to you in Czech. You reply. He gently fixes your mistakes.",
-  cta: "Start learning Czech",
-  ctaHint: "Free · takes a minute",
-} as const;
-
-/** Shown right after sign-out — warm send-off, nudge to come back. */
-export const LANDING_HERO_SIGNED_OUT = {
-  kicker: "See you soon!",
-  headline: "Honza will be\nhere when you are",
-  subcopy:
-    "Your progress is saved. Whenever you're ready for another Czech chat, sign back in — I'll pick up where we left off.",
-  cta: "Sign back in",
-  ctaHint: "Same account · one tap",
-} as const;
-
-/** Return-visitor hero lines — warm English nudge to sign up. */
-export const LANDING_HERO_RETURN = [
-  {
-    kicker: "Back again?",
-    headline: "Honza already has\na message ready",
-    subcopy:
-      "You left before we got to chat last time. Sign up — your first Czech conversation is waiting right after.",
-  },
-  {
-    kicker: "Welcome back",
-    headline: "Czech is still\nwaiting for you",
-    subcopy:
-      "Honza remembers you were here. Registration takes a minute — then you just write back in Czech.",
-  },
-  {
-    kicker: "Hey, you again!",
-    headline: "So — ready\nto write back?",
-    subcopy:
-      "You need an account to chat — but I promise the first message is waiting the moment you sign in.",
-  },
-] as const;
-
 /** Czech sample lines per topic — in-app showcase only (maps to TOPIC_OPTIONS ids). */
 export const TOPIC_LANDING_SAMPLES: Record<TopicId, string> = {
   daily: '„Jaký byl tvůj víkend? Co jsi dělal včera večer?"',
@@ -98,13 +52,8 @@ export const TOPIC_LANDING_SAMPLES: Record<TopicId, string> = {
   smalltalk: '„Jaké je dnes počasí u tebe? Co plánuješ na večer?"',
 };
 
-/** English level blurbs — labels come from LEVEL_OPTIONS. */
-export const LEVEL_LANDING_BLURBS: Record<LevelId, string> = {
-  A1: "Short sentences, lots of patience, zero stress.",
-  A2: "You know a little — Honza pushes you forward without a textbook.",
-  B1: "Longer replies, gentler corrections, real topics.",
-  B2: "Almost fluent — but you still learn from your mistakes.",
-};
+/** Ordered topic ids for legacy landing strip (same set as TOPIC_OPTIONS). */
+export const LANDING_TOPIC_IDS = TOPIC_OPTIONS.map((t) => t.id);
 
 /** Demo chat beats — Czech showcase of what the app feels like. */
 export const DEMO_CHAT_BEATS = [
@@ -120,37 +69,165 @@ export const DEMO_CHAT_BEATS = [
   },
 ] as const;
 
-/** Ordered topic ids for the landing strip (same set as TOPIC_OPTIONS). */
-export const LANDING_TOPIC_IDS = TOPIC_OPTIONS.map((t) => t.id);
+export const LANDING_PWA_HINT =
+  "Add Honza to your home screen and he lives on your phone like any other app. A message is waiting when you open it — not a push notification.";
 
-/** Ordered level ids for the landing ladder (same set as LEVEL_OPTIONS). */
+export const LANDING_HERO_FIRST = {
+  headline: "Learn Czech by texting a friend.",
+  subcopy:
+    "Not a streak. Not a leaderboard. Open the app — Honza is already writing to you in Czech.",
+  cta: "Say hi to Honza",
+  ctaHint: "Free · takes a minute",
+} as const;
+
+/** Shown right after sign-out — warm send-off, nudge to come back. */
+export const LANDING_HERO_SIGNED_OUT = {
+  headline: "Honza will be here when you are.",
+  subcopy:
+    "Your progress is saved. Whenever you're ready for another Czech chat, sign back in — I'll pick up where we left off.",
+  cta: "Sign back in",
+  ctaHint: "Same account · one tap",
+} as const;
+
+/** Return-visitor hero lines — warm English nudge to sign up. */
+export const LANDING_HERO_RETURN = [
+  {
+    headline: "Honza already has a message ready.",
+    subcopy:
+      "You left before we got to chat last time. Sign up — your first Czech conversation is waiting right after.",
+  },
+  {
+    headline: "Czech is still waiting for you.",
+    subcopy:
+      "Honza remembers you were here. Registration takes a minute — then you just write back in Czech.",
+  },
+  {
+    headline: "So — ready to write back?",
+    subcopy:
+      "You need an account to chat — but I promise the first message is waiting the moment you sign in.",
+  },
+] as const;
+
+/** Floating bubbles in the hero orbit (Fold 01). */
+export const LANDING_HERO_BUBBLES = [
+  {
+    role: "honza" as const,
+    text: "Ahoj! Dneska bych si chtěl popovídat o jídle.",
+    className: "left-[4%] top-[18%] opacity-85",
+  },
+  {
+    role: "user" as const,
+    text: "Mám rád knedlíky!",
+    className: "right-[4%] top-[14%] opacity-75",
+  },
+  {
+    role: "honza" as const,
+    text: "Skoro! Správně: Mám rád knedlíky s omáčkou.",
+    className: "left-[2%] top-[48%] opacity-55 blur-[2px]",
+  },
+  {
+    role: "user" as const,
+    text: "A jaká omáčka je nejlepší?",
+    className: "right-[2%] top-[56%] opacity-45 blur-[3px]",
+  },
+  {
+    role: "honza" as const,
+    text: "Jak se máš dnes?",
+    className: "right-[8%] top-[38%] opacity-40 blur-[4px]",
+  },
+] as const;
+
+/** Phone chat preview (Fold 02). */
+export const LANDING_PHONE_CHAT = [
+  {
+    role: "honza" as const,
+    text: "Ahoj! Dneska bych si chtěl popovídat o jídle. Co máš rád?",
+  },
+  {
+    role: "user" as const,
+    text: "Mám rád knedlíky s omáčkou.",
+  },
+  {
+    role: "honza" as const,
+    text: "Skoro! Správně: Mám rád knedlíky s omáčkou. — a jaká omáčka je tvoje nejoblíbenější?",
+  },
+] as const;
+
+/** Call practice preview (Fold 03). */
+export const LANDING_CALL = {
+  prompt: "Zkus mi říct, co jsi dělal o víkendu.",
+  transcript:
+    "O víkendu jsem šel na procházku a potom jsem vařil knedlíky...",
+} as const;
+
+/** Honza question chips — topics ticker row 1. */
+export const LANDING_TOPIC_QUESTIONS = [
+  "Jaký byl tvůj víkend?",
+  "Co dnes vaříš?",
+  "Kde jsi byl naposledy?",
+  "Jaké je dnes počasí?",
+  "Zkus větu v minulém čase.",
+  "Co plánuješ na večer?",
+  "Jaký máš program v práci?",
+] as const;
+
+/** User answer chips — topics ticker row 2. */
+export const LANDING_TOPIC_ANSWERS = [
+  "Mám rád knedlíky s omáčkou.",
+  "Byl jsem v Praze.",
+  "Dnes vařím brambory.",
+  "U mě prší, ale je teplo.",
+  "Včera jsem šel do kina.",
+  "Pracuju z domova dnes.",
+  "Večer jdu na pivo.",
+] as const;
+
+/** English level blurbs — labels come from LEVEL_OPTIONS. */
+export const LEVEL_LANDING_BLURBS: Record<LevelId, string> = {
+  A1: "Short sentences, zero stress.",
+  A2: "Honza pushes you further.",
+  B1: "Real topics, gentle fixes.",
+  B2: "Almost fluent — still learning.",
+};
+
 export const LANDING_LEVEL_IDS = LEVEL_OPTIONS.map((l) => l.id);
 
 export const LANDING_SECTIONS = {
-  demo: {
+  chat: {
     num: "01",
-    title: "What it looks like",
-    lead: "Honza writes first. You reply in Czech. He corrects — and keeps going.",
+    kicker: "WHAT IT LOOKS LIKE",
+    title: "Honza writes first. You reply in Czech.",
+    lead: "He corrects gently and keeps the conversation going. No textbook drills — just real chat.",
+  },
+  call: {
+    num: "02",
+    kicker: "PRACTICE SPEAKING",
+    title: "When you're ready, just call him.",
+    lead: "Same Honza, same patience — but now you practice speaking out loud. He listens, corrects, and keeps talking.",
   },
   topics: {
-    num: "02",
+    num: "03",
+    kicker: "TOPICS",
     title: "What you'll talk about",
-    lead: "Pick your topics at sign-up — real Czech about things you care about, not textbook phrases.",
+    lead: "Real Czech about things you care about — pick your topics, then hear them in conversation.",
   },
   levels: {
-    num: "03",
+    num: "04",
+    kicker: "LEVELS",
     title: "Meets you at your level",
     lead: "From your first sentences to almost-fluent conversation.",
   },
-  steps: {
-    num: "04",
-    title: "How it works",
-    lead: "Three steps. No streaks. Just a chat with Honza.",
-  },
 } as const;
 
-export const LANDING_PWA_HINT =
-  "Add Honza to your home screen and he lives on your phone like any other app. A message is waiting when you open it — not a push notification.";
+export const LANDING_PUSH_NOTE = {
+  kicker: "ALSO · SCHEDULED MESSAGES",
+  body: "Honza can message you 1–3 times a day — at a time you pick, or randomly when it feels natural.",
+} as const;
+
+export const LANDING_FOOTER = {
+  headline: "Ready to say ahoj?",
+  note: "Free to start. Takes a minute. Add Honza to your home screen and he lives on your phone.",
+} as const;
 
 export const LANDING_STORAGE_KEY = "honza-landing-seen";
 export const LANDING_VISIT_COUNT_KEY = "honza-landing-visits";

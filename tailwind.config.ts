@@ -105,7 +105,7 @@ const config: Config = {
       },
       maxWidth: {
         app: "430px",
-        landing: "860px",
+        landing: "960px",
       },
     },
   },
