@@ -18,7 +18,7 @@ const PROTECTED_PREFIXES = [
  * Public routes a signed-in user has no reason to see. `/welcome` is the
  * marketing front door — once you're in, it's just noise, so it bounces home.
  */
-const AUTH_ROUTES = [ROUTES.signin, ROUTES.welcome];
+const AUTH_ROUTES = [ROUTES.signup, ROUTES.login, ROUTES.signin, ROUTES.welcome];
 
 function isProtected(pathname: string): boolean {
   if (pathname === ROUTES.home) return true;
@@ -72,7 +72,7 @@ export async function updateSession(request: NextRequest) {
       url.pathname = ROUTES.welcome;
       url.search = "";
     } else {
-      url.pathname = ROUTES.signin;
+      url.pathname = ROUTES.login;
       url.searchParams.set("next", pathname);
     }
     return NextResponse.redirect(url);

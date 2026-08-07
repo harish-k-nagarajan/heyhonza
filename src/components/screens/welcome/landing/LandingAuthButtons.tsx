@@ -28,18 +28,18 @@ export function LandingAuthButtons({
   return (
     <div className={cn("flex flex-wrap items-center justify-center gap-5", className)}>
       <Link
-        href={ROUTES.signin}
+        href={ROUTES.signup}
         className={cn(
-          "landing-cta-primary inline-flex items-center justify-center rounded-full font-sans text-[15px] font-semibold text-white",
+          "auth-cta-primary inline-flex items-center justify-center rounded-full font-sans text-[15px] font-semibold",
           pad,
         )}
       >
         {primaryLabel}
       </Link>
       <Link
-        href={ROUTES.signin}
+        href={ROUTES.login}
         className={cn(
-          "inline-flex items-center justify-center rounded-full border border-border bg-white font-sans text-[15px] font-semibold text-foreground",
+          "auth-cta-secondary inline-flex items-center justify-center rounded-full font-sans text-[15px] font-semibold",
           pad,
         )}
       >

@@ -23,7 +23,7 @@ function TickerChip({
         "inline-flex shrink-0 items-center gap-2 rounded-full px-[18px] py-2.5",
         TYPE.bodySm,
         isAnswer
-          ? "bg-accent text-white shadow-[0_2px_8px_rgba(232,67,45,0.15)]"
+          ? "bg-gradient-to-r from-[#3a7bd5] to-[#5a94e8] text-white shadow-[0_2px_8px_rgba(58,123,213,0.18)]"
           : "border border-border bg-white text-foreground",
       )}
     >
@@ -90,7 +90,7 @@ export function LandingTopics() {
           <span className={cn(TYPE.helper, "text-muted-foreground")}>Honza asks</span>
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-accent" aria-hidden />
+          <span className="h-3 w-3 rounded-full bg-[#3a7bd5]" aria-hidden />
           <span className={cn(TYPE.helper, "text-muted-foreground")}>You reply</span>
         </span>
       </div>

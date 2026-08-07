@@ -48,7 +48,7 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
           </h1>
           <p
             className={cn(
-              "max-w-[560px]",
+              "max-w-[720px]",
               TYPE.subtitle,
               "text-[15px] leading-[1.5] md:text-[15px]",
             )}
@@ -56,7 +56,7 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
             {copy.subcopy}
           </p>
 
-          <div className="mt-2 flex flex-col items-center gap-4">
+          <div className="mt-2 flex flex-col items-center gap-7">
             <LandingAuthButtons visitor={visitor} />
             <LandingCtaHint visitor={visitor} />
           </div>
