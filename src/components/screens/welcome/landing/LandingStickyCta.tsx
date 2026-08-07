@@ -17,10 +17,10 @@ export function LandingStickyCta({ visitor }: { visitor: LandingVisitor }) {
   return (
     <div className="landing-sticky-cta md:hidden">
       <Link
-        href={ROUTES.signin}
+        href={ROUTES.signup}
         className={cn(
-          "landing-cta-primary mx-auto flex w-full max-w-app items-center justify-center rounded-full py-3.5",
-          "font-sans text-[15px] font-semibold text-white",
+          "auth-cta-primary mx-auto flex w-full max-w-app items-center justify-center rounded-full py-3.5",
+          "font-sans text-[15px] font-semibold",
         )}
       >
         {ctaLabel}

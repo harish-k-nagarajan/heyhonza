@@ -30,6 +30,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // all, so nav would only offer links that bounce straight back to sign-in.
   const hideNav =
     pathname.startsWith(ROUTES.onboarding) ||
+    pathname.startsWith(ROUTES.signup) ||
+    pathname.startsWith(ROUTES.login) ||
     pathname.startsWith(ROUTES.signin) ||
     isWelcome;
 

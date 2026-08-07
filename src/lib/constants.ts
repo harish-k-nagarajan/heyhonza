@@ -1,6 +1,9 @@
 export const ROUTES = {
   home: "/",
   welcome: "/welcome",
+  signup: "/signup",
+  login: "/login",
+  /** @deprecated Use ROUTES.login — kept for existing links and middleware redirects. */
   signin: "/signin",
   onboarding: "/onboarding",
   chat: "/chat",

@@ -75,7 +75,7 @@ export const LANDING_PWA_HINT =
 export const LANDING_HERO_FIRST = {
   headline: "Learn Czech by texting a friend.",
   subcopy:
-    "Not a streak. Not a leaderboard. Open the app — Honza is already writing to you in Czech.",
+    "Not a streak. Not a leaderboard. Open the app. Honza is already writing to you in Czech.",
   cta: "Say hi to Honza",
   ctaHint: "Free · takes a minute",
 } as const;

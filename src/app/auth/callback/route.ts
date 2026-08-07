@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   const redirectTo = new URL(next, url.origin);
 
   if (!isSupabaseConfigured()) {
-    redirectTo.pathname = ROUTES.signin;
+    redirectTo.pathname = ROUTES.login;
     redirectTo.searchParams.set("error", "not_configured");
     return NextResponse.redirect(redirectTo);
   }

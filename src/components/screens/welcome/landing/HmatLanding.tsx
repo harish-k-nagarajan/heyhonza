@@ -33,7 +33,7 @@ export function HmatLanding() {
 
   return (
     <>
-      <div className="landing-page -mx-5 w-[calc(100%+2.5rem)] overflow-x-clip bg-background md:-mx-0 md:w-full">
+      <div className="landing-page -mx-5 w-[calc(100%+2.5rem)] overflow-x-clip bg-[#fff8f5] md:-mx-0 md:w-full">
         <LandingNav />
         <LandingHero visitor={visitor} />
         <LandingChatFold />

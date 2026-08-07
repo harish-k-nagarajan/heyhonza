@@ -21,7 +21,7 @@ export function LandingChatBubble({
         TYPE.bodySm,
         "leading-snug",
         isUser
-          ? "bg-accent text-white shadow-[0_2px_8px_rgba(232,67,45,0.15)]"
+          ? "bg-gradient-to-r from-[#3a7bd5] to-[#5a94e8] text-white shadow-[0_2px_8px_rgba(58,123,213,0.18)]"
           : "border border-border bg-white/90 text-foreground",
         className,
       )}
