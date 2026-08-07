@@ -7,6 +7,8 @@ import { chromium } from "playwright";
 import fs from "node:fs";
 import path from "node:path";
 
+import { authenticateForDemo } from "./demo-auth.mjs";
+
 const OUT = "docs/demo/ux-chat-call-settings";
 const BASE = "http://localhost:3000";
 
@@ -19,23 +21,27 @@ const context = await browser.newContext({
 });
 const page = await context.newPage();
 
-await page.goto(`${BASE}/onboarding`);
-await page.evaluate(() => {
-  localStorage.setItem(
-    "honza-settings",
-    JSON.stringify({
-      state: {
-        onboardingComplete: true,
-        level: "A2",
-        model: "openai/gpt-4o-mini",
-        topics: ["daily", "food"],
-        contextChunks: [],
-        lastSynced: 0,
-      },
-      version: 0,
-    }),
-  );
-});
+const authed = await authenticateForDemo(page);
+if (!authed) {
+  console.warn("Supabase not configured — seeding localStorage only (may redirect to login)");
+  await page.goto(`${BASE}/onboarding`);
+  await page.evaluate(() => {
+    localStorage.setItem(
+      "honza-settings",
+      JSON.stringify({
+        state: {
+          onboardingComplete: true,
+          level: "A2",
+          model: "openai/gpt-4o-mini",
+          topics: ["daily", "food"],
+          contextChunks: [],
+          lastSynced: 0,
+        },
+        version: 0,
+      }),
+    );
+  });
+}
 
 for (const route of ["chat", "call", "settings"]) {
   await page.goto(`${BASE}/${route}`, { waitUntil: "networkidle" });
@@ -45,10 +51,11 @@ for (const route of ["chat", "call", "settings"]) {
 await context.close();
 await browser.close();
 
-const videos = fs.readdirSync(OUT).filter((f) => f.endsWith(".webm"));
+const videos = fs.readdirSync(OUT).filter((f) => f.endsWith(".webm") && f !== "walkthrough.webm");
 if (videos.length > 0) {
   const src = path.join(OUT, videos[0]);
   const dest = path.join(OUT, "walkthrough.webm");
+  if (fs.existsSync(dest)) fs.unlinkSync(dest);
   fs.renameSync(src, dest);
   console.log(`saved ${dest}`);
 } else {
