@@ -1,8 +1,20 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { DEFAULT_LEVEL_ID, DEFAULT_MODEL_ID } from "@/lib/constants";
-import type { LevelId, ModelId, TopicId } from "@/lib/constants";
+import {
+  DEFAULT_DAILY_MESSAGE_COUNT,
+  DEFAULT_FIRST_MESSAGE_TIME,
+  DEFAULT_LEVEL_ID,
+  DEFAULT_MODEL_ID,
+  DEFAULT_SCHEDULE_MODE,
+} from "@/lib/constants";
+import type {
+  DailyMessageCount,
+  LevelId,
+  ModelId,
+  ScheduleMode,
+  TopicId,
+} from "@/lib/constants";
 import { buildLearnerContextText } from "@/lib/context";
 import { DEFAULT_LOCALE, type UiLocale } from "@/lib/i18n/locales";
 import type { ContextChunk, ContextSource } from "@/types";
@@ -13,12 +25,18 @@ export type SettingsState = {
   contextChunks: ContextChunk[];
   preferredModel: ModelId;
   level: LevelId;
+  dailyMessageCount: DailyMessageCount;
+  scheduleMode: ScheduleMode;
+  firstMessageTime: string;
   uiLocale: UiLocale;
   setUiLocale: (locale: UiLocale) => void;
   setOnboardingComplete: (v: boolean) => void;
   setTopics: (topics: TopicId[]) => void;
   setPreferredModel: (m: ModelId) => void;
   setLevel: (l: LevelId) => void;
+  setDailyMessageCount: (count: DailyMessageCount) => void;
+  setScheduleMode: (mode: ScheduleMode) => void;
+  setFirstMessageTime: (time: string) => void;
   addContextChunk: (text: string, meta: ContextSource, id?: string) => void;
   removeContextChunk: (id: string) => void;
   setContextChunks: (chunks: ContextChunk[]) => void;
@@ -36,6 +54,9 @@ const initial = {
   contextChunks: [] as ContextChunk[],
   preferredModel: DEFAULT_MODEL_ID as ModelId,
   level: DEFAULT_LEVEL_ID as LevelId,
+  dailyMessageCount: DEFAULT_DAILY_MESSAGE_COUNT,
+  scheduleMode: DEFAULT_SCHEDULE_MODE,
+  firstMessageTime: DEFAULT_FIRST_MESSAGE_TIME,
   uiLocale: DEFAULT_LOCALE as UiLocale,
 };
 
@@ -48,6 +69,9 @@ export const useSettingsStore = create<SettingsState>()(
       setTopics: (topics) => set({ selectedTopics: topics }),
       setPreferredModel: (m) => set({ preferredModel: m }),
       setLevel: (l) => set({ level: l }),
+      setDailyMessageCount: (dailyMessageCount) => set({ dailyMessageCount }),
+      setScheduleMode: (scheduleMode) => set({ scheduleMode }),
+      setFirstMessageTime: (firstMessageTime) => set({ firstMessageTime }),
       addContextChunk: (text, meta, id) => {
         const t = text.trim();
         if (!t) return;

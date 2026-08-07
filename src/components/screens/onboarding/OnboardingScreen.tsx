@@ -7,7 +7,7 @@ import { HmatOnboarding } from "./HmatOnboarding";
 
 /**
  * Onboarding selector. Behaviour from `useOnboardingScreen`; picks presentation
- * by design family.
+ * by design family. Flow: Intro → Level → Topics → Schedule → Context (5 steps).
  */
 export function OnboardingScreen() {
   const screen = useOnboardingScreen();
