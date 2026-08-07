@@ -1,32 +1,48 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useScreenReady } from "@/hooks/useScreenReady";
-import { isLikelyGoogleDocUrl } from "@/lib/validators";
 import { addContext, persistProfile } from "@/lib/client/context-actions";
 import { ROUTES } from "@/lib/constants";
 import { DESIGNS } from "@/lib/design/registry";
 import type { DesignFamily, DesignId } from "@/lib/design/registry";
-import type { LevelId, TopicId } from "@/lib/constants";
+import type {
+  DailyMessageCount,
+  LevelId,
+  ScheduleMode,
+  TopicId,
+} from "@/lib/constants";
+import { isLikelyGoogleDocUrl } from "@/lib/validators";
 import { useDesignStore } from "@/stores/useDesignStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 
+export type OnboardingStep = 1 | 2 | 3 | 4 | 5;
+
 /**
- * Behaviour for the onboarding flow, extracted so Classic and Hmat share one
- * source of truth. Same steps as the shipped screen: pick a level + topics,
- * optionally teach Honza some context (Google Doc / file / paste), then finish.
+ * Behaviour for the 5-step onboarding flow (Handoff — Onboarding Flow):
+ * Intro → Level → Topics → Schedule → Context (optional) → Chat.
  */
 export type OnboardingScreen = {
   ready: boolean;
   design: DesignId;
   family: DesignFamily;
+  step: OnboardingStep;
+  continue: () => void;
+  skip: () => void;
 
   level: LevelId;
   chooseLevel: (l: LevelId) => void;
   topics: TopicId[];
   toggleTopic: (id: TopicId) => void;
+
+  dailyMessageCount: DailyMessageCount;
+  setDailyMessageCount: (count: DailyMessageCount) => void;
+  scheduleMode: ScheduleMode;
+  setScheduleMode: (mode: ScheduleMode) => void;
+  firstMessageTime: string;
+  setFirstMessageTime: (time: string) => void;
 
   docUrl: string;
   setDocUrl: (v: string) => void;
@@ -38,7 +54,6 @@ export type OnboardingScreen = {
   setPaste: (v: string) => void;
   fileError: string | null;
   onFile: (f: File | null) => void;
-  addPaste: () => void;
 
   finish: () => void;
 };
@@ -52,9 +67,16 @@ export function useOnboardingScreen(): OnboardingScreen {
   const setTopics = useSettingsStore((s) => s.setTopics);
   const level = useSettingsStore((s) => s.level);
   const setLevel = useSettingsStore((s) => s.setLevel);
+  const dailyMessageCount = useSettingsStore((s) => s.dailyMessageCount);
+  const setDailyMessageCount = useSettingsStore((s) => s.setDailyMessageCount);
+  const scheduleMode = useSettingsStore((s) => s.scheduleMode);
+  const setScheduleMode = useSettingsStore((s) => s.setScheduleMode);
+  const firstMessageTime = useSettingsStore((s) => s.firstMessageTime);
+  const setFirstMessageTime = useSettingsStore((s) => s.setFirstMessageTime);
 
   const design = useDesignStore((s) => s.design);
 
+  const [step, setStep] = useState<OnboardingStep>(1);
   const [docUrl, setDocUrl] = useState("");
   const [paste, setPaste] = useState("");
   const [docLoading, setDocLoading] = useState(false);
@@ -132,43 +154,87 @@ export function useOnboardingScreen(): OnboardingScreen {
     })();
   };
 
-  const addPaste = () => {
-    setFileError(null);
-    const t = paste.trim();
-    if (!t) {
-      setFileError("Paste some text.");
-      return;
-    }
-    void addContext(t, { kind: "pasted", label: "Pasted text", addedAt: Date.now() });
+  const addPaste = async (text: string) => {
+    const t = text.trim();
+    if (!t) return;
+    await addContext(t, { kind: "pasted", label: "Pasted text", addedAt: Date.now() });
     setPaste("");
   };
 
+  const pasteSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const t = paste.trim();
+    if (!t) return;
+    if (pasteSaveTimer.current) clearTimeout(pasteSaveTimer.current);
+    pasteSaveTimer.current = setTimeout(() => {
+      void addPaste(t);
+    }, 800);
+    return () => {
+      if (pasteSaveTimer.current) clearTimeout(pasteSaveTimer.current);
+    };
+  }, [paste]);
+
+  const flushPaste = async () => {
+    if (pasteSaveTimer.current) {
+      clearTimeout(pasteSaveTimer.current);
+      pasteSaveTimer.current = null;
+    }
+    await addPaste(paste);
+  };
+
   const finish = () => {
-    setOnboardingComplete(true);
-    // Persist the full onboarding payload as one data model: onboarding flag +
-    // the same Settings fields (topics, level).
-    persistProfile({ onboardingCompleted: true, topics: selectedTopics, level });
-    router.push(ROUTES.chat);
+    void (async () => {
+      await flushPaste();
+      setOnboardingComplete(true);
+      persistProfile({
+        onboardingCompleted: true,
+        topics: selectedTopics,
+        level,
+      });
+      router.push(ROUTES.chat);
+    })();
+  };
+
+  const continueFlow = () => {
+    if (step < 5) {
+      setStep((s) => (s + 1) as OnboardingStep);
+      return;
+    }
+    finish();
+  };
+
+  const setPasteValue = (v: string) => {
+    setFileError(null);
+    setPaste(v);
   };
 
   return {
     ready,
     design,
     family: DESIGNS[design].family,
+    step,
+    continue: continueFlow,
+    skip: finish,
     level,
     chooseLevel,
     topics: selectedTopics,
     toggleTopic,
+    dailyMessageCount,
+    setDailyMessageCount,
+    scheduleMode,
+    setScheduleMode,
+    firstMessageTime,
+    setFirstMessageTime,
     docUrl,
     setDocUrl,
     docLoading,
     docError,
     importGoogleDoc,
     paste,
-    setPaste,
+    setPaste: setPasteValue,
     fileError,
     onFile,
-    addPaste,
     finish,
   };
 }

@@ -47,3 +47,31 @@ export const DEFAULT_LEVEL_ID = "A2";
 export type TopicId = (typeof TOPIC_OPTIONS)[number]["id"];
 export type ModelId = (typeof MODEL_OPTIONS)[number]["id"];
 export type LevelId = (typeof LEVEL_OPTIONS)[number]["id"];
+
+/** Onboarding step 4 — how often Honza initiates per day. */
+export const DAILY_MESSAGE_COUNTS = [1, 2, 3] as const;
+export type DailyMessageCount = (typeof DAILY_MESSAGE_COUNTS)[number];
+export const DEFAULT_DAILY_MESSAGE_COUNT: DailyMessageCount = 1;
+
+/** Onboarding step 4 — fixed first message time vs random within the day. */
+export type ScheduleMode = "specific" | "random";
+export const DEFAULT_SCHEDULE_MODE: ScheduleMode = "specific";
+export const DEFAULT_FIRST_MESSAGE_TIME = "09:00";
+
+/** Copy for onboarding level rows (Handoff — Onboarding Flow). */
+export const ONBOARDING_LEVEL_DETAILS: Record<LevelId, string> = {
+  A1: "Beginner — zero stress.",
+  A2: "Elementary — I push you further.",
+  B1: "Intermediate — real topics.",
+  B2: "Upper-int — almost fluent.",
+};
+
+/** Topic chip labels in onboarding step 3 (design uses shorter labels). */
+export const ONBOARDING_TOPIC_LABELS: Record<TopicId, string> = {
+  daily: "Daily life",
+  travel: "Travel",
+  food: "Food",
+  work: "Work",
+  grammar: "Grammar",
+  smalltalk: "Small talk",
+};
