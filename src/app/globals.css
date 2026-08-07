@@ -580,3 +580,139 @@ body {
   transition: transform 0.3s ease;
   flex-shrink: 0;
 }
+
+/* ===== Fern Mist handoff — Chat / Call / Settings ===== */
+
+.hmat-pulse-glow {
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  width: 280px;
+  height: 280px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  opacity: 0.26;
+  filter: blur(24px);
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    color-mix(in srgb, var(--accent) 70%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hmat-recess-hero {
+  position: relative;
+  z-index: 1;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 8px 18px color-mix(in srgb, var(--accent) 16%, transparent),
+    0 -1px 0 rgba(255, 255, 255, 0.7);
+  background: linear-gradient(
+    -159deg,
+    color-mix(in srgb, var(--bg) 55%, #ffe8dc),
+    color-mix(in srgb, var(--bg) 25%, #fff8f4) 54%,
+    #fff 86%
+  );
+}
+
+.hmat-chip {
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
+}
+
+.hmat-bubble-honza {
+  border-radius: 16px 16px 16px 6px;
+  background: linear-gradient(180deg, #fff, #f2f7f0);
+  outline: 1px solid color-mix(in srgb, var(--accent) 18%, #c5d0c4);
+  box-shadow:
+    0 4px 12px rgba(36, 61, 44, 0.05),
+    0 1px 0 rgba(255, 255, 255, 0.67);
+}
+
+.hmat-bubble-user {
+  border-radius: 16px 16px 6px 16px;
+  background: #4a433c;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(74, 67, 60, 0.16);
+}
+
+.hmat-opener-card {
+  background: #fff;
+  outline: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow: 0 2px 8px rgba(36, 61, 44, 0.04);
+}
+
+.hmat-frost-card {
+  background: linear-gradient(180deg, #fff, #fff8f4);
+  outline: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.hmat-caption-panel {
+  background: rgba(255, 255, 255, 0.6);
+  outline: 1px solid rgba(0, 0, 0, 0.06);
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hmat-frost-field {
+  min-height: 52px;
+  border-radius: 16px;
+  border: 1.25px solid rgba(255, 255, 255, 0.8);
+  background: linear-gradient(180deg, rgba(242, 247, 240, 0.9), rgba(255, 255, 255, 0.85));
+  box-shadow:
+    0 2px 8px rgba(36, 61, 44, 0.07),
+    0 1px 3px rgba(36, 61, 44, 0.05);
+  backdrop-filter: blur(9px);
+}
+
+.hmat-ink-send,
+.hmat-ink-action {
+  background: #4a433c;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(74, 67, 60, 0.16);
+  transition:
+    transform 0.09s ease,
+    opacity 0.09s ease;
+}
+.hmat-ink-send:active,
+.hmat-ink-action:active {
+  transform: scale(0.98);
+}
+
+.hmat-frost-action {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1.25px solid rgba(0, 0, 0, 0.07);
+  box-shadow: 0 2px 8px rgba(36, 61, 44, 0.07);
+  backdrop-filter: blur(7px);
+}
+
+.hmat-call-start {
+  background: #3f6b4a;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 16px rgba(63, 107, 74, 0.25);
+}
+
+.hmat-call-end {
+  background: #c46b6b;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 16px rgba(196, 107, 107, 0.25);
+}
+
+/* Frost dock — handoff variant */
+.fdock {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.69);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 8px 28px rgba(36, 61, 44, 0.07),
+    0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.fdock-pill {
+  background: rgba(74, 67, 60, 0.09);
+}
+.hmat-tab.on {
+  color: #4a433c;
+}
