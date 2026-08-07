@@ -2,29 +2,33 @@
 
 import { useEffect, useRef } from "react";
 
-import { Button } from "@/components/ui/Button";
-import { HmatOrb } from "@/components/honza/HmatOrb";
-import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
-import { HardwareIcon } from "@/components/icons/HardwareIcons";
+import { ROUTES } from "@/lib/constants";
+import {
+  HmatCallButton,
+  HmatCallControls,
+  HmatCaptionPanel,
+  HmatPresenceRecess,
+  HmatScreenTitle,
+  HmatStatusChip,
+} from "@/components/screens/hmat/HmatUi";
 import { HmatScreenLoading } from "@/components/screens/hmat/HmatChrome";
 import type { CallScreen } from "@/hooks/useCallScreen";
 import { useMoodReactions } from "@/hooks/useMoodReactions";
 import { useReactPop } from "@/hooks/useReactPop";
-import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
-import { tapLight, tapMedium } from "@/lib/interaction/haptic";
+import { tapMedium } from "@/lib/interaction/haptic";
 
-function czStatusLine(phase: CallScreen["phase"], listening: boolean): string {
+function callTitle(phase: CallScreen["phase"]): string {
   switch (phase) {
     case "ready":
-      return "Klepni a zavolej — budeš mluvit česky, Honza ti odpoví nahlas.";
+      return "Hovor s Honzou";
     case "connecting":
-      return "Vyzvání…";
+      return "Spojuji hovor…";
     case "speaking":
       return "Honza mluví…";
     case "listening":
-      return listening ? "Poslouchám… mluv česky" : "Klepni na mikrofon a odpověz";
+      return "Poslouchám…";
     case "thinking":
       return "Honza přemýšlí…";
     default: {
@@ -34,9 +38,60 @@ function czStatusLine(phase: CallScreen["phase"], listening: boolean): string {
   }
 }
 
+function callChip(phase: CallScreen["phase"], listening: boolean): string {
+  switch (phase) {
+    case "ready":
+      return "připraven";
+    case "connecting":
+      return "vyzvání";
+    case "speaking":
+      return "mluví";
+    case "listening":
+      return listening ? "poslouchá" : "čeká na tebe";
+    case "thinking":
+      return "přemýšlí";
+    default: {
+      const _exhaustive: never = phase;
+      return _exhaustive;
+    }
+  }
+}
+
+function captionKicker(phase: CallScreen["phase"], inCall: boolean): string {
+  if (!inCall) return "TITULKY";
+  if (phase === "connecting") return "STAV";
+  return "TITULKY";
+}
+
+function captionFallback(
+  phase: CallScreen["phase"],
+  inCall: boolean,
+  captionsVisible: boolean,
+): string {
+  if (!inCall) {
+    return "Titulky vypnuté · zvol reproduktor, až budeš chtít číst.";
+  }
+  if (phase === "connecting") {
+    return "Volá se… Titulky se objeví v reproduktoru.";
+  }
+  if (!captionsVisible) {
+    return "Titulky vypnuté · klepni na reproduktor.";
+  }
+  return "…";
+}
+
 export function HmatCall({ screen }: { screen: CallScreen }) {
-  const { phase, inCall, orbState, caption, captionWho, error, listening, supported } =
-    screen;
+  const {
+    phase,
+    inCall,
+    orbState,
+    caption,
+    captionWho,
+    error,
+    listening,
+    supported,
+    captionsVisible,
+  } = screen;
   const { stackClassName, triggerPop } = useReactPop();
   const wasInCallRef = useRef(false);
 
@@ -52,63 +107,57 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
 
   if (!screen.ready) return <HmatScreenLoading />;
 
-  const channelPulse = phase === "speaking" || orbState === "excited";
+  const showLiveCaption = inCall && captionsVisible && caption;
+  const captionText = showLiveCaption
+    ? caption
+    : captionFallback(phase, inCall, captionsVisible);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex shrink-0 items-center justify-center">
-        {inCall ? (
-          <span className="mat rounded-full px-4 py-1.5" aria-label="Call duration">
-            <span className={cn(TYPE.meta, "text-accent tabular-nums")}>
-              {screen.durationLabel}
-            </span>
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      {inCall ? (
+        <div className="flex shrink-0 justify-center">
+          <span className="hmat-frost-action rounded-full px-4 py-1.5">
+            <span className={cn(TYPE.meta, "tabular-nums text-accent")}>{screen.durationLabel}</span>
           </span>
-        ) : (
-          <span className={cn(TYPE.label, "text-muted-foreground")}>Hovor s Honzou</span>
-        )}
-      </header>
-
-      <div className="mat-recess mt-6 flex flex-col items-center px-4 py-8">
-        <button
-          type="button"
-          onClick={() => {
-            tapLight();
-            triggerPop();
-          }}
-          className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          aria-label="Honza"
-        >
-          <HmatOrb state={orbState} size={172} stackClassName={stackClassName} />
-        </button>
-        <MoodOrbStrip
-          expression={screen.expression}
-          thinkingLabel="Vyzvání…"
-          channelPulse={channelPulse}
-          className="mt-5 w-full"
-        />
-      </div>
-
-      <p className={cn("mt-4 text-center", TYPE.helper)} role="status" aria-live="polite">
-        {czStatusLine(phase, listening)}
-      </p>
-
-      {caption ? (
-        <div className="mat mat-tilt mx-auto mt-5 w-full max-w-[340px] px-4 py-3 motion-safe:animate-message-in motion-reduce:animate-none">
-          <p className={cn("mb-1", TYPE.kicker, "text-muted-foreground")}>
-            {captionWho === "honza" ? "Honza" : "Ty"}
-          </p>
-          <p className={cn(TYPE.bodySm, "text-foreground")}>{caption}</p>
         </div>
       ) : null}
 
+      <HmatPresenceRecess
+        orbState={orbState}
+        stackClassName={stackClassName}
+        loading={phase === "connecting" || phase === "thinking"}
+        onOrbTap={triggerPop}
+      />
+
+      <div className="flex shrink-0 flex-col items-center gap-2">
+        <HmatScreenTitle>{callTitle(phase)}</HmatScreenTitle>
+        <HmatStatusChip label={callChip(phase, listening)} />
+      </div>
+
+      <HmatCaptionPanel
+        kicker={captionKicker(phase, inCall)}
+        muted={!showLiveCaption}
+      >
+        {showLiveCaption ? (
+          <>
+            <span className={cn(TYPE.kicker, "mb-1 block text-[#6E8A74]")}>
+              {captionWho === "honza" ? "Honza" : "Ty"}
+            </span>
+            {captionText}
+          </>
+        ) : (
+          captionText
+        )}
+      </HmatCaptionPanel>
+
       {error ? (
-        <p className={cn("mx-auto mt-4 max-w-[320px] text-center", TYPE.helper, "text-accent")}>
+        <p className={cn(TYPE.helper, "text-center text-accent")} role="alert">
           {error}
         </p>
       ) : null}
 
       {!supported && !inCall ? (
-        <p className={cn("mx-auto mt-4 max-w-[320px] text-center", TYPE.helper)}>
+        <p className={cn(TYPE.helper, "text-center")}>
           Rozpoznávání řeči potřebuje Chrome, Edge nebo Safari. Jinde použij{" "}
           <a href={ROUTES.chat} className="text-accent underline">
             Chat
@@ -119,67 +168,20 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
 
       <div className="flex-1" />
 
-      <div className="flex shrink-0 flex-col items-center gap-3">
+      <div className="flex shrink-0 flex-col items-center pb-1">
         {!inCall ? (
-          <Button
-            type="button"
-            surface="mat-key"
-            shape="pill"
-            size="call"
-            haptic="medium"
-            onClick={() => {
-              screen.startCall();
-            }}
+          <HmatCallButton
+            label="Zavolat"
             disabled={!supported}
-          >
-            ZAVOLAT
-          </Button>
+            onClick={() => screen.startCall()}
+          />
         ) : (
-          <div className="flex items-center gap-5">
-            <Button
-              type="button"
-              surface="mat-key"
-              shape="circle"
-              size="icon-lg"
-              onClick={() => {
-                screen.toggleMic();
-              }}
-              disabled={phase === "connecting" || phase === "thinking"}
-              aria-pressed={listening}
-              aria-label={listening ? "Stop speaking" : "Speak"}
-              className={listening ? "text-white" : undefined}
-              style={
-                listening
-                  ? {
-                      background:
-                        "linear-gradient(180deg, color-mix(in srgb, var(--accent) 96%, #fff), var(--accent))",
-                    }
-                  : undefined
-              }
-            >
-              <HardwareIcon name="mic" size={24} emboss={!listening} />
-            </Button>
-            <Button
-              type="button"
-              surface="mat-key"
-              shape="circle"
-              size="icon-lg"
-              variant="danger"
-              onClick={() => {
-                screen.endCall(true);
-              }}
-              aria-label="End call"
-              style={{ background: "linear-gradient(180deg, #ef5b60, #E5484D)" }}
-            >
-              <HardwareIcon name="hang" size={24} emboss={false} />
-            </Button>
-          </div>
+          <HmatCallControls
+            captionsOn={captionsVisible}
+            onToggleCaptions={() => screen.toggleCaptions()}
+            onEndCall={() => screen.endCall(true)}
+          />
         )}
-        {inCall ? (
-          <span className={cn(TYPE.kicker, "text-muted-foreground")}>
-            Zavěsit → přepis v Chatu
-          </span>
-        ) : null}
       </div>
     </div>
   );
