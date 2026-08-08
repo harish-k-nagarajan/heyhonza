@@ -98,12 +98,12 @@ export function ChatActionBar({
             >
               {isHmat ? (
                 <>
-                  Odpověz česky
+                  {t.chat.replyInCzech}
                   <span className="animate-blink text-accent motion-reduce:animate-none">_</span>
                 </>
               ) : (
                 <>
-                  Reply in Czech
+                  {t.chat.replyInCzech}
                   <span className="ml-0.5 animate-blink motion-reduce:animate-none">_</span>
                 </>
               )}

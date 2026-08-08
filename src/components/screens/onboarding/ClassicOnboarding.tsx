@@ -8,12 +8,11 @@ import { Textarea } from "@/components/ui/Textarea";
 import {
   DAILY_MESSAGE_COUNTS,
   LEVEL_OPTIONS,
-  ONBOARDING_LEVEL_DETAILS,
-  ONBOARDING_TOPIC_LABELS,
   type LevelId,
   type TopicId,
 } from "@/lib/constants";
 import type { OnboardingScreen } from "@/hooks/useOnboardingScreen";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 const TOPIC_ROWS: TopicId[][] = [
   ["daily", "travel", "food"],
@@ -42,15 +41,18 @@ function formatDisplayTime(value: string): string {
 
 /** Classic onboarding — same 5-step flow with legacy flat chrome. */
 export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
+  const { t } = useLocale();
+  const o = t.onboarding;
+
   if (!screen.ready) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground">
-        Loading…
+        {o.loading}
       </div>
     );
   }
 
-  const ctaLabel = screen.step === 5 ? "Start chatting" : "Continue";
+  const ctaLabel = screen.step === 5 ? o.startChatting : o.continue;
 
   return (
     <div className="mx-auto flex max-w-app flex-col gap-5">
@@ -60,13 +62,12 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
         <>
           <header className="flex flex-col items-center gap-4 text-center">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              STEP 1 OF 5
+              {o.stepOf(1, 5)}
             </p>
             <HonzaOrb state="idle" size="hero" className="shrink-0" />
-            <h1 className="font-sans text-lg tracking-[0.12em]">Ahoj! Jsem Honza.</h1>
+            <h1 className="font-sans text-lg tracking-[0.12em]">{o.step1Title}</h1>
             <p className="mx-auto max-w-[min(320px,100%)] font-sans text-sm leading-relaxed text-muted-foreground">
-              I&apos;ll write to you in Czech about real things. You reply. I fix your
-              mistakes — kindly.
+              {o.step1Body}
             </p>
           </header>
           <Button type="button" className="w-full" onClick={screen.continue}>
@@ -79,12 +80,10 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
         <>
           <div className="space-y-2 text-center">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              STEP 2 OF 5
+              {o.stepOf(2, 5)}
             </p>
-            <h1 className="font-sans text-lg tracking-[0.12em]">What&apos;s your level?</h1>
-            <p className="text-sm text-muted-foreground">
-              Honza adapts to where you are — from first sentences to almost fluent.
-            </p>
+            <h1 className="font-sans text-lg tracking-[0.12em]">{o.step2Title}</h1>
+            <p className="text-sm text-muted-foreground">{o.step2Body}</p>
           </div>
           <div className="flex flex-col gap-2">
             {LEVEL_OPTIONS.map((option) => {
@@ -105,7 +104,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
                     {option.id}
                   </span>
                   <span className="text-sm text-foreground">
-                    {ONBOARDING_LEVEL_DETAILS[option.id as LevelId]}
+                    {t.levels.detail[option.id as LevelId]}
                   </span>
                 </button>
               );
@@ -121,12 +120,10 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
         <>
           <div className="space-y-2 text-center">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              STEP 3 OF 5
+              {o.stepOf(3, 5)}
             </p>
-            <h1 className="font-sans text-lg tracking-[0.12em]">What do you want to talk about?</h1>
-            <p className="text-sm text-muted-foreground">
-              Pick topics you care about — not textbook phrases.
-            </p>
+            <h1 className="font-sans text-lg tracking-[0.12em]">{o.step3Title}</h1>
+            <p className="text-sm text-muted-foreground">{o.step3Body}</p>
           </div>
           <div className="flex flex-col gap-2">
             {TOPIC_ROWS.map((row, rowIndex) => (
@@ -145,7 +142,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
                           : "border-border bg-muted text-muted-foreground"
                       }`}
                     >
-                      {ONBOARDING_TOPIC_LABELS[topicId]}
+                      {t.topics[topicId]}
                     </button>
                   );
                 })}
@@ -162,16 +159,14 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
         <>
           <div className="space-y-2 text-center">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              STEP 4 OF 5
+              {o.stepOf(4, 5)}
             </p>
-            <h1 className="font-sans text-lg tracking-[0.12em]">When should Honza write?</h1>
-            <p className="text-sm text-muted-foreground">
-              Honza can message you 1–3 times a day. Pick a time or let it feel random.
-            </p>
+            <h1 className="font-sans text-lg tracking-[0.12em]">{o.step4Title}</h1>
+            <p className="text-sm text-muted-foreground">{o.step4Body}</p>
           </div>
 
           <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-            HOW OFTEN
+            {o.howOften}
           </p>
           <div className="flex flex-wrap gap-2">
             {DAILY_MESSAGE_COUNTS.map((count) => {
@@ -195,7 +190,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
           </div>
 
           <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-            WHEN
+            {o.when}
           </p>
           <div className="flex flex-wrap gap-2">
             {(["specific", "random"] as const).map((mode) => {
@@ -212,7 +207,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
                       : "border-border bg-muted text-muted-foreground"
                   }`}
                 >
-                  {mode === "specific" ? "Specific time" : "Random"}
+                  {mode === "specific" ? o.specificTime : o.random}
                 </button>
               );
             })}
@@ -220,7 +215,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
 
           {screen.scheduleMode === "specific" ? (
             <div className="flex items-center justify-between rounded-card border border-border bg-muted px-4 py-3">
-              <span className="text-sm text-foreground">First message</span>
+              <span className="text-sm text-foreground">{o.firstMessage}</span>
               <label className="relative">
                 <span className="text-sm font-semibold text-accent">
                   {formatDisplayTime(screen.firstMessageTime)}
@@ -229,7 +224,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
                   type="time"
                   value={screen.firstMessageTime}
                   onChange={(e) => screen.setFirstMessageTime(e.target.value)}
-                  aria-label="First message time"
+                  aria-label={o.firstMessageTimeAria}
                   className="absolute inset-0 opacity-0"
                 />
               </label>
@@ -246,27 +241,23 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
         <>
           <div className="space-y-2 text-center">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              STEP 5 OF 5 · OPTIONAL
+              {o.stepOptional}
             </p>
-            <h1 className="font-sans text-lg tracking-[0.12em]">Teach Honza about you</h1>
-            <p className="text-sm text-muted-foreground">
-              Add a Google Doc, file, or paste — or skip and add this later in Settings.
-            </p>
+            <h1 className="font-sans text-lg tracking-[0.12em]">{o.step5Title}</h1>
+            <p className="text-sm text-muted-foreground">{o.step5Body}</p>
           </div>
 
           <div className="space-y-2">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              GOOGLE DOC
+              {o.googleDoc}
             </p>
-            <p className="text-xs text-muted-foreground">
-              Set the doc to Share → Anyone with the link → Viewer so Honza can read it.
-            </p>
-            <Label htmlFor="doc-url">Document URL</Label>
+            <p className="text-xs text-muted-foreground">{o.googleDocShare}</p>
+            <Label htmlFor="doc-url">{o.documentUrl}</Label>
             <Input
               id="doc-url"
               value={screen.docUrl}
               onChange={(e) => screen.setDocUrl(e.target.value)}
-              placeholder="https://docs.google.com/document/d/…"
+              placeholder={t.settings.googleDocPlaceholder}
             />
             {screen.docError ? <p className="text-xs text-accent">{screen.docError}</p> : null}
             <Button
@@ -276,27 +267,27 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
               disabled={screen.docLoading}
               onClick={screen.importGoogleDoc}
             >
-              {screen.docLoading ? "Fetching…" : "Import document"}
+              {screen.docLoading ? t.settings.fetching : t.settings.addFromGoogleDocs}
             </Button>
           </div>
 
           <div className="space-y-2">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              FILE OR PASTE
+              {o.fileOrPaste}
             </p>
-            <Label htmlFor="file">File (.txt, .md)</Label>
+            <Label htmlFor="file">{t.settings.fileLabel}</Label>
             <Input
               id="file"
               type="file"
               accept=".txt,.md,text/plain"
               onChange={(e) => screen.onFile(e.target.files?.[0] ?? null)}
             />
-            <Label htmlFor="paste">Or paste text</Label>
+            <Label htmlFor="paste">{o.orPasteText}</Label>
             <Textarea
               id="paste"
               value={screen.paste}
               onChange={(e) => screen.setPaste(e.target.value)}
-              placeholder="Anything Honza should know about you…"
+              placeholder={t.settings.pastePlaceholder}
               rows={3}
             />
             {screen.fileError ? <p className="text-xs text-accent">{screen.fileError}</p> : null}
@@ -310,7 +301,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
             onClick={screen.skip}
             className="w-full py-3 text-center text-[15px] font-semibold text-foreground underline"
           >
-            Skip for now
+            {o.skip}
           </button>
         </>
       ) : null}

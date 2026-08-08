@@ -13,8 +13,6 @@ import { useLocale } from "@/lib/i18n/useLocale";
 import type { SignInCopy } from "@/lib/i18n/locales";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-import { AUTH_LOGIN, AUTH_SIGNUP } from "./auth-content";
-
 type AuthMode = "signup" | "login";
 type Status = "idle" | "working" | "confirm-sent";
 
@@ -93,7 +91,7 @@ export function AuthScreen({
   const router = useRouter();
   const { t } = useLocale();
   const c = t.signin;
-  const copy = mode === "signup" ? AUTH_SIGNUP : AUTH_LOGIN;
+  const copy = mode === "signup" ? c.signup : c.login;
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -123,7 +121,7 @@ export function AuthScreen({
     const cleanName = name.trim();
 
     if (mode === "signup" && !cleanName) {
-      setMessage("Enter your name.");
+      setMessage(c.enterName);
       return;
     }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail)) {
@@ -244,8 +242,8 @@ export function AuthScreen({
               type="text"
               value={name}
               onChange={setName}
-              placeholder={AUTH_SIGNUP.namePlaceholder}
-              ariaLabel="Your name"
+              placeholder={c.signup.namePlaceholder}
+              ariaLabel={c.signup.namePlaceholder}
               autoComplete="name"
               disabled={working}
             />
@@ -298,13 +296,13 @@ export function AuthScreen({
             href={ROUTES.signup}
             className="auth-cta-outline flex w-full items-center justify-center rounded-full py-3.5 font-sans text-sm font-semibold transition hover:bg-white/80"
           >
-            {AUTH_LOGIN.secondaryCta}
+            {c.login.secondaryCta}
           </Link>
         ) : (
           <p className={cn(TYPE.bodySm, "text-accent")}>
-            {AUTH_SIGNUP.switchPrompt}{" "}
+            {c.signup.switchPrompt}{" "}
             <Link href={ROUTES.login} className="font-semibold underline-offset-2 hover:underline">
-              {AUTH_SIGNUP.switchLink}
+              {c.signup.switchLink}
             </Link>
           </p>
         )}

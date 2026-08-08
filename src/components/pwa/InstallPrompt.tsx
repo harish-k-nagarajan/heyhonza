@@ -7,6 +7,7 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { cn } from "@/lib/cn";
 import { DESIGNS } from "@/lib/design/registry";
 import { TYPE } from "@/lib/design/typography";
+import { useLocale } from "@/lib/i18n/useLocale";
 import { useDesignStore } from "@/stores/useDesignStore";
 
 type BeforeInstallPromptEvent = Event & {
@@ -60,40 +61,11 @@ function isIosSafari(): boolean {
   return iOS && !otherBrowser;
 }
 
-function copy(isHmat: boolean) {
-  return isHmat
-    ? {
-        label: "Instalace",
-        dismiss: "Teď ne",
-        body: "Nainstaluj Honzu pro rychlejší každodenní procvičování.",
-        install: "Instalovat",
-        ios: (
-          <>
-            Přidej Honzu na plochu: klepni na{" "}
-            <span className="text-accent">Sdílet</span>, pak{" "}
-            <span className="text-accent">Přidat na plochu</span>.
-          </>
-        ),
-      }
-    : {
-        label: "INSTALL",
-        dismiss: "Not now",
-        body: "Install Honza for quicker daily practice.",
-        install: "Install",
-        ios: (
-          <>
-            Add Honza to your home screen: tap{" "}
-            <span className="text-accent">Share</span>, then{" "}
-            <span className="text-accent">Add to Home Screen</span>.
-          </>
-        ),
-      };
-}
-
 export function InstallPrompt() {
   const design = useDesignStore((s) => s.design);
   const isHmat = DESIGNS[design].family === "hmat";
-  const c = copy(isHmat);
+  const { t, locale } = useLocale();
+  const c = t.install;
 
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
@@ -185,7 +157,13 @@ export function InstallPrompt() {
         </div>
 
         {iosHint ? (
-          <p className={cn("mt-2", TYPE.bodySm, "text-foreground")}>{c.ios}</p>
+          <p className={cn("mt-2", TYPE.bodySm, "text-foreground")}>
+            {c.iosLead}{" "}
+            <span className="text-accent">{c.iosShare}</span>
+            {locale === "cs" ? ", pak " : ", then "}
+            <span className="text-accent">{c.iosAdd}</span>
+            {c.iosTail}
+          </p>
         ) : (
           <div className="mt-2 flex items-center justify-between gap-3">
             <p className={cn(TYPE.bodySm, "text-foreground")}>{c.body}</p>

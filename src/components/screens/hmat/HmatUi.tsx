@@ -7,25 +7,17 @@ import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import type { HonzaOrbState } from "@/components/honza/theme";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+import { useLocale } from "@/lib/i18n/useLocale";
 import { tapLight } from "@/lib/interaction/haptic";
 
-/** Recess mood label shown under the lit channel (handoff copy). */
+/** Recess mood label shown under the lit channel. */
 export function recessMoodLabel(
   mood: HonzaOrbState,
-  loading?: boolean,
+  loading: boolean | undefined,
+  t: ReturnType<typeof useLocale>["t"],
 ): string {
-  if (loading || mood === "thinking") return "PŘEMÝŠLÍ";
-  switch (mood) {
-    case "speaking":
-      return "MLUVÍ";
-    case "oops":
-      return "CHYBA";
-    case "excited":
-      return "SKVĚLE";
-    case "idle":
-    default:
-      return "ČEKÁ";
-  }
+  if (loading || mood === "thinking") return t.mood.recessThinking;
+  return t.mood.recess[mood];
 }
 
 export function HmatPresenceRecess({
@@ -41,7 +33,8 @@ export function HmatPresenceRecess({
   loading?: boolean;
   onOrbTap?: () => void;
 }) {
-  const moodLabel = recessMoodLabel(orbState, loading);
+  const { t } = useLocale();
+  const moodLabel = recessMoodLabel(orbState, loading, t);
 
   return (
     <div className="relative">
@@ -54,7 +47,7 @@ export function HmatPresenceRecess({
             onOrbTap?.();
           }}
           className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          aria-label="Honza"
+          aria-label={t.common.honza}
         >
           <HmatOrb state={orbState} size={size} breathe stackClassName={stackClassName} />
         </button>
@@ -359,12 +352,16 @@ export function HmatCallControls({
   captionsOn,
   onToggleCaptions,
   onEndCall,
-  endLabel = "Ukončit",
+  endLabel,
+  showCaptionsLabel,
+  hideCaptionsLabel,
 }: {
   captionsOn: boolean;
   onToggleCaptions: () => void;
   onEndCall: () => void;
-  endLabel?: string;
+  endLabel: string;
+  showCaptionsLabel: string;
+  hideCaptionsLabel: string;
 }) {
   return (
     <div className="flex items-start justify-center gap-7">
@@ -373,7 +370,7 @@ export function HmatCallControls({
           type="button"
           onClick={onToggleCaptions}
           aria-pressed={captionsOn}
-          aria-label={captionsOn ? "Skrýt titulky" : "Zobrazit titulky"}
+          aria-label={captionsOn ? hideCaptionsLabel : showCaptionsLabel}
           className={cn(
             "flex h-14 w-14 items-center justify-center rounded-full border transition",
             captionsOn

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { TYPE } from "@/lib/design/typography";
+import { useLocale } from "@/lib/i18n/useLocale";
 import { cn } from "@/lib/cn";
 import type { ChatMessage } from "@/types";
 
@@ -35,22 +36,25 @@ function segment(messages: ChatMessage[]): Segment[] {
 }
 
 function CallTranscript({ messages }: { messages: ChatMessage[] }) {
+  const { locale, t } = useLocale();
   const started = messages[0]?.createdAt;
+  const dateLocale = locale === "cs" ? "cs-CZ" : "en-US";
+
   return (
     <section
       className="rounded-card border border-dashed border-accent/40 bg-accent/[0.03] p-3"
-      aria-label="Call transcript"
+      aria-label={t.chat.transcript}
     >
       <header className="mb-3 flex items-baseline justify-between gap-2">
         <SectionLabel as="p" className={TYPE.kicker}>
-          Call transcript
+          {t.chat.transcript}
         </SectionLabel>
         {started ? (
           <time
             className={cn(TYPE.kicker, "text-muted-foreground")}
             dateTime={new Date(started).toISOString()}
           >
-            {new Date(started).toLocaleDateString("en-US", {
+            {new Date(started).toLocaleDateString(dateLocale, {
               month: "short",
               day: "numeric",
             })}

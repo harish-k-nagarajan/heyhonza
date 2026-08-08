@@ -12,6 +12,7 @@ import type { ChatScreen } from "@/hooks/useChatScreen";
 import { useMoodReactions } from "@/hooks/useMoodReactions";
 import { useReactPop } from "@/hooks/useReactPop";
 import { useLocale } from "@/lib/i18n/useLocale";
+import { localizeClientError } from "@/lib/i18n/extended";
 import { tapLight } from "@/lib/interaction/haptic";
 import { cn } from "@/lib/cn";
 
@@ -29,6 +30,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
     historyOpen,
     setHistoryOpen,
   } = screen;
+  const localizedError = localizeClientError(lastError, t.errors);
   const bottomRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
 
@@ -43,7 +45,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
       <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
         <HonzaOrb state="idle" size="avatar" />
         <div className="h-3 w-24 animate-pulse rounded-full bg-muted" aria-hidden />
-        <p className="font-sans text-sm text-muted-foreground">Loading…</p>
+        <p className="font-sans text-sm text-muted-foreground">{t.common.loading}</p>
       </div>
     );
   }
@@ -78,7 +80,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
               triggerPop();
             }}
             className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            aria-label="Honza"
+            aria-label={t.common.honza}
           >
             <HonzaOrb
               state={expression.mood}
@@ -108,16 +110,16 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
         {heroMode && openerMessage ? (
           <Card className="motion-safe:animate-landing-fade-in shrink-0 p-4 motion-reduce:animate-none">
             <p className="mb-2 font-sans text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
-              {"// HONZA WROTE"}
+              {t.chat.openerKicker}
             </p>
             <p className="font-sans text-sm leading-relaxed text-accent">{openerMessage}</p>
           </Card>
         ) : null}
 
         <Card className="flex min-h-0 flex-1 flex-col gap-3 p-3">
-          {lastError ? (
+          {localizedError ? (
             <div className="shrink-0 rounded-card border border-accent/40 bg-muted px-3 py-2">
-              <p className="text-sm text-accent">{lastError}</p>
+              <p className="text-sm text-accent">{localizedError}</p>
               {threadMessages.length === 0 ? (
                 <button
                   type="button"

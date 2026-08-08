@@ -1,12 +1,11 @@
+"use client";
+
 import Link from "next/link";
 
-import {
-  LANDING_HERO_FIRST,
-  LANDING_HERO_SIGNED_OUT,
-} from "@/components/screens/welcome/welcome-content";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 import type { LandingVisitor } from "./useLandingVisitor";
 
@@ -19,9 +18,9 @@ export function LandingAuthButtons({
   size?: "sm" | "md";
   className?: string;
 }) {
-  const primaryLabel = visitor?.isSignedOut
-    ? LANDING_HERO_SIGNED_OUT.cta
-    : LANDING_HERO_FIRST.cta;
+  const { t } = useLocale();
+  const w = t.welcome;
+  const primaryLabel = visitor?.isSignedOut ? w.signedOutCta : w.heroCta;
 
   const pad = size === "sm" ? "px-5 py-2.5" : "px-7 py-3.5";
 
@@ -43,7 +42,7 @@ export function LandingAuthButtons({
           pad,
         )}
       >
-        Log in
+        {w.logIn}
       </Link>
     </div>
   );
@@ -56,9 +55,9 @@ export function LandingCtaHint({
   visitor?: Pick<LandingVisitor, "isSignedOut">;
   className?: string;
 }) {
-  const hint = visitor?.isSignedOut
-    ? LANDING_HERO_SIGNED_OUT.ctaHint
-    : LANDING_HERO_FIRST.ctaHint;
+  const { t } = useLocale();
+  const w = t.welcome;
+  const hint = visitor?.isSignedOut ? w.signedOutCtaHint : w.heroCtaHint;
 
   return (
     <p className={cn(TYPE.label, "text-muted-foreground", className)}>
