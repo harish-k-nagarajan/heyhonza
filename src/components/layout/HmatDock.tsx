@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { HardwareIcon } from "@/components/icons/HardwareIcons";
-import type { IconName } from "@/components/icons/HardwareIcons";
+import { FernDockIcon } from "@/components/icons/FernDockIcons";
+import type { FernDockIconName } from "@/components/icons/FernDockIcons";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { tapLight } from "@/lib/interaction/haptic";
@@ -13,9 +13,10 @@ import { useLocale } from "@/lib/i18n/useLocale";
 
 /**
  * O4 frost dock — Chat · Hovor · Nastavení. Horizontal icon+label tabs on frosted
- * glass; active tab slides a mint-green (#DCEBDC) pill behind the selection.
+ * glass; active tab slides a charcoal tint (#4A433C18) pill behind the selection. Icons match
+ * the O4 handoff (Lucide message-circle · phone · settings).
  */
-const TABS: { href: string; icon: IconName; labelKey: "chat" | "call" | "settings" }[] = [
+const TABS: { href: string; icon: FernDockIconName; labelKey: "chat" | "call" | "settings" }[] = [
   { href: ROUTES.chat, icon: "chat", labelKey: "chat" },
   { href: ROUTES.call, icon: "call", labelKey: "call" },
   { href: ROUTES.settings, icon: "settings", labelKey: "settings" },
@@ -74,7 +75,7 @@ export function HmatDock() {
               onClick={() => tapLight()}
               className={cn("hmat-tab relative z-[1] font-display", active && "on")}
             >
-              <HardwareIcon name={tab.icon} size={16} emboss={false} />
+              <FernDockIcon name={tab.icon} size={16} />
               <span className="hmat-tab-lbl">{t.nav[tab.labelKey]}</span>
             </Link>
           );

@@ -323,7 +323,7 @@ body {
   top: 8px;
   bottom: 8px;
   border-radius: 22px;
-  background: #dcebdc;
+  background: #4a433c18;
   transition:
     left 0.22s cubic-bezier(0.2, 0.8, 0.3, 1),
     width 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
@@ -340,12 +340,17 @@ body {
   gap: 8px;
   position: relative;
   padding: 12px 18px;
-  color: #6e8a74;
-  transition: color 0.15s ease;
+  color: #4a433c;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
   border-radius: 22px;
 }
+.hmat-tab:hover:not(.on) {
+  background: rgba(255, 255, 255, 0.45);
+}
 .hmat-tab.on {
-  color: #3f6b4a;
+  color: #4a433c;
 }
 .hmat-tab-lbl {
   font-size: 14px;
@@ -623,9 +628,9 @@ body {
 
 .hmat-bubble-user {
   border-radius: 16px 16px 6px 16px;
-  background: linear-gradient(200deg, #4f7a58 0%, #3f6b4a 55%, #355a3e 100%);
-  border: 1px solid rgba(255, 255, 255, 0.27);
-  box-shadow: 0 4px 12px rgba(63, 107, 74, 0.22);
+  background: #4a433c;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(74, 67, 60, 0.16);
 }
 
 .hmat-opener-card {
@@ -660,12 +665,16 @@ body {
 }
 
 .hmat-fern-send {
-  background: linear-gradient(200deg, #4f7a58 0%, #3f6b4a 55%, #355a3e 100%);
-  border: 1px solid rgba(255, 255, 255, 0.27);
-  box-shadow: 0 4px 12px rgba(63, 107, 74, 0.22);
+  background: #4a433c;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(74, 67, 60, 0.16);
   transition:
     transform 0.09s ease,
-    opacity 0.09s ease;
+    opacity 0.09s ease,
+    background-color 0.15s ease;
+}
+.hmat-fern-send:hover:not(:disabled) {
+  background: #3d3832;
 }
 .hmat-fern-send:active {
   transform: scale(0.98);
@@ -673,12 +682,17 @@ body {
 
 .hmat-ink-send,
 .hmat-ink-action {
-  background: linear-gradient(200deg, #4f7a58 0%, #3f6b4a 55%, #355a3e 100%);
-  border: 1px solid rgba(255, 255, 255, 0.27);
-  box-shadow: 0 4px 12px rgba(63, 107, 74, 0.22);
+  background: #4a433c;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(74, 67, 60, 0.16);
   transition:
     transform 0.09s ease,
-    opacity 0.09s ease;
+    opacity 0.09s ease,
+    background-color 0.15s ease;
+}
+.hmat-ink-send:hover:not(:disabled),
+.hmat-ink-action:hover:not(:disabled) {
+  background: #3d3832;
 }
 .hmat-ink-send:active,
 .hmat-ink-action:active {
