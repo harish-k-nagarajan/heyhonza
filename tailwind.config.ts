@@ -39,12 +39,12 @@ const config: Config = {
         "honza-oops": "honza-oops 3.5s ease-in-out infinite",
         "honza-excited": "honza-excited 2.6s ease-in-out infinite",
         blink: "blink 1.1s step-end infinite",
-        "landing-fade-in": "landing-fade-in 0.5s ease-out forwards",
-        "message-in": "message-in 0.22s ease-out forwards",
-        "drawer-in": "drawer-in 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) forwards",
-        "drawer-backdrop": "drawer-backdrop 0.22s ease-out forwards",
-        "channel-pulse": "channel-pulse 0.45s ease-out 1",
-        "honza-pop": "honza-pop 0.55s cubic-bezier(0.2, 1.5, 0.4, 1)",
+        "landing-fade-in": "landing-fade-in 0.5s var(--ease-out) forwards",
+        "message-in": "message-in var(--duration-bubble-in) var(--ease-out) forwards",
+        "drawer-in": "drawer-in var(--duration-drawer-in) var(--ease-drawer) forwards",
+        "drawer-backdrop": "drawer-backdrop var(--duration-bubble-in) var(--ease-out) forwards",
+        "channel-pulse": "channel-pulse 0.45s var(--ease-out) 1",
+        "honza-pop": "honza-pop var(--duration-orb-pop) var(--ease-out)",
       },
       keyframes: {
         honza: {
