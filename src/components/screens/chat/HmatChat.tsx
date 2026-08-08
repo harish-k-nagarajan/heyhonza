@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { HonzaTypingBubble } from "@/components/chat/HonzaTypingBubble";
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import {
   HmatChatComposerRow,
@@ -21,6 +22,7 @@ import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import type { ChatMessage } from "@/types";
 import { cn } from "@/lib/cn";
+import { useChatStore } from "@/stores/useChatStore";
 
 function chipLabel(screen: ChatScreen, t: ReturnType<typeof useLocale>["t"]): string {
   if (screen.lastError) return t.chat.chipProblem;
@@ -39,6 +41,9 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     heroMode,
     openerMessage,
   } = screen;
+  const typingPreview = useChatStore((s) => s.typingPreview);
+  const showTyping = typingPreview !== null;
+  const composerDisabled = loading || showTyping;
   const threadRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
   const [draft, setDraft] = useState("");
@@ -49,18 +54,18 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     const el = threadRef.current;
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [threadMessages.length, loading]);
+  }, [threadMessages.length, showTyping]);
 
   const composerMode = heroMode ? "idle" : "ongoing";
   const localizedError = localizeClientError(lastError, t.errors);
 
   const send = useCallback(() => {
     const text = draft.trim();
-    if (!text || loading) return;
+    if (!text || composerDisabled) return;
     setDraft("");
     screen.send(text);
     triggerPop();
-  }, [draft, loading, screen, triggerPop]);
+  }, [draft, composerDisabled, screen, triggerPop]);
 
   if (!screen.ready) {
     return (
@@ -93,7 +98,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
         <HmatChatThread
           ref={threadRef}
-          watchKey={`${threadMessages.length}-${loading}-${heroMode}`}
+          watchKey={`${threadMessages.length}-${showTyping}-${heroMode}`}
         >
           {localizedError ? (
             <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
@@ -112,8 +117,8 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
           {heroMode && openerMessage ? (
             <HmatOpenerCard>{openerMessage}</HmatOpenerCard>
-          ) : heroMode && loading && !openerMessage ? (
-            <p className={cn(TYPE.helper, "text-center")}>{t.chat.thinking}</p>
+          ) : showTyping ? (
+            <HonzaTypingBubble variant="hmat" />
           ) : !heroMode ? (
             <>
               {threadMessages.map((m: ChatMessage) =>
@@ -123,11 +128,6 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
                   <HmatHonzaBubble key={m.id}>{m.content}</HmatHonzaBubble>
                 ),
               )}
-              {loading ? (
-                <HmatHonzaBubble>
-                  <span className="text-muted-foreground">{t.chat.thinking}</span>
-                </HmatHonzaBubble>
-              ) : null}
             </>
           ) : null}
         </HmatChatThread>
@@ -139,7 +139,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
             onChange={setDraft}
             onSend={send}
             onEndChat={screen.endChat}
-            disabled={loading}
+            disabled={composerDisabled}
             placeholder={
               composerMode === "idle" ? t.chat.placeholderIdle : t.chat.placeholderOngoing
             }
