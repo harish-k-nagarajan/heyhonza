@@ -47,7 +47,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [threadMessages.length, showTyping]);
+  }, [threadMessages.length]);
 
   if (!screen.ready) {
     return (
@@ -78,7 +78,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
 
         <div
           className={cn(
-            "flex shrink-0 items-center gap-3 py-2 transition-all duration-300 motion-reduce:transition-none",
+            "flex shrink-0 items-center gap-3 py-2 transition-[transform,opacity,gap] duration-[220ms] ease-[var(--ease-out)] motion-reduce:transition-none",
             heroMode ? "flex-col text-center" : "flex-row",
           )}
         >

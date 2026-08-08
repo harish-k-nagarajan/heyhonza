@@ -39,7 +39,7 @@ const config: Config = {
         "honza-oops": "honza-oops 3.5s ease-in-out infinite",
         "honza-excited": "honza-excited 2.6s ease-in-out infinite",
         blink: "blink 1.1s step-end infinite",
-        "landing-fade-in": "landing-fade-in 0.5s var(--ease-out) forwards",
+        "landing-fade-in": "landing-fade-in 280ms var(--ease-out) forwards",
         "message-in": "message-in var(--duration-bubble-in) var(--ease-out) forwards",
         "drawer-in": "drawer-in var(--duration-drawer-in) var(--ease-drawer) forwards",
         "drawer-backdrop": "drawer-backdrop var(--duration-bubble-in) var(--ease-out) forwards",
@@ -104,7 +104,7 @@ const config: Config = {
         },
         "honza-pop": {
           "0%": { transform: "scale(1)" },
-          "35%": { transform: "scale(1.1)" },
+          "35%": { transform: "scale(1.06)" },
           "100%": { transform: "scale(1)" },
         },
         "typing-dot": {

@@ -84,9 +84,20 @@ export function HmatScreenTitle({ children }: { children: ReactNode }) {
   );
 }
 
-export function HmatHonzaBubble({ children }: { children: ReactNode }) {
+export function HmatHonzaBubble({
+  children,
+  index = 0,
+}: {
+  children: ReactNode;
+  index?: number;
+}) {
+  const delay = Math.min(index, 3) * 50;
+
   return (
-    <div className="max-w-[88%] self-start">
+    <div
+      className="message-enter max-w-[88%] self-start"
+      style={delay > 0 ? { transitionDelay: `${delay}ms, 0ms` } : undefined}
+    >
       <div className="hmat-bubble-honza px-4 py-3.5">
         <p className={cn(TYPE.bodySm, "text-[#243D2C]")}>{children}</p>
       </div>
@@ -94,9 +105,20 @@ export function HmatHonzaBubble({ children }: { children: ReactNode }) {
   );
 }
 
-export function HmatUserBubble({ children }: { children: ReactNode }) {
+export function HmatUserBubble({
+  children,
+  index = 0,
+}: {
+  children: ReactNode;
+  index?: number;
+}) {
+  const delay = Math.min(index, 3) * 50;
+
   return (
-    <div className="max-w-[88%] self-end">
+    <div
+      className="message-enter max-w-[88%] self-end"
+      style={delay > 0 ? { transitionDelay: `${delay}ms, 0ms` } : undefined}
+    >
       <div className="hmat-bubble-user px-4 py-3.5">
         <p className={cn(TYPE.bodySm, "text-white")}>{children}</p>
       </div>
