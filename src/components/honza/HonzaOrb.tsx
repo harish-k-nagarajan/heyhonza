@@ -281,7 +281,7 @@ export function HonzaOrb({
         >
           <defs>
             <clipPath id={clipId}>
-              <rect x={0} y={0} width={VIEW} height={VIEW} rx={CELL * 0.2} />
+              <circle cx={VIEW / 2} cy={VIEW / 2} r={VIEW / 2} />
             </clipPath>
           </defs>
           <g clipPath={`url(#${clipId})`}>

@@ -55,7 +55,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     const el = threadRef.current;
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [threadMessages.length]);
+  }, [threadMessages.length, showTyping]);
 
   const composerMode = heroMode ? "idle" : "ongoing";
   const localizedError = localizeClientError(lastError, t.errors);
@@ -119,11 +119,10 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
           {heroMode && openerMessage ? (
             <HmatOpenerCard>{openerMessage}</HmatOpenerCard>
-          ) : showTyping ? (
-            <HonzaTypingBubble variant="hmat" />
-          ) : !heroMode ? (
-            <>
-              {threadMessages.map((m: ChatMessage, i) =>
+          ) : null}
+
+          {!heroMode
+            ? threadMessages.map((m: ChatMessage, i) =>
                 m.role === "user" ? (
                   <HmatUserBubble key={m.id} index={i}>
                     {m.content}
@@ -133,9 +132,10 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
                     {m.content}
                   </HmatHonzaBubble>
                 ),
-              )}
-            </>
-          ) : null}
+              )
+            : null}
+
+          {showTyping ? <HonzaTypingBubble variant="hmat" /> : null}
         </HmatChatThread>
 
         <div className="shrink-0">
