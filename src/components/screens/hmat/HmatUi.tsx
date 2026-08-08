@@ -3,7 +3,7 @@
 import { forwardRef, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { HmatOrb } from "@/components/honza/HmatOrb";
-import { OrbDotHalo } from "@/components/honza/OrbDotHalo";
+import { OrbRipples } from "@/components/honza/OrbRipples";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import type { HonzaOrbState } from "@/components/honza/theme";
 import { cn } from "@/lib/cn";
@@ -41,7 +41,13 @@ export function HmatPresenceRecess({
 
   return (
     <div className="relative">
-      <div className="hmat-pulse-glow" aria-hidden />
+      <div
+        className={cn(
+          "hmat-pulse-glow",
+          (loading || orbState === "thinking") && "hmat-pulse-glow-active",
+        )}
+        aria-hidden
+      />
       <div className="hmat-recess-hero mat-recess flex flex-col items-center px-4 pb-3.5 pt-[18px]">
         <button
           type="button"
@@ -52,7 +58,7 @@ export function HmatPresenceRecess({
           className="relative rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           aria-label={t.common.honza}
         >
-          <OrbDotHalo state={orbState} size={size} />
+          <OrbRipples state={orbState} size={size} />
           <HmatOrb state={orbState} size={size} breathe stackClassName={stackClassName} />
         </button>
         <div

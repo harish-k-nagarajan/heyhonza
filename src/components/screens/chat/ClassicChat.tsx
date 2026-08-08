@@ -7,7 +7,7 @@ import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
 import { HonzaTypingBubble } from "@/components/chat/HonzaTypingBubble";
 import { MessageList } from "@/components/chat/MessageList";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
-import { OrbDotHalo } from "@/components/honza/OrbDotHalo";
+import { OrbRipples } from "@/components/honza/OrbRipples";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { Card } from "@/components/ui/Card";
 import type { ChatScreen } from "@/hooks/useChatScreen";
@@ -93,7 +93,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
             aria-label={t.common.honza}
           >
             {heroMode ? (
-              <OrbDotHalo state={expression.mood} size={CLASSIC_HERO_ORB_PX} />
+              <OrbRipples state={expression.mood} size={CLASSIC_HERO_ORB_PX} />
             ) : null}
             <HonzaOrb
               state={expression.mood}

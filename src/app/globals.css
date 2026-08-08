@@ -631,6 +631,24 @@ body {
   z-index: 0;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .hmat-pulse-glow-active {
+    animation: hmat-glow-breathe 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes hmat-glow-breathe {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.34;
+    transform: translateX(-50%) scale(1.07);
+  }
+}
+
 .hmat-recess-hero {
   position: relative;
   z-index: 1;
