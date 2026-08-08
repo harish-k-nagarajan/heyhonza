@@ -1,6 +1,10 @@
 "use client";
 
 import { buildLearnerContextText } from "@/lib/context";
+import {
+  clearReplyChoreography,
+  scheduleAssistantReveal,
+} from "@/hooks/useReplyChoreography";
 import { previewFromThread, useChatStore } from "@/stores/useChatStore";
 import { useMoodStore } from "@/stores/useMoodStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
@@ -102,10 +106,12 @@ export async function initiateOpener(): Promise<void> {
       sessionId: chat.activeSessionId,
     });
     if (useChatStore.getState().messages.length === 0) {
-      useChatStore.getState().addAssistantMessage(reply);
-      useMoodStore.getState().flashMood("speaking", { ms: 900 });
+      await scheduleAssistantReveal(reply, "chat", {
+        shouldReveal: () => useChatStore.getState().messages.length === 0,
+      });
     }
   } catch (e) {
+    clearReplyChoreography();
     useChatStore.getState().setError(e instanceof Error ? e.message : "Unknown error");
     useMoodStore.getState().setMood("oops");
   } finally {
@@ -133,12 +139,10 @@ export async function sendUserTurn(
       kind,
       sessionId: chat.activeSessionId ?? undefined,
     });
-    useChatStore.getState().addAssistantMessage(reply, kind);
-    if (kind !== "call") {
-      useMoodStore.getState().flashMood("speaking", { ms: 900 });
-    }
+    await scheduleAssistantReveal(reply, kind);
     return reply;
   } catch (e) {
+    clearReplyChoreography();
     useChatStore.getState().setError(e instanceof Error ? e.message : "Unknown error");
     useMoodStore.getState().setMood("oops");
     return null;

@@ -24,7 +24,10 @@ export type ChatState = {
   messages: ChatMessage[];
   status: "idle" | "loading" | "error";
   lastError: string | null;
+  /** Assistant reply held during typing-phase reveal (ephemeral, not persisted). */
+  typingPreview: string | null;
   chatPhase: ChatPhase;
+  setTypingPreview: (text: string | null) => void;
   addUserMessage: (content: string, kind?: MessageKind) => void;
   addAssistantMessage: (content: string, kind?: MessageKind) => void;
   setMessages: (messages: ChatMessage[]) => void;
@@ -103,7 +106,9 @@ export const useChatStore = create<ChatState>()(
       messages: [],
       status: "idle",
       lastError: null,
+      typingPreview: null,
       chatPhase: "idle",
+      setTypingPreview: (typingPreview) => set({ typingPreview }),
       addUserMessage: (content, kind = "chat") => {
         const sessionId = get().activeSessionId;
         set((s) => ({
@@ -149,6 +154,7 @@ export const useChatStore = create<ChatState>()(
           activeSessionId: sid,
           messages: [],
           lastError: null,
+          typingPreview: null,
           status: "idle",
           chatPhase: "active",
         });
@@ -157,7 +163,13 @@ export const useChatStore = create<ChatState>()(
       endSession: () => {
         const { activeSessionId, messages, endedSessions, archivedMessages } = get();
         if (!activeSessionId) {
-          set({ messages: [], chatPhase: "idle", lastError: null, status: "idle" });
+          set({
+            messages: [],
+            chatPhase: "idle",
+            lastError: null,
+            typingPreview: null,
+            status: "idle",
+          });
           return;
         }
         const thread = messages.filter((m) => m.role === "user" || m.role === "assistant");
@@ -179,6 +191,7 @@ export const useChatStore = create<ChatState>()(
             messages: [],
             chatPhase: "idle",
             lastError: null,
+            typingPreview: null,
             status: "idle",
           });
         } else {
@@ -187,6 +200,7 @@ export const useChatStore = create<ChatState>()(
             messages: [],
             chatPhase: "idle",
             lastError: null,
+            typingPreview: null,
             status: "idle",
           });
         }
@@ -199,6 +213,7 @@ export const useChatStore = create<ChatState>()(
           archivedMessages: archivedMessages ?? get().archivedMessages,
           chatPhase: activeSessionId ? "active" : "idle",
           lastError: null,
+          typingPreview: null,
           status: "idle",
         }),
       setArchivedSessionMessages: (sessionId, messages) =>
@@ -209,6 +224,7 @@ export const useChatStore = create<ChatState>()(
         set({
           messages: [],
           lastError: null,
+          typingPreview: null,
           status: "idle",
           chatPhase: get().activeSessionId ? "active" : "idle",
         }),
@@ -220,6 +236,7 @@ export const useChatStore = create<ChatState>()(
           messages: [],
           status: "idle",
           lastError: null,
+          typingPreview: null,
           chatPhase: "idle",
         }),
     }),

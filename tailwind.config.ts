@@ -45,6 +45,8 @@ const config: Config = {
         "drawer-backdrop": "drawer-backdrop var(--duration-bubble-in) var(--ease-out) forwards",
         "channel-pulse": "channel-pulse 0.45s var(--ease-out) 1",
         "honza-pop": "honza-pop var(--duration-orb-pop) var(--ease-out)",
+        "typing-dot": "typing-dot 450ms var(--ease-in-out) infinite",
+        "typing-bubble-in": "typing-bubble-in var(--duration-bubble-in) var(--ease-out) forwards",
       },
       keyframes: {
         honza: {
@@ -101,6 +103,14 @@ const config: Config = {
           "0%": { transform: "scale(1)" },
           "35%": { transform: "scale(1.1)" },
           "100%": { transform: "scale(1)" },
+        },
+        "typing-dot": {
+          "0%, 100%": { opacity: "0.4" },
+          "50%": { opacity: "0.7" },
+        },
+        "typing-bubble-in": {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
         },
       },
       maxWidth: {
