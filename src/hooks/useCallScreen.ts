@@ -67,6 +67,9 @@ export type CallScreen = {
   endCall: (goToChat: boolean) => void;
   /** Toggle the mic: start listening if idle, stop if hot. */
   toggleMic: () => void;
+  /** Show live transcript panel (speaker toggle in handoff). */
+  captionsVisible: boolean;
+  toggleCaptions: () => void;
 };
 
 export function useCallScreen(): CallScreen {
@@ -83,6 +86,7 @@ export function useCallScreen(): CallScreen {
   const [captionWho, setCaptionWho] = useState<"honza" | "you">("honza");
   const [error, setError] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
+  const [captionsVisible, setCaptionsVisible] = useState(false);
 
   // `phase` in a ref: the speak→listen→send cycle is driven by callbacks that
   // outlive the render they were created in, and they must not act on a call
@@ -220,6 +224,10 @@ export function useCallScreen(): CallScreen {
     else startListening();
   }, [listening, stop, startListening]);
 
+  const toggleCaptions = useCallback(() => {
+    setCaptionsVisible((v) => !v);
+  }, []);
+
   const statusLine =
     phase === "ready"
       ? "Tap to call — you'll speak Czech, he'll answer out loud."
@@ -251,5 +259,7 @@ export function useCallScreen(): CallScreen {
     startCall,
     endCall,
     toggleMic,
+    captionsVisible,
+    toggleCaptions,
   };
 }
