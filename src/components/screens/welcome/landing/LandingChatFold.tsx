@@ -1,22 +1,25 @@
+"use client";
+
 import {
   LANDING_PHONE_CHAT,
-  LANDING_SECTIONS,
 } from "@/components/screens/welcome/welcome-content";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 import { LandingChatBubble } from "./LandingChatBubble";
 import { LandingFoldHeader } from "./LandingFoldHeader";
 
 export function LandingChatFold() {
-  const section = LANDING_SECTIONS.chat;
+  const { t } = useLocale();
+  const w = t.welcome;
 
   return (
     <section className="landing-fold landing-fold-chat flex flex-col items-center gap-8 px-6 py-12 md:px-10 md:py-14">
       <LandingFoldHeader
-        num={section.num}
-        kicker={section.kicker}
-        title={section.title}
+        num="01"
+        kicker={w.sectionChatKicker}
+        title={w.sectionChatTitle}
       />
 
       <div
@@ -26,8 +29,8 @@ export function LandingChatFold() {
         )}
       >
         <div className="mb-3 flex items-center justify-between">
-          <p className={cn(TYPE.title, "text-base text-foreground")}>Honza</p>
-          <p className={cn(TYPE.bodySm, "text-[#2E7D32]")}>online</p>
+          <p className={cn(TYPE.title, "text-base text-foreground")}>{t.common.honza}</p>
+          <p className={cn(TYPE.bodySm, "text-[#2E7D32]")}>{w.online}</p>
         </div>
 
         <div className="flex flex-col gap-2.5 py-2">
@@ -46,7 +49,7 @@ export function LandingChatFold() {
       </div>
 
       <p className={cn("max-w-[480px] text-center", TYPE.subtitle, "md:text-[14px]")}>
-        {section.lead}
+        {w.sectionChatLead}
       </p>
     </section>
   );

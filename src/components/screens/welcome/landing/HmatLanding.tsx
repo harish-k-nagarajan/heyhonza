@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 import { LandingCallFold } from "./LandingCallFold";
 import { LandingChatFold } from "./LandingChatFold";
@@ -17,6 +18,7 @@ import { useLandingVisitor } from "./useLandingVisitor";
 /** Hmat marketing landing — shown on `/welcome`. */
 export function HmatLanding() {
   const visitor = useLandingVisitor();
+  const { t } = useLocale();
 
   if (!visitor.ready) {
     return (
@@ -26,7 +28,7 @@ export function HmatLanding() {
           TYPE.meta,
         )}
       >
-        Loading…
+        {t.common.loading}
       </div>
     );
   }

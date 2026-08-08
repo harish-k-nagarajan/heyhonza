@@ -17,13 +17,6 @@ import { PushNotificationSettings } from "@/components/pwa/PushNotificationSetti
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/useLocale";
 
-const LEVEL_HINTS: Record<LevelId, string> = {
-  A1: "Start",
-  A2: "Základ",
-  B1: "Dál",
-  B2: "Pokroč.",
-};
-
 function TopicChip({
   on,
   children,
@@ -52,10 +45,12 @@ function TopicChip({
 
 function LevelTile({
   id,
+  hint,
   selected,
   onClick,
 }: {
   id: LevelId;
+  hint: string;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -85,7 +80,7 @@ function LevelTile({
           selected ? "text-accent" : "text-[#9c9089]",
         )}
       >
-        {LEVEL_HINTS[id]}
+        {hint}
       </span>
     </button>
   );
@@ -93,7 +88,8 @@ function LevelTile({
 
 export function HmatSettings({ screen }: { screen: SettingsScreen }) {
   const { expression, contextChunks, lastSynced } = screen;
-  const { t } = useLocale();
+  const { locale, t } = useLocale();
+  const s = t.settings;
 
   if (!screen.ready) {
     return (
@@ -103,7 +99,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
           TYPE.meta,
         )}
       >
-        Načítání…
+        {s.loading}
       </div>
     );
   }
@@ -115,59 +111,58 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
 
   const topicRows = [TOPIC_OPTIONS.slice(0, 3), TOPIC_OPTIONS.slice(3, 6)];
 
+  const syncedDate =
+    lastSynced > 0
+      ? new Date(lastSynced).toLocaleDateString(locale === "cs" ? "cs-CZ" : "en-US")
+      : "";
+
   return (
     <div className="flex flex-1 flex-col gap-5 pb-2">
-      <HmatSettingsHeader
-        orbState={expression.mood}
-        kicker="NASTAVENÍ"
-        title="Jak s tebou Honza mluví"
-      />
+      <HmatSettingsHeader orbState={expression.mood} kicker={s.kicker} title={s.title} />
 
       <HmatFrostCard className="flex items-center gap-3 p-4">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[#FFE5DC]">
           <span className="font-display text-[13px] font-bold text-accent">TY</span>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-display text-[15px] font-bold text-[#243D2C]">Tvůj účet</p>
+          <p className="font-display text-[15px] font-bold text-[#243D2C]">{s.accountTitle}</p>
           <p className="font-sans text-[13px] text-[#9c9089]">ahoj@honza.app</p>
         </div>
       </HmatFrostCard>
 
       <section className="space-y-2.5">
-        <HmatSectionLabel>OZNÁMENÍ</HmatSectionLabel>
+        <HmatSectionLabel>{s.sections.notifications}</HmatSectionLabel>
         <HmatFrostCard className="p-1">
           <PushNotificationSettings />
         </HmatFrostCard>
       </section>
 
       <section className="space-y-2.5">
-        <HmatSectionLabel>JAZYK APLIKACE</HmatSectionLabel>
+        <HmatSectionLabel>{s.sections.appLanguage}</HmatSectionLabel>
         <HmatFrostCard className="space-y-3 p-4">
-          <p className={cn(TYPE.helper, "text-[#9c9089]")}>{t.settings.appLanguage}</p>
+          <p className={cn(TYPE.helper, "text-[#9c9089]")}>{s.appLanguage}</p>
           <LanguageSwitcher />
         </HmatFrostCard>
       </section>
 
       <section className="space-y-2.5">
-        <HmatSectionLabel>SERVER</HmatSectionLabel>
+        <HmatSectionLabel>{s.sections.server}</HmatSectionLabel>
         <HmatFrostCard className="p-4">
           <p className={TYPE.subtitle}>
             OpenRouter:{" "}
             {screen.serverOk === null
-              ? "…"
+              ? s.serverChecking
               : screen.serverOk
-                ? "připojeno"
-                : "chybí OPENROUTER_API_KEY"}
+                ? s.serverConfigured
+                : s.serverMissing}
           </p>
         </HmatFrostCard>
       </section>
 
       <section className="space-y-2.5">
-        <HmatSectionLabel>ÚROVEŇ UČENÍ</HmatSectionLabel>
+        <HmatSectionLabel>{s.sections.level}</HmatSectionLabel>
         <HmatFrostCard className="space-y-3 p-4">
-          <p className={cn(TYPE.helper, "text-[#9c9089]")}>
-            Honza přizpůsobí tempo, slovní zásobu a obtížnost.
-          </p>
+          <p className={cn(TYPE.helper, "text-[#9c9089]")}>{s.levelHint}</p>
           <div className="flex flex-col gap-2">
             {levelRows.map((row) => (
               <div key={row.join("-")} className="flex gap-2">
@@ -175,6 +170,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
                   <LevelTile
                     key={id}
                     id={id}
+                    hint={s.levelHints[id]}
                     selected={screen.level === id}
                     onClick={() => screen.chooseLevel(id)}
                   />
@@ -186,10 +182,10 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       </section>
 
       <section className="space-y-2.5">
-        <HmatSectionLabel>MODEL</HmatSectionLabel>
+        <HmatSectionLabel>{s.sections.model}</HmatSectionLabel>
         <HmatFrostCard className="p-4">
           <select
-            aria-label="Model"
+            aria-label={s.sections.model}
             className="hmat-frost-field h-11 w-full rounded-[14px] bg-transparent px-3 font-sans text-sm text-[#243D2C] outline-none"
             value={screen.model}
             onChange={(e) => screen.chooseModel(e.target.value as ModelId)}
@@ -204,11 +200,9 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       </section>
 
       <section className="space-y-2.5">
-        <HmatSectionLabel>TÉMATA</HmatSectionLabel>
+        <HmatSectionLabel>{s.sections.topics}</HmatSectionLabel>
         <HmatFrostCard className="space-y-3 p-4">
-          <p className={cn(TYPE.helper, "text-[#9c9089]")}>
-            Vyber témata, o kterých chceš s Honzou mluvit.
-          </p>
+          <p className={cn(TYPE.helper, "text-[#9c9089]")}>{s.topicsHint}</p>
           {topicRows.map((row, i) => (
             <div key={i} className="flex gap-2">
               {row.map((topic) => (
@@ -217,7 +211,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
                   on={screen.topics.includes(topic.id)}
                   onClick={() => screen.toggleTopic(topic.id)}
                 >
-                  {topic.label}
+                  {t.topics[topic.id]}
                 </TopicChip>
               ))}
             </div>
@@ -226,18 +220,18 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       </section>
 
       <section className="space-y-2.5">
-        <HmatSectionLabel>KONTEXT</HmatSectionLabel>
+        <HmatSectionLabel>{s.sections.context}</HmatSectionLabel>
         <HmatFrostCard className="space-y-3 p-4">
           <p className={cn(TYPE.helper, "text-[#9c9089]")}>
             {lastSynced > 0
-              ? `Naposledy ${new Date(lastSynced).toLocaleDateString()} · ${contextChunks.length} zdroj${contextChunks.length === 1 ? "" : "ů"}, ze kterých Honza čte.`
-              : "Zatím nic. Přidej Google Doc, soubor nebo text, ať Honza ví, co se učíš."}
+              ? s.contextSynced(syncedDate, contextChunks.length)
+              : s.contextEmpty}
           </p>
           <input
             value={screen.docUrl}
             onChange={(e) => screen.setDocUrl(e.target.value)}
-            placeholder="https://docs.google.com/document/d/…"
-            aria-label="Google Doc URL"
+            placeholder={s.googleDocPlaceholder}
+            aria-label={s.googleDocAria}
             className="hmat-frost-field w-full rounded-[14px] bg-transparent px-3.5 py-2.5 font-sans text-sm text-[#243D2C] outline-none"
           />
           {screen.docError ? (
@@ -251,21 +245,21 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
             onClick={screen.importGoogleDoc}
             disabled={screen.docLoading}
           >
-            {screen.docLoading ? "Načítám…" : "Přidat z Google Docs"}
+            {screen.docLoading ? s.fetching : s.addFromGoogleDocs}
           </Button>
           <textarea
             value={screen.paste}
             onChange={(e) => screen.setPaste(e.target.value)}
             rows={3}
-            placeholder="…nebo vlož text"
-            aria-label="Pasted text"
+            placeholder={s.pastePlaceholder}
+            aria-label={s.pastedTextAria}
             className="hmat-frost-field w-full resize-none rounded-[14px] bg-transparent px-3.5 py-2.5 font-sans text-sm text-[#243D2C] outline-none"
           />
           <Button type="button" surface="mat-key" shape="card" size="md" onClick={screen.addPaste}>
-            Přidat text
+            {s.addText}
           </Button>
           <div className="space-y-1.5">
-            <p className={TYPE.helper}>Soubor (.txt, .md)</p>
+            <p className={TYPE.helper}>{s.fileLabel}</p>
             <HmatFileInput onFile={screen.onFile} />
           </div>
           <ul className="space-y-2">
@@ -277,7 +271,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
                 <div className="min-w-0">
                   <p className="font-sans font-medium text-[#243D2C]">
                     {c.meta.kind === "google_doc"
-                      ? "Google Doc"
+                      ? s.googleDocKind
                       : c.meta.kind === "file"
                         ? c.meta.name
                         : c.meta.label}
@@ -289,7 +283,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
                   className="shrink-0 font-sans text-accent underline"
                   onClick={() => screen.removeContext(c.id)}
                 >
-                  Odebrat
+                  {s.remove}
                 </button>
               </li>
             ))}
@@ -298,17 +292,17 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       </section>
 
       <section className="space-y-2.5">
-        <HmatSectionLabel>DATA ZAŘÍZENÍ</HmatSectionLabel>
+        <HmatSectionLabel>{s.sections.deviceData}</HmatSectionLabel>
         <HmatFrostCard className="space-y-3 p-4">
           <Button type="button" surface="mat-key" shape="card" size="md" onClick={screen.resetData}>
-            Smazat data a projít onboarding znovu
+            {s.resetData}
           </Button>
           <form action="/auth/signout" method="post">
             <button
               type="submit"
               className={cn("w-full py-1 underline text-[#9c9089]", TYPE.label)}
             >
-              Odhlásit se
+              {s.signOut}
             </button>
           </form>
         </HmatFrostCard>

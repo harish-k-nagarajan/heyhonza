@@ -13,6 +13,7 @@ import { cn } from "@/lib/cn";
 import type { CallScreen } from "@/hooks/useCallScreen";
 import { useMoodReactions } from "@/hooks/useMoodReactions";
 import { useReactPop } from "@/hooks/useReactPop";
+import { useLocale } from "@/lib/i18n/useLocale";
 import { tapLight, tapMedium } from "@/lib/interaction/haptic";
 
 /**
@@ -20,6 +21,8 @@ import { tapLight, tapMedium } from "@/lib/interaction/haptic";
  * updated for hardware icons, react-pop, and mood strip (Classic keeps flat chrome).
  */
 export function ClassicCall({ screen }: { screen: CallScreen }) {
+  const { t } = useLocale();
+  const c = t.call;
   const { phase, inCall, orbState, caption, captionWho, error, listening, supported } =
     screen;
   const { stackClassName, triggerPop } = useReactPop();
@@ -40,7 +43,7 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
       <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
         <HonzaOrb state="idle" size="avatar" />
         <div className="h-3 w-24 animate-pulse rounded-full bg-muted" aria-hidden />
-        <p className="font-sans text-sm text-muted-foreground">Loading…</p>
+        <p className="font-sans text-sm text-muted-foreground">{t.common.loading}</p>
       </div>
     );
   }
@@ -48,11 +51,11 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
   return (
     <div className="flex min-h-[calc(100dvh-9rem)] flex-col gap-4">
       <header className="flex shrink-0 items-center justify-between">
-        <SectionLabel>{inCall ? "Live call" : "Call Honza"}</SectionLabel>
+        <SectionLabel>{inCall ? c.liveCall : c.callHonza}</SectionLabel>
         {inCall ? (
           <span
             className="font-sans text-xs tabular-nums text-muted-foreground"
-            aria-label="Call duration"
+            aria-label={c.callDurationAria}
           >
             {screen.durationLabel}
           </span>
@@ -68,7 +71,7 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
               triggerPop();
             }}
             className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            aria-label="Honza"
+            aria-label={t.common.honza}
           >
             <HonzaOrb state={orbState} size="hero" stackClassName={stackClassName} />
           </button>
@@ -82,7 +85,7 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
 
         <MoodOrbStrip
           expression={screen.expression}
-          thinkingLabel="Ringing…"
+          thinkingLabel={c.ringing}
           showChannel={false}
           className="max-w-[240px]"
         />
@@ -98,7 +101,7 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
         {caption ? (
           <Card className="w-full max-w-[340px] p-3 motion-safe:animate-message-in motion-reduce:animate-none">
             <SectionLabel as="p" className="mb-1 text-[9px]">
-              {captionWho === "honza" ? "Honza" : "You"}
+              {captionWho === "honza" ? t.common.honza : t.common.you}
             </SectionLabel>
             <p className="text-sm leading-relaxed">{caption}</p>
           </Card>
@@ -110,12 +113,11 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
 
         {!supported && !inCall ? (
           <p className="max-w-[320px] font-sans text-xs text-muted-foreground">
-            Speech recognition needs Chrome, Edge or Safari. In other browsers,
-            use{" "}
+            {c.browserUnsupported}{" "}
             <a href={ROUTES.chat} className="text-accent underline">
-              Chat
-            </a>{" "}
-            instead.
+              {t.nav.chat}
+            </a>
+            .
           </p>
         ) : null}
       </div>
@@ -131,7 +133,7 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
             }}
             disabled={!supported}
           >
-            CALL HONZA
+            {c.callHonzaCta}
           </Button>
         ) : (
           <div className="flex items-center gap-4">
@@ -143,7 +145,7 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
               }}
               disabled={phase === "connecting" || phase === "thinking"}
               aria-pressed={listening}
-              aria-label={listening ? "Stop speaking" : "Speak"}
+              aria-label={listening ? c.stopSpeaking : c.speak}
               className={cn(
                 "flex h-16 w-16 items-center justify-center rounded-full border-2 transition active:scale-95 disabled:opacity-40",
                 listening
@@ -159,7 +161,7 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
                 tapLight();
                 screen.endCall(true);
               }}
-              aria-label="End call"
+              aria-label={c.endCallAria}
               className="flex h-16 w-16 items-center justify-center rounded-full bg-[#C2185B] text-white transition active:scale-95"
             >
               <HardwareIcon name="hang" size={26} emboss={false} />
@@ -168,7 +170,7 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
         )}
         {inCall ? (
           <span className="font-sans text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
-            End call → transcript in Chat
+            {c.endCallFooter}
           </span>
         ) : null}
       </div>

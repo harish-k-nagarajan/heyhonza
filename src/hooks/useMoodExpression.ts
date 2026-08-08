@@ -2,6 +2,7 @@
 
 import { moodExpression } from "@/lib/mood/expression";
 import type { MoodExpression } from "@/lib/mood/expression";
+import { useLocale } from "@/lib/i18n/useLocale";
 import { useDesignStore } from "@/stores/useDesignStore";
 import { useMoodStore } from "@/stores/useMoodStore";
 
@@ -14,5 +15,6 @@ import { useMoodStore } from "@/stores/useMoodStore";
 export function useMoodExpression(): MoodExpression {
   const mood = useMoodStore((s) => s.mood);
   const design = useDesignStore((s) => s.design);
-  return moodExpression(mood, design);
+  const { locale } = useLocale();
+  return moodExpression(mood, design, locale);
 }

@@ -3,19 +3,23 @@
 import { DEMO_CHAT_BEATS } from "@/components/screens/welcome/welcome-content";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 export function LandingDemoChat() {
+  const { t } = useLocale();
+  const w = t.welcome;
+
   return (
     <div className="landing-panel landing-demo-frame mx-auto max-w-[380px] md:max-w-none">
       <div className="mb-3 flex items-center justify-between">
-        <p className={cn(TYPE.kicker, "text-muted-foreground")}>Conversation preview</p>
+        <p className={cn(TYPE.kicker, "text-muted-foreground")}>{w.conversationPreview}</p>
         <span className="mat inline-flex items-center gap-1.5 rounded-full px-2.5 py-1">
           <span
             className="h-[6px] w-[6px] rounded-full bg-accent"
             style={{ boxShadow: "0 0 6px var(--accent)" }}
             aria-hidden
           />
-          <span className={cn(TYPE.kicker, "text-accent")}>Preview</span>
+          <span className={cn(TYPE.kicker, "text-accent")}>{w.preview}</span>
         </span>
       </div>
 
@@ -28,7 +32,7 @@ export function LandingDemoChat() {
           >
             <div className="flex justify-start">
               <div className="mat-metal max-w-[88%] rounded-[18px] px-4 py-3 text-left">
-                <p className={cn("mb-1", TYPE.kicker, "text-muted-foreground")}>Honza</p>
+                <p className={cn("mb-1", TYPE.kicker, "text-muted-foreground")}>{t.common.honza}</p>
                 <p className={cn(TYPE.bodySm, "leading-snug text-foreground")}>{beat.honza}</p>
               </div>
             </div>
@@ -40,13 +44,13 @@ export function LandingDemoChat() {
                   color: "var(--accent-foreground, #fff)",
                 }}
               >
-                <p className={cn("mb-1", TYPE.kicker, "opacity-80")}>You</p>
+                <p className={cn("mb-1", TYPE.kicker, "opacity-80")}>{t.common.you}</p>
                 <p className={cn(TYPE.bodySm, "leading-snug")}>{beat.user}</p>
               </div>
             </div>
             <div className="flex justify-start">
               <div className="mat max-w-[88%] rounded-[18px] border border-accent/20 px-4 py-3 text-left">
-                <p className={cn("mb-1", TYPE.kicker, "text-accent")}>Correction</p>
+                <p className={cn("mb-1", TYPE.kicker, "text-accent")}>{w.correction}</p>
                 <p className={cn(TYPE.bodySm, "leading-snug text-foreground")}>{beat.honzaFix}</p>
               </div>
             </div>

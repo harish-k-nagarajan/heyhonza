@@ -3,18 +3,27 @@
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import {
   LANDING_HERO_BUBBLES,
-  LANDING_HERO_FIRST,
-  LANDING_HERO_SIGNED_OUT,
 } from "@/components/screens/welcome/welcome-content";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 import { LandingAuthButtons, LandingCtaHint } from "./LandingAuthButtons";
 import { LandingChatBubble } from "./LandingChatBubble";
 import type { LandingVisitor } from "./useLandingVisitor";
 
 export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
-  const copy = visitor.isSignedOut ? LANDING_HERO_SIGNED_OUT : LANDING_HERO_FIRST;
+  const { t } = useLocale();
+  const w = t.welcome;
+  const copy = visitor.isSignedOut
+    ? {
+        headline: w.signedOutHeadline,
+        subcopy: w.signedOutSubcopy,
+      }
+    : {
+        headline: w.heroHeadline,
+        subcopy: w.heroSubcopy,
+      };
 
   return (
     <section className="landing-fold landing-fold-hero relative flex min-h-[min(820px,100dvh)] flex-col">

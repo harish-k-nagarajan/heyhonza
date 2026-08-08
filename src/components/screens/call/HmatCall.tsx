@@ -15,72 +15,33 @@ import { HmatScreenLoading } from "@/components/screens/hmat/HmatChrome";
 import type { CallScreen } from "@/hooks/useCallScreen";
 import { useMoodReactions } from "@/hooks/useMoodReactions";
 import { useReactPop } from "@/hooks/useReactPop";
+import { callChip, callTitle } from "@/lib/i18n/extended";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+import { useLocale } from "@/lib/i18n/useLocale";
 import { tapMedium } from "@/lib/interaction/haptic";
 
-function callTitle(phase: CallScreen["phase"]): string {
-  switch (phase) {
-    case "ready":
-      return "Hovor s Honzou";
-    case "connecting":
-      return "Spojuji hovor…";
-    case "speaking":
-      return "Honza mluví…";
-    case "listening":
-      return "Poslouchám…";
-    case "thinking":
-      return "Honza přemýšlí…";
-    default: {
-      const _exhaustive: never = phase;
-      return _exhaustive;
-    }
-  }
-}
-
-function callChip(phase: CallScreen["phase"], listening: boolean): string {
-  switch (phase) {
-    case "ready":
-      return "připraven";
-    case "connecting":
-      return "vyzvání";
-    case "speaking":
-      return "mluví";
-    case "listening":
-      return listening ? "poslouchá" : "čeká na tebe";
-    case "thinking":
-      return "přemýšlí";
-    default: {
-      const _exhaustive: never = phase;
-      return _exhaustive;
-    }
-  }
-}
-
-function captionKicker(phase: CallScreen["phase"], inCall: boolean): string {
-  if (!inCall) return "TITULKY";
-  if (phase === "connecting") return "STAV";
-  return "TITULKY";
+function captionKicker(phase: CallScreen["phase"], inCall: boolean, c: ReturnType<typeof useLocale>["t"]["call"]): string {
+  if (!inCall) return c.captionKicker;
+  if (phase === "connecting") return c.captionStatus;
+  return c.captionKicker;
 }
 
 function captionFallback(
   phase: CallScreen["phase"],
   inCall: boolean,
   captionsVisible: boolean,
+  c: ReturnType<typeof useLocale>["t"]["call"],
 ): string {
-  if (!inCall) {
-    return "Titulky vypnuté · zvol reproduktor, až budeš chtít číst.";
-  }
-  if (phase === "connecting") {
-    return "Volá se… Titulky se objeví v reproduktoru.";
-  }
-  if (!captionsVisible) {
-    return "Titulky vypnuté · klepni na reproduktor.";
-  }
+  if (!inCall) return c.captionOffIdle;
+  if (phase === "connecting") return c.captionOffConnecting;
+  if (!captionsVisible) return c.captionOffInCall;
   return "…";
 }
 
 export function HmatCall({ screen }: { screen: CallScreen }) {
+  const { t } = useLocale();
+  const c = t.call;
   const {
     phase,
     inCall,
@@ -110,7 +71,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
   const showLiveCaption = inCall && captionsVisible && caption;
   const captionText = showLiveCaption
     ? caption
-    : captionFallback(phase, inCall, captionsVisible);
+    : captionFallback(phase, inCall, captionsVisible, c);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
@@ -130,15 +91,15 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
       />
 
       <div className="flex shrink-0 flex-col items-center gap-2">
-        <HmatScreenTitle>{callTitle(phase)}</HmatScreenTitle>
-        <HmatStatusChip label={callChip(phase, listening)} />
+        <HmatScreenTitle>{callTitle(phase, c)}</HmatScreenTitle>
+        <HmatStatusChip label={callChip(phase, listening, c)} />
       </div>
 
-      <HmatCaptionPanel kicker={captionKicker(phase, inCall)} muted={!showLiveCaption}>
+      <HmatCaptionPanel kicker={captionKicker(phase, inCall, c)} muted={!showLiveCaption}>
         {showLiveCaption ? (
           <>
             <span className={cn(TYPE.kicker, "mb-1 block text-[#6E8A74]")}>
-              {captionWho === "honza" ? "Honza" : "Ty"}
+              {captionWho === "honza" ? t.common.honza : t.common.you}
             </span>
             {captionText}
           </>
@@ -155,9 +116,9 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
 
       {!supported && !inCall ? (
         <p className={cn(TYPE.helper, "text-center")}>
-          Rozpoznávání řeči potřebuje Chrome, Edge nebo Safari. Jinde použij{" "}
+          {c.browserUnsupported}{" "}
           <a href={ROUTES.chat} className="text-accent underline">
-            Chat
+            {t.nav.chat}
           </a>
           .
         </p>
@@ -168,7 +129,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
       <div className="flex shrink-0 flex-col items-center pb-1">
         {!inCall ? (
           <HmatCallButton
-            label="Zavolat"
+            label={c.callCta}
             disabled={!supported}
             onClick={() => screen.startCall()}
           />
@@ -177,6 +138,9 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
             captionsOn={captionsVisible}
             onToggleCaptions={() => screen.toggleCaptions()}
             onEndCall={() => screen.endCall(true)}
+            endLabel={c.endCall}
+            showCaptionsLabel={c.showCaptions}
+            hideCaptionsLabel={c.hideCaptions}
           />
         )}
       </div>

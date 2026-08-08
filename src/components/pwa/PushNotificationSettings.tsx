@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { DESIGNS } from "@/lib/design/registry";
 import { TYPE } from "@/lib/design/typography";
+import { useLocale } from "@/lib/i18n/useLocale";
 import {
   pushSupport,
   subscribeToPush,
@@ -20,6 +21,8 @@ import { useDesignStore } from "@/stores/useDesignStore";
 export function PushNotificationSettings() {
   const design = useDesignStore((s) => s.design);
   const isHmat = DESIGNS[design].family === "hmat";
+  const { t } = useLocale();
+  const s = t.settings;
   const [support, setSupport] = useState<PushSupport>("unsupported");
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -42,41 +45,33 @@ export function PushNotificationSettings() {
       if (enabled) {
         await unsubscribeFromPush();
         setEnabled(false);
-        setNote(isHmat ? "Oznámení vypnuta." : "Notifications turned off.");
+        setNote(s.notificationsTurnedOff);
       } else {
         const result = await subscribeToPush();
         if (result.ok) {
           setEnabled(true);
-          setNote(
-            isHmat
-              ? "Připraveno — až bude plán aktivní, Honza ti napíše."
-              : "Ready — when scheduling ships, Honza can reach you.",
-          );
+          setNote(s.notificationsReady);
         } else {
-          setNote(result.reason ?? "Could not enable notifications.");
+          setNote(result.reason ?? s.notificationsEnableFailed);
         }
       }
     } finally {
       setBusy(false);
     }
-  }, [enabled, isHmat]);
+  }, [enabled, s]);
 
   if (support === "unsupported") return null;
 
   return (
     <div className={cn("space-y-2", isHmat ? "" : "rounded-card border border-border bg-card p-4")}>
       {isHmat ? (
-        <p className={cn(TYPE.label, "text-muted-foreground")}>Oznámení</p>
+        <p className={cn(TYPE.label, "text-muted-foreground")}>{s.sections.notifications}</p>
       ) : (
         <p className="font-sans text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-          {"// NOTIFICATIONS"}
+          {`// ${s.sections.notifications}`}
         </p>
       )}
-      <p className={isHmat ? TYPE.subtitle : cn(TYPE.helper)}>
-        {isHmat
-          ? "Upozornění, až bude Honza připraven psát ti první — zatím jen příprava."
-          : "Get notified when Honza is ready to write first — foundation only until scheduling ships."}
-      </p>
+      <p className={isHmat ? TYPE.subtitle : cn(TYPE.helper)}>{s.notificationsHint}</p>
       <Button
         type="button"
         disabled={busy || support === "denied"}
@@ -87,18 +82,10 @@ export function PushNotificationSettings() {
         haptic="light"
         className={isHmat ? undefined : "rounded-full px-4 py-2"}
       >
-        {enabled
-          ? isHmat
-            ? "Vypnout"
-            : "Turn off"
-          : isHmat
-            ? "Zapnout"
-            : "Turn on"}
+        {enabled ? s.notificationsOff : s.notificationsOn}
       </Button>
       {support === "denied" ? (
-        <p className={cn(TYPE.helper, "text-accent")}>
-          {isHmat ? "Povol oznámení v nastavení prohlížeče." : "Allow notifications in browser settings."}
-        </p>
+        <p className={cn(TYPE.helper, "text-accent")}>{s.notificationsDenied}</p>
       ) : null}
       {note ? <p className={TYPE.helper}>{note}</p> : null}
     </div>

@@ -20,15 +20,21 @@ import { useLocale } from "@/lib/i18n/useLocale";
  */
 export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
   const { expression, contextChunks, lastSynced } = screen;
-  const { t } = useLocale();
+  const { locale, t } = useLocale();
+  const s = t.settings;
 
   if (!screen.ready) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground">
-        Loading…
+        {s.loading}
       </div>
     );
   }
+
+  const syncedDate =
+    lastSynced > 0
+      ? new Date(lastSynced).toLocaleString(locale === "cs" ? "cs-CZ" : "en-US")
+      : "";
 
   return (
     <div className="mx-auto flex max-w-app flex-col gap-6">
@@ -37,18 +43,16 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
       <header className="flex items-center gap-3">
         <HonzaOrb state={expression.mood} size="avatar" className="shrink-0" />
         <div className="space-y-1">
-          <SectionLabel as="p">Settings</SectionLabel>
-          <h1 className="font-sans text-lg leading-tight tracking-[0.12em]">
-            How Honza talks to you
-          </h1>
+          <SectionLabel as="p">{s.kicker}</SectionLabel>
+          <h1 className="font-sans text-lg leading-tight tracking-[0.12em]">{s.title}</h1>
         </div>
       </header>
       <p className="-mt-3 font-sans text-xs leading-relaxed tracking-[0.08em] text-muted-foreground">
-        Change your level, your topics, and what Honza knows about you.
+        {s.subtitle}
       </p>
 
       <Card className="space-y-3">
-        <SectionLabel as="p">{t.settings.appLanguage}</SectionLabel>
+        <SectionLabel as="p">{s.appLanguage}</SectionLabel>
         <LanguageSwitcher />
       </Card>
 
@@ -57,19 +61,19 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
       </Card>
 
       <Card className="space-y-2">
-        <SectionLabel>Server status</SectionLabel>
+        <SectionLabel>{s.serverStatus}</SectionLabel>
         <p className="text-sm text-muted-foreground">
           OpenRouter env on server:{" "}
           {screen.serverOk === null
-            ? "…"
+            ? s.serverChecking
             : screen.serverOk
-              ? "configured"
-              : "missing OPENROUTER_API_KEY"}
+              ? s.serverConfigured
+              : s.serverMissing}
         </p>
       </Card>
 
       <Card className="space-y-3">
-        <SectionLabel>Czech level</SectionLabel>
+        <SectionLabel>{s.sections.level}</SectionLabel>
         <div className="flex flex-wrap gap-2">
           {LEVEL_OPTIONS.map((l) => {
             const on = screen.level === l.id;
@@ -85,7 +89,7 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
                     : "border-border bg-muted text-muted-foreground"
                 }`}
               >
-                {l.label}
+                {t.levels.option[l.id as LevelId]}
               </button>
             );
           })}
@@ -93,9 +97,9 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
       </Card>
 
       <Card className="space-y-3">
-        <SectionLabel>Model</SectionLabel>
+        <SectionLabel>{s.sections.model}</SectionLabel>
         <Label htmlFor="model" className="sr-only">
-          Model
+          {s.sections.model}
         </Label>
         <select
           id="model"
@@ -112,22 +116,22 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
       </Card>
 
       <Card className="space-y-3">
-        <SectionLabel>Topics</SectionLabel>
+        <SectionLabel>{s.sections.topics}</SectionLabel>
         <div className="flex flex-wrap gap-2">
-          {TOPIC_OPTIONS.map((t) => {
-            const on = screen.topics.includes(t.id);
+          {TOPIC_OPTIONS.map((topic) => {
+            const on = screen.topics.includes(topic.id);
             return (
               <button
-                key={t.id}
+                key={topic.id}
                 type="button"
-                onClick={() => screen.toggleTopic(t.id)}
+                onClick={() => screen.toggleTopic(topic.id)}
                 className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                   on
                     ? "border-accent bg-accent/15 text-accent"
                     : "border-border bg-muted text-muted-foreground"
                 }`}
               >
-                {t.label}
+                {t.topics[topic.id]}
               </button>
             );
           })}
@@ -135,18 +139,18 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
       </Card>
 
       <Card className="space-y-3">
-        <SectionLabel>Context documents</SectionLabel>
+        <SectionLabel>{s.sections.context}</SectionLabel>
         <p className="text-xs text-muted-foreground">
           {lastSynced > 0
-            ? `Last synced ${new Date(lastSynced).toLocaleString()} · ${contextChunks.length} source${contextChunks.length === 1 ? "" : "s"} Honza reads from.`
-            : "No context yet. Add a Google Doc, file, or paste to teach Honza what you're learning."}
+            ? s.contextSynced(syncedDate, contextChunks.length)
+            : s.contextEmpty}
         </p>
-        <Label htmlFor="s-doc">Google Doc (public link)</Label>
+        <Label htmlFor="s-doc">{s.googleDocLabel}</Label>
         <Input
           id="s-doc"
           value={screen.docUrl}
           onChange={(e) => screen.setDocUrl(e.target.value)}
-          placeholder="https://docs.google.com/document/d/…"
+          placeholder={s.googleDocPlaceholder}
         />
         {screen.docError ? <p className="text-xs text-accent">{screen.docError}</p> : null}
         <Button
@@ -155,9 +159,9 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
           disabled={screen.docLoading}
           onClick={screen.importGoogleDoc}
         >
-          {screen.docLoading ? "Fetching…" : "Add from Google Docs"}
+          {screen.docLoading ? s.fetching : s.addFromGoogleDocs}
         </Button>
-        <Label htmlFor="s-paste">Pasted text</Label>
+        <Label htmlFor="s-paste">{s.pastedText}</Label>
         <Textarea
           id="s-paste"
           value={screen.paste}
@@ -165,9 +169,9 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
           rows={3}
         />
         <Button type="button" variant="secondary" onClick={screen.addPaste}>
-          Add text
+          {s.addText}
         </Button>
-        <Label htmlFor="s-file">File (.txt, .md)</Label>
+        <Label htmlFor="s-file">{s.fileLabel}</Label>
         <Input
           id="s-file"
           type="file"
@@ -183,7 +187,7 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
               <div className="min-w-0">
                 <p className="font-medium text-foreground">
                   {c.meta.kind === "google_doc"
-                    ? "Google Doc"
+                    ? s.googleDocKind
                     : c.meta.kind === "file"
                       ? c.meta.name
                       : c.meta.label}
@@ -195,7 +199,7 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
                 className="shrink-0 text-accent underline"
                 onClick={() => screen.removeContext(c.id)}
               >
-                Remove
+                {s.remove}
               </button>
             </li>
           ))}
@@ -203,9 +207,9 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
       </Card>
 
       <Card className="space-y-3">
-        <SectionLabel>Device data</SectionLabel>
+        <SectionLabel>{s.sections.deviceData}</SectionLabel>
         <Button type="button" variant="secondary" onClick={screen.resetData}>
-          Reset data and run onboarding again
+          {s.resetData}
         </Button>
       </Card>
     </div>

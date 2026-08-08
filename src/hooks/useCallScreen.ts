@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { useScreenReady } from "@/hooks/useScreenReady";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useLocale } from "@/lib/i18n/useLocale";
+import { callStatusLine, localizeClientError } from "@/lib/i18n/extended";
 import { sendUserTurn, startCallOpener } from "@/lib/client/chat-actions";
 import { speak, stopSpeaking } from "@/lib/client/tts-actions";
 import { ROUTES } from "@/lib/constants";
@@ -75,6 +77,7 @@ export type CallScreen = {
 export function useCallScreen(): CallScreen {
   const router = useRouter();
   const ready = useScreenReady();
+  const { t } = useLocale();
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
 
   const design = useDesignStore((s) => s.design);
@@ -140,14 +143,19 @@ export function useCallScreen(): CallScreen {
       try {
         await speak(text, { signal: controller.signal });
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Honza's voice is unavailable.");
+        setError(
+          localizeClientError(
+            e instanceof Error ? e.message : t.errors.unknownError,
+            t.errors,
+          ),
+        );
       } finally {
         abortRef.current = null;
       }
       if (!activeRef.current) return;
       startListening();
     },
-    [startListening],
+    [startListening, t.errors],
   );
 
   const handleTranscript = useCallback(
@@ -160,7 +168,12 @@ export function useCallScreen(): CallScreen {
         const reply = await sendUserTurn(text, "call");
         if (!activeRef.current) return;
         if (!reply) {
-          setError(useChatStore.getState().lastError ?? "Honza didn't reply.");
+          setError(
+            localizeClientError(
+              useChatStore.getState().lastError ?? t.errors.honzaNoReply,
+              t.errors,
+            ),
+          );
           setPhase("listening");
           return;
         }
@@ -168,7 +181,7 @@ export function useCallScreen(): CallScreen {
         await speakThenListen(reply);
       })();
     },
-    [speakThenListen],
+    [speakThenListen, t.errors],
   );
 
   useEffect(() => {
@@ -200,14 +213,19 @@ export function useCallScreen(): CallScreen {
       const opener = await startCallOpener();
       if (!activeRef.current) return;
       if (!opener) {
-        setError(useChatStore.getState().lastError ?? "Couldn't reach Honza.");
+        setError(
+          localizeClientError(
+            useChatStore.getState().lastError ?? t.errors.couldNotReach,
+            t.errors,
+          ),
+        );
         activeRef.current = false;
         setPhase("ready");
         return;
       }
       await speakThenListen(opener);
     })();
-  }, [speakThenListen]);
+  }, [speakThenListen, t.errors]);
 
   // Leaving mid-call must kill the mic and the audio, not leave them running.
   useEffect(() => {
@@ -228,18 +246,7 @@ export function useCallScreen(): CallScreen {
     setCaptionsVisible((v) => !v);
   }, []);
 
-  const statusLine =
-    phase === "ready"
-      ? "Tap to call — you'll speak Czech, he'll answer out loud."
-      : phase === "connecting"
-        ? "Ringing…"
-        : phase === "speaking"
-          ? "Honza is speaking…"
-          : phase === "listening"
-            ? listening
-              ? "Listening… speak Czech"
-              : "Tap the mic to answer"
-            : "Honza is thinking…";
+  const statusLine = callStatusLine(phase, listening, t.call);
 
   return {
     ready: ready && onboardingComplete,

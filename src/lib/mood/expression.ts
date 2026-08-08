@@ -19,6 +19,7 @@ import { HONZA_STATE_COLORS } from "@/components/honza/theme";
 import type { HonzaOrbState } from "@/components/honza/theme";
 import { DEFAULT_DESIGN } from "@/lib/design/registry";
 import type { DesignId } from "@/lib/design/registry";
+import { DEFAULT_LOCALE, getStrings, type UiLocale } from "@/lib/i18n/locales";
 
 export type Mood = HonzaOrbState;
 
@@ -34,34 +35,35 @@ export type MoodExpression = {
   accent: string;
   /** 0..1 energy — idle low, excited high. Drives glow / motion / channel / press. */
   energy: number;
-  /** Short Czech state word: KLID · MYSLÍ · MLUVÍ · CHYBA · SKVĚLE. */
+  /** Short state word shown under the character. */
   czLabel: string;
-  /** Czech caption shown under the character. */
+  /** Caption shown under the character. */
   caption: string;
 };
 
-/** Energy + Czech copy per mood (design-independent values). Lifted from round4-hmat.html. */
-const MOOD_BASE: Record<Mood, { energy: number; czLabel: string; caption: string }> = {
-  idle: { energy: 0.35, czLabel: "KLID", caption: "Čeká na tebe" },
-  thinking: { energy: 0.62, czLabel: "MYSLÍ", caption: "Přemýšlí" },
-  speaking: { energy: 0.72, czLabel: "MLUVÍ", caption: "Odpovídá" },
-  oops: { energy: 0.5, czLabel: "CHYBA", caption: "Jemně opravuje" },
-  excited: { energy: 1.0, czLabel: "SKVĚLE", caption: "Skvěle!" },
+/** Energy per mood (design-independent values). */
+const MOOD_ENERGY: Record<Mood, number> = {
+  idle: 0.35,
+  thinking: 0.62,
+  speaking: 0.72,
+  oops: 0.5,
+  excited: 1.0,
 };
 
 export function moodExpression(
   mood: Mood,
   design: DesignId = DEFAULT_DESIGN,
+  locale: UiLocale = DEFAULT_LOCALE,
 ): MoodExpression {
   const color = HONZA_STATE_COLORS[mood];
-  const base = MOOD_BASE[mood];
+  const copy = getStrings(locale).mood.expression[mood];
   return {
     mood,
     design,
     background: color.background,
     accent: color.accent,
-    energy: base.energy,
-    czLabel: base.czLabel,
-    caption: base.caption,
+    energy: MOOD_ENERGY[mood],
+    czLabel: copy.label,
+    caption: copy.caption,
   };
 }

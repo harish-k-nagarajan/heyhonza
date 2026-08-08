@@ -1,14 +1,19 @@
+"use client";
+
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
-import { WELCOME_STEPS } from "@/components/screens/welcome/welcome-content";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 const STEP_ICONS = ["home", "send", "chat"] as const;
 
 export function LandingSteps() {
+  const { t } = useLocale();
+  const steps = t.welcome.steps;
+
   return (
     <div className="grid gap-3 md:grid-cols-3">
-      {WELCOME_STEPS.map((step, index) => {
+      {steps.map((step, index) => {
         const icon = STEP_ICONS[index] ?? "chat";
         return (
           <article

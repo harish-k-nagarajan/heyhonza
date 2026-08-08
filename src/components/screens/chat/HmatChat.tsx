@@ -18,16 +18,17 @@ import {
 import type { ChatScreen } from "@/hooks/useChatScreen";
 import { useMoodReactions } from "@/hooks/useMoodReactions";
 import { useReactPop } from "@/hooks/useReactPop";
+import { localizeClientError } from "@/lib/i18n/extended";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import type { ChatMessage } from "@/types";
 import { cn } from "@/lib/cn";
 
-function chipLabel(screen: ChatScreen): string {
-  if (screen.lastError) return "problém";
-  if (screen.loading) return "přemýšlí";
-  if (!screen.heroMode) return "v chatu";
-  return "přítomný";
+function chipLabel(screen: ChatScreen, t: ReturnType<typeof useLocale>["t"]): string {
+  if (screen.lastError) return t.chat.chipProblem;
+  if (screen.loading) return t.chat.chipThinking;
+  if (!screen.heroMode) return t.chat.chipInChat;
+  return t.chat.chipPresent;
 }
 
 export function HmatChat({ screen }: { screen: ChatScreen }) {
@@ -54,6 +55,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   }, [threadMessages.length, loading]);
 
   const composerMode = heroMode ? "idle" : "ongoing";
+  const localizedError = localizeClientError(lastError, t.errors);
 
   const send = useCallback(() => {
     const text = draft.trim();
@@ -68,7 +70,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
       <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12">
         <HmatOrb state="idle" size={72} breathe={false} />
         <div className="mat h-4 w-32 animate-pulse rounded-full opacity-60" aria-hidden />
-        <p className={TYPE.label + " text-muted-foreground"}>Načítání…</p>
+        <p className={TYPE.label + " text-muted-foreground"}>{t.common.loading}</p>
       </div>
     );
   }
@@ -99,14 +101,14 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
         />
 
         <div className="flex shrink-0 flex-col items-center gap-2">
-          <HmatScreenTitle>Honza je tu</HmatScreenTitle>
-          <HmatStatusChip label={chipLabel(screen)} />
+          <HmatScreenTitle>{t.chat.titlePresent}</HmatScreenTitle>
+          <HmatStatusChip label={chipLabel(screen, t)} />
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-0.5">
-          {lastError ? (
+          {localizedError ? (
             <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
-              {lastError}
+              {localizedError}
               {threadMessages.length === 0 ? (
                 <button
                   type="button"
@@ -149,7 +151,9 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
           onSend={send}
           onEndChat={screen.endChat}
           disabled={loading}
-          placeholder={composerMode === "idle" ? "Napiš Honzovi…" : "Napiš zprávu…"}
+          placeholder={
+            composerMode === "idle" ? t.chat.placeholderIdle : t.chat.placeholderOngoing
+          }
           sendLabel={t.chat.send}
           endLabel={t.chat.endChat}
         />

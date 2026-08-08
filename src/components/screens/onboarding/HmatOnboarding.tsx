@@ -6,14 +6,13 @@ import { HmatFileInput } from "@/components/screens/hmat/HmatChrome";
 import {
   DAILY_MESSAGE_COUNTS,
   LEVEL_OPTIONS,
-  ONBOARDING_LEVEL_DETAILS,
-  ONBOARDING_TOPIC_LABELS,
   type LevelId,
   type TopicId,
 } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import type { OnboardingScreen } from "@/hooks/useOnboardingScreen";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 const TOPIC_ROWS: TopicId[][] = [
   ["daily", "travel", "food"],
@@ -129,6 +128,9 @@ function formatDisplayTime(value: string): string {
 
 /** Hmat onboarding — 5-step flow from Handoff — Onboarding Flow. */
 export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
+  const { t } = useLocale();
+  const o = t.onboarding;
+
   if (!screen.ready) {
     return (
       <div
@@ -137,12 +139,12 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
           TYPE.meta,
         )}
       >
-        Načítání…
+        {o.loading}
       </div>
     );
   }
 
-  const ctaLabel = screen.step === 5 ? "Start chatting" : "Continue";
+  const ctaLabel = screen.step === 5 ? o.startChatting : o.continue;
 
   return (
     <div className="flex min-h-[calc(100dvh-4rem)] w-full items-center justify-center px-4 py-10">
@@ -153,26 +155,21 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
 
         {screen.step === 1 ? (
           <>
-            <StepLabel>STEP 1 OF 5</StepLabel>
-            <StepTitle>Ahoj! Jsem Honza.</StepTitle>
+            <StepLabel>{o.stepOf(1, 5)}</StepLabel>
+            <StepTitle>{o.step1Title}</StepTitle>
             <div className="mat-recess flex w-full flex-col items-center rounded-[16px] px-4 py-6">
               <HmatOrb state="idle" size={120} />
             </div>
-            <StepBody>
-              I&apos;ll write to you in Czech about real things. You reply. I fix your
-              mistakes — kindly.
-            </StepBody>
+            <StepBody>{o.step1Body}</StepBody>
             <OnboardingCta onClick={screen.continue}>{ctaLabel}</OnboardingCta>
           </>
         ) : null}
 
         {screen.step === 2 ? (
           <>
-            <StepLabel>STEP 2 OF 5</StepLabel>
-            <StepTitle>What&apos;s your level?</StepTitle>
-            <StepBody>
-              Honza adapts to where you are — from first sentences to almost fluent.
-            </StepBody>
+            <StepLabel>{o.stepOf(2, 5)}</StepLabel>
+            <StepTitle>{o.step2Title}</StepTitle>
+            <StepBody>{o.step2Body}</StepBody>
             <div className="flex flex-col gap-2">
               {LEVEL_OPTIONS.map((option) => {
                 const selected = screen.level === option.id;
@@ -198,7 +195,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
                       {option.id}
                     </span>
                     <span className="font-sans text-[14px] text-[#2A2420]">
-                      {ONBOARDING_LEVEL_DETAILS[option.id as LevelId]}
+                      {t.levels.detail[option.id as LevelId]}
                     </span>
                   </button>
                 );
@@ -210,9 +207,9 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
 
         {screen.step === 3 ? (
           <>
-            <StepLabel>STEP 3 OF 5</StepLabel>
-            <StepTitle>What do you want to talk about?</StepTitle>
-            <StepBody>Pick topics you care about — not textbook phrases.</StepBody>
+            <StepLabel>{o.stepOf(3, 5)}</StepLabel>
+            <StepTitle>{o.step3Title}</StepTitle>
+            <StepBody>{o.step3Body}</StepBody>
             <div className="flex flex-col gap-2">
               {TOPIC_ROWS.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex flex-wrap gap-2">
@@ -225,7 +222,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
                         pressed={on}
                         onClick={() => screen.toggleTopic(topicId)}
                       >
-                        {ONBOARDING_TOPIC_LABELS[topicId]}
+                        {t.topics[topicId]}
                       </PillChip>
                     );
                   })}
@@ -238,13 +235,11 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
 
         {screen.step === 4 ? (
           <>
-            <StepLabel>STEP 4 OF 5</StepLabel>
-            <StepTitle>When should Honza write?</StepTitle>
-            <StepBody>
-              Honza can message you 1–3 times a day. Pick a time or let it feel random.
-            </StepBody>
+            <StepLabel>{o.stepOf(4, 5)}</StepLabel>
+            <StepTitle>{o.step4Title}</StepTitle>
+            <StepBody>{o.step4Body}</StepBody>
 
-            <SectionMicroLabel>HOW OFTEN</SectionMicroLabel>
+            <SectionMicroLabel>{o.howOften}</SectionMicroLabel>
             <div className="flex flex-wrap gap-2">
               {DAILY_MESSAGE_COUNTS.map((count) => (
                 <PillChip
@@ -258,21 +253,21 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
               ))}
             </div>
 
-            <SectionMicroLabel>WHEN</SectionMicroLabel>
+            <SectionMicroLabel>{o.when}</SectionMicroLabel>
             <div className="flex flex-wrap gap-2">
               <PillChip
                 on={screen.scheduleMode === "specific"}
                 pressed={screen.scheduleMode === "specific"}
                 onClick={() => screen.setScheduleMode("specific")}
               >
-                Specific time
+                {o.specificTime}
               </PillChip>
               <PillChip
                 on={screen.scheduleMode === "random"}
                 pressed={screen.scheduleMode === "random"}
                 onClick={() => screen.setScheduleMode("random")}
               >
-                Random
+                {o.random}
               </PillChip>
             </div>
 
@@ -280,7 +275,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
               <div
                 className="flex items-center justify-between rounded-[14px] border border-[#E8E2DC] bg-[#F5F2EE] px-3.5 py-2.5"
               >
-                <span className="font-sans text-[15px] text-[#2A2420]">First message</span>
+                <span className="font-sans text-[15px] text-[#2A2420]">{o.firstMessage}</span>
                 <label className="relative">
                   <span className="font-sans text-[15px] font-semibold text-accent">
                     {formatDisplayTime(screen.firstMessageTime)}
@@ -289,7 +284,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
                     type="time"
                     value={screen.firstMessageTime}
                     onChange={(e) => screen.setFirstMessageTime(e.target.value)}
-                    aria-label="First message time"
+                    aria-label={o.firstMessageTimeAria}
                     className="absolute inset-0 opacity-0"
                   />
                 </label>
@@ -302,21 +297,17 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
 
         {screen.step === 5 ? (
           <>
-            <StepLabel>STEP 5 OF 5 · OPTIONAL</StepLabel>
-            <StepTitle>Teach Honza about you</StepTitle>
-            <StepBody>
-              Add a Google Doc, file, or paste — or skip and add this later in Settings.
-            </StepBody>
+            <StepLabel>{o.stepOptional}</StepLabel>
+            <StepTitle>{o.step5Title}</StepTitle>
+            <StepBody>{o.step5Body}</StepBody>
 
-            <SectionMicroLabel>GOOGLE DOC</SectionMicroLabel>
-            <StepBody>
-              Set the doc to Share → Anyone with the link → Viewer so Honza can read it.
-            </StepBody>
+            <SectionMicroLabel>{o.googleDoc}</SectionMicroLabel>
+            <StepBody>{o.googleDocShare}</StepBody>
             <input
               value={screen.docUrl}
               onChange={(e) => screen.setDocUrl(e.target.value)}
-              placeholder="https://docs.google.com/document/d/…"
-              aria-label="Google Doc URL"
+              placeholder={t.settings.googleDocPlaceholder}
+              aria-label={t.settings.googleDocAria}
               className="mat-field w-full rounded-[14px] bg-transparent px-3.5 py-2.5 font-sans text-sm text-foreground outline-none"
             />
             {screen.docError ? (
@@ -331,20 +322,20 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
               onClick={screen.importGoogleDoc}
               disabled={screen.docLoading}
             >
-              {screen.docLoading ? "Fetching…" : "Import document"}
+              {screen.docLoading ? t.settings.fetching : t.settings.addFromGoogleDocs}
             </Button>
 
-            <SectionMicroLabel>FILE OR PASTE</SectionMicroLabel>
+            <SectionMicroLabel>{o.fileOrPaste}</SectionMicroLabel>
             <div className="space-y-1.5">
-              <p className={TYPE.helper}>File (.txt, .md)</p>
+              <p className={TYPE.helper}>{t.settings.fileLabel}</p>
               <HmatFileInput onFile={screen.onFile} />
             </div>
             <textarea
               value={screen.paste}
               onChange={(e) => screen.setPaste(e.target.value)}
               rows={3}
-              placeholder="Anything Honza should know about you…"
-              aria-label="Pasted text"
+              placeholder={t.settings.pastePlaceholder}
+              aria-label={t.settings.pastedTextAria}
               className="mat-field w-full resize-none rounded-[14px] bg-transparent px-3.5 py-2.5 font-sans text-sm text-foreground outline-none"
             />
             {screen.fileError ? (
@@ -357,7 +348,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
               onClick={screen.skip}
               className="w-full py-3 text-center font-sans text-[15px] font-semibold text-[#2A2420] underline"
             >
-              Skip for now
+              {o.skip}
             </button>
           </>
         ) : null}

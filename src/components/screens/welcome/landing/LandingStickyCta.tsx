@@ -1,18 +1,17 @@
+"use client";
+
 import Link from "next/link";
 
-import {
-  LANDING_HERO_FIRST,
-  LANDING_HERO_SIGNED_OUT,
-} from "@/components/screens/welcome/welcome-content";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
+import { useLocale } from "@/lib/i18n/useLocale";
 
 import type { LandingVisitor } from "./useLandingVisitor";
 
 export function LandingStickyCta({ visitor }: { visitor: LandingVisitor }) {
-  const ctaLabel = visitor.isSignedOut
-    ? LANDING_HERO_SIGNED_OUT.cta
-    : LANDING_HERO_FIRST.cta;
+  const { t } = useLocale();
+  const w = t.welcome;
+  const ctaLabel = visitor.isSignedOut ? w.signedOutCta : w.stickyCta;
 
   return (
     <div className="landing-sticky-cta md:hidden">
