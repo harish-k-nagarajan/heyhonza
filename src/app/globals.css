@@ -51,6 +51,23 @@
   --accent-foreground: #ffffff;
 }
 
+:root {
+  /* Strong curves — from Emil Kowalski AUDIT.md; do not approximate */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Durations */
+  --duration-press: 160ms;
+  --duration-ui: 200ms;
+  --duration-bubble-in: 220ms;
+  --duration-drawer-in: 280ms;
+  --duration-drawer-out: 200ms;
+  --duration-orb-pop: 280ms;
+  --duration-typing-min: 400ms;
+  --duration-typing-max: 1200ms;
+}
+
 /*
  * Hmat — the tactile-material world. Metal and Ceramic are ONE layout and ONE
  * component tree; they differ only in the surface token block below (material
@@ -296,7 +313,7 @@ body {
   93%, 97% { opacity: 0; }
 }
 .hmat-orb .react-pop {
-  animation: hmat-pop 0.55s cubic-bezier(0.2, 1.5, 0.4, 1);
+  animation: hmat-pop var(--duration-orb-pop) var(--ease-out);
 }
 @keyframes hmat-pop {
   0% { transform: scale(1); }
@@ -536,7 +553,7 @@ body {
 
 /* Classic orb react-pop (Hmat uses .hmat-orb .react-pop). */
 .honza-pop {
-  animation: honza-pop 0.55s cubic-bezier(0.2, 1.5, 0.4, 1);
+  animation: honza-pop var(--duration-orb-pop) var(--ease-out);
 }
 @keyframes honza-pop {
   0% { transform: scale(1); }
