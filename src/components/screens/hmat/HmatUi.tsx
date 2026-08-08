@@ -3,6 +3,7 @@
 import { forwardRef, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { HmatOrb } from "@/components/honza/HmatOrb";
+import { OrbDotHalo } from "@/components/honza/OrbDotHalo";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import type { HonzaOrbState } from "@/components/honza/theme";
 import { cn } from "@/lib/cn";
@@ -46,9 +47,10 @@ export function HmatPresenceRecess({
             tapLight();
             onOrbTap?.();
           }}
-          className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="relative rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           aria-label={t.common.honza}
         >
+          <OrbDotHalo state={orbState} size={size} />
           <HmatOrb state={orbState} size={size} breathe stackClassName={stackClassName} />
         </button>
         <div
