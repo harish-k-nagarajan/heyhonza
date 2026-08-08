@@ -104,7 +104,7 @@ export function HmatUserBubble({ children }: { children: ReactNode }) {
 
 export function HmatOpenerCard({ children }: { children: ReactNode }) {
   return (
-    <div className="hmat-opener-card rounded-2xl px-3.5 py-3.5">
+    <div className="hmat-opener-card rounded-2xl p-3.5">
       <p className={cn(TYPE.bodySm, "text-[#243D2C]")}>{children}</p>
     </div>
   );
@@ -255,7 +255,7 @@ export function HmatChatComposerRow({
           }}
           disabled={disabled || empty}
           aria-label={sendLabel}
-          className="hmat-ink-send flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] text-white disabled:opacity-40"
+          className="hmat-fern-send flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] text-white disabled:opacity-40"
         >
           <SendArrowIcon />
         </button>

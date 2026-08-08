@@ -3,7 +3,7 @@ import { EXTENDED } from "@/lib/i18n/extended";
 
 export type UiLocale = "cs" | "en";
 
-export const DEFAULT_LOCALE: UiLocale = "en";
+export const DEFAULT_LOCALE: UiLocale = "cs";
 
 export type AuthFormCopy = {
   kicker: string;
@@ -348,7 +348,7 @@ const cs: LocaleStrings = {
   chat: {
     startChat: "Začít chat",
     send: "Odeslat",
-    endChat: "Ukončit chat",
+    endChat: "Ukončit",
     history: "Historie chatů",
     historyTitle: "Předchozí chaty",
     emptyHint:

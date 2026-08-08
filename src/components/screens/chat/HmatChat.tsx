@@ -2,9 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
-import { Button } from "@/components/ui/Button";
-import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import {
   HmatChatComposerRow,
@@ -40,9 +37,6 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     lastError,
     heroMode,
     openerMessage,
-    endedSessions,
-    historyOpen,
-    setHistoryOpen,
   } = screen;
   const bottomRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
@@ -80,19 +74,6 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   return (
     <>
       <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <div className="flex shrink-0 justify-end">
-          <Button
-            type="button"
-            surface="mat-key"
-            shape="circle"
-            size="icon"
-            onClick={() => setHistoryOpen(true)}
-            aria-label={t.chat.history}
-          >
-            <HardwareIcon name="history" size={20} />
-          </Button>
-        </div>
-
         <HmatPresenceRecess
           orbState={orbState}
           loading={loading}
@@ -105,7 +86,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
           <HmatStatusChip label={chipLabel(screen, t)} />
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-0.5">
+        <div className="flex min-h-0 w-full flex-1 flex-col gap-2.5 overflow-y-auto px-0.5">
           {localizedError ? (
             <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
               {localizedError}
@@ -158,13 +139,6 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
           endLabel={t.chat.endChat}
         />
       </div>
-
-      <ChatHistoryDrawer
-        open={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-        sessions={endedSessions}
-        onSelect={screen.openHistorySession}
-      />
     </>
   );
 }

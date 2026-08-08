@@ -8,13 +8,12 @@ import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import type { IconName } from "@/components/icons/HardwareIcons";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
-import { TYPE } from "@/lib/design/typography";
 import { tapLight } from "@/lib/interaction/haptic";
 import { useLocale } from "@/lib/i18n/useLocale";
 
 /**
- * The floating material dock — Chat · Hovor · Nastavení (chat-first, 3 tabs).
- * Active tab uses a sliding accent pill.
+ * O4 frost dock — Chat · Hovor · Nastavení. Horizontal icon+label tabs on frosted
+ * glass; active tab slides a mint-green (#DCEBDC) pill behind the selection.
  */
 const TABS: { href: string; icon: IconName; labelKey: "chat" | "call" | "settings" }[] = [
   { href: ROUTES.chat, icon: "chat", labelKey: "chat" },
@@ -73,12 +72,10 @@ export function HmatDock() {
               href={tab.href}
               aria-current={active ? "page" : undefined}
               onClick={() => tapLight()}
-              className={cn("hmat-tab relative z-[1]", active && "on")}
+              className={cn("hmat-tab relative z-[1] font-display", active && "on")}
             >
-              <HardwareIcon name={tab.icon} size={21} />
-              <span className={cn("lbl", TYPE.kicker)}>
-                {t.nav[tab.labelKey]}
-              </span>
+              <HardwareIcon name={tab.icon} size={16} emboss={false} />
+              <span className="hmat-tab-lbl">{t.nav[tab.labelKey]}</span>
             </Link>
           );
         })}

@@ -304,44 +304,53 @@ body {
   100% { transform: scale(1); }
 }
 
-/* Floating material dock (the Hmat nav). Positioned by its fixed wrapper; this
- * is just the bar material + tabs. Active tab is tinted with the mood accent. */
+/* Floating frost dock (O4 handoff). Positioned by its fixed wrapper. */
 .fdock {
-  border-radius: 24px;
+  position: relative;
+  border-radius: 28px;
   display: flex;
-  gap: 2px;
-  padding: 9px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--bg) 52%, #fff));
+  gap: 4px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.69);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-shadow:
-    0 2px 0 rgba(255, 255, 255, 0.9) inset,
-    0 -2px 5px rgba(120, 90, 70, 0.1) inset,
-    0 12px 26px rgba(90, 60, 45, 0.2),
-    0 2px 6px rgba(90, 60, 45, 0.14);
+    0 8px 28px rgba(36, 61, 44, 0.07),
+    0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.fdock-pill {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  border-radius: 22px;
+  background: #dcebdc;
+  transition:
+    left 0.22s cubic-bezier(0.2, 0.8, 0.3, 1),
+    width 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+  pointer-events: none;
+  z-index: 0;
 }
 .hmat-tab {
   flex: 1;
   min-height: 44px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 8px;
   position: relative;
-  padding: 4px 0;
-  color: #9c9089;
+  padding: 12px 18px;
+  color: #6e8a74;
   transition: color 0.15s ease;
+  border-radius: 22px;
 }
 .hmat-tab.on {
-  color: var(--accent);
+  color: #3f6b4a;
 }
-.hmat-tab.on::before {
-  content: "";
-  position: absolute;
-  inset: 2px 6px;
-  border-radius: 13px;
-  z-index: -1;
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+.hmat-tab-lbl {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 /* Chat pill field used in the Hmat composer. */
@@ -543,24 +552,6 @@ body {
   }
 }
 
-/* Floating dock — sliding active pill indicator. */
-.fdock {
-  position: relative;
-}
-.fdock-pill {
-  position: absolute;
-  top: 9px;
-  bottom: 9px;
-  border-radius: 13px;
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  transition: left 0.22s cubic-bezier(0.2, 0.8, 0.3, 1), width 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
-  pointer-events: none;
-  z-index: 0;
-}
-.fdock .hmat-tab.on::before {
-  display: none;
-}
-
 /* Chat header morph between hero and compact. */
 .chat-orb-header {
   transition: padding 0.3s ease, gap 0.3s ease;
@@ -624,7 +615,7 @@ body {
 .hmat-bubble-honza {
   border-radius: 16px 16px 16px 6px;
   background: linear-gradient(180deg, #fff, #f2f7f0);
-  outline: 1px solid color-mix(in srgb, var(--accent) 18%, #c5d0c4);
+  border: 1px solid #c5d0c455;
   box-shadow:
     0 4px 12px rgba(36, 61, 44, 0.05),
     0 1px 0 rgba(255, 255, 255, 0.67);
@@ -632,9 +623,9 @@ body {
 
 .hmat-bubble-user {
   border-radius: 16px 16px 6px 16px;
-  background: #4a433c;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 4px 12px rgba(74, 67, 60, 0.16);
+  background: linear-gradient(200deg, #4f7a58 0%, #3f6b4a 55%, #355a3e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.27);
+  box-shadow: 0 4px 12px rgba(63, 107, 74, 0.22);
 }
 
 .hmat-opener-card {
@@ -668,11 +659,23 @@ body {
   backdrop-filter: blur(9px);
 }
 
+.hmat-fern-send {
+  background: linear-gradient(200deg, #4f7a58 0%, #3f6b4a 55%, #355a3e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.27);
+  box-shadow: 0 4px 12px rgba(63, 107, 74, 0.22);
+  transition:
+    transform 0.09s ease,
+    opacity 0.09s ease;
+}
+.hmat-fern-send:active {
+  transform: scale(0.98);
+}
+
 .hmat-ink-send,
 .hmat-ink-action {
-  background: #4a433c;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 4px 12px rgba(74, 67, 60, 0.16);
+  background: linear-gradient(200deg, #4f7a58 0%, #3f6b4a 55%, #355a3e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.27);
+  box-shadow: 0 4px 12px rgba(63, 107, 74, 0.22);
   transition:
     transform 0.09s ease,
     opacity 0.09s ease;
@@ -699,20 +702,4 @@ body {
   background: #c46b6b;
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 6px 16px rgba(196, 107, 107, 0.25);
-}
-
-/* Frost dock — handoff variant */
-.fdock {
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.69);
-  backdrop-filter: blur(12px);
-  box-shadow:
-    0 8px 28px rgba(36, 61, 44, 0.07),
-    0 1px 0 rgba(255, 255, 255, 0.7);
-}
-.fdock-pill {
-  background: rgba(74, 67, 60, 0.09);
-}
-.hmat-tab.on {
-  color: #4a433c;
 }
