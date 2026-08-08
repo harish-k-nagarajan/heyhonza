@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import {
   HmatChatComposerRow,
+  HmatChatThread,
   HmatHonzaBubble,
   HmatOpenerCard,
   HmatPresenceRecess,
@@ -38,14 +39,16 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     heroMode,
     openerMessage,
   } = screen;
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
   const [draft, setDraft] = useState("");
 
   useMoodReactions(triggerPop);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = threadRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [threadMessages.length, loading]);
 
   const composerMode = heroMode ? "idle" : "ongoing";
@@ -73,20 +76,25 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
   return (
     <>
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <HmatPresenceRecess
-          orbState={orbState}
-          loading={loading}
-          stackClassName={stackClassName}
-          onOrbTap={triggerPop}
-        />
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+        <div className="flex shrink-0 flex-col gap-3">
+          <HmatPresenceRecess
+            orbState={orbState}
+            loading={loading}
+            stackClassName={stackClassName}
+            onOrbTap={triggerPop}
+          />
 
-        <div className="flex shrink-0 flex-col items-center gap-2">
-          <HmatScreenTitle>{t.chat.titlePresent}</HmatScreenTitle>
-          <HmatStatusChip label={chipLabel(screen, t)} />
+          <div className="flex flex-col items-center gap-2">
+            <HmatScreenTitle>{t.chat.titlePresent}</HmatScreenTitle>
+            <HmatStatusChip label={chipLabel(screen, t)} />
+          </div>
         </div>
 
-        <div className="flex min-h-0 w-full flex-1 flex-col gap-2.5 overflow-y-auto px-0.5">
+        <HmatChatThread
+          ref={threadRef}
+          watchKey={`${threadMessages.length}-${loading}-${heroMode}`}
+        >
           {localizedError ? (
             <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
               {localizedError}
@@ -120,24 +128,25 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
                   <span className="text-muted-foreground">{t.chat.thinking}</span>
                 </HmatHonzaBubble>
               ) : null}
-              <div ref={bottomRef} />
             </>
           ) : null}
-        </div>
+        </HmatChatThread>
 
-        <HmatChatComposerRow
-          mode={composerMode}
-          value={draft}
-          onChange={setDraft}
-          onSend={send}
-          onEndChat={screen.endChat}
-          disabled={loading}
-          placeholder={
-            composerMode === "idle" ? t.chat.placeholderIdle : t.chat.placeholderOngoing
-          }
-          sendLabel={t.chat.send}
-          endLabel={t.chat.endChat}
-        />
+        <div className="shrink-0">
+          <HmatChatComposerRow
+            mode={composerMode}
+            value={draft}
+            onChange={setDraft}
+            onSend={send}
+            onEndChat={screen.endChat}
+            disabled={loading}
+            placeholder={
+              composerMode === "idle" ? t.chat.placeholderIdle : t.chat.placeholderOngoing
+            }
+            sendLabel={t.chat.send}
+            endLabel={t.chat.endChat}
+          />
+        </div>
       </div>
     </>
   );

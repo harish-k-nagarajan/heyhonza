@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
@@ -109,6 +109,72 @@ export function HmatOpenerCard({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+/** Scrollable chat thread with frosted top/bottom edge fades when content overflows. */
+export const HmatChatThread = forwardRef<
+  HTMLDivElement,
+  { children: ReactNode; watchKey?: string | number }
+>(function HmatChatThread({ children, watchKey }, forwardedRef) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [fadeTop, setFadeTop] = useState(false);
+  const [fadeBottom, setFadeBottom] = useState(false);
+
+  const setScrollRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      scrollRef.current = el;
+      if (!forwardedRef) return;
+      if (typeof forwardedRef === "function") forwardedRef(el);
+      else forwardedRef.current = el;
+    },
+    [forwardedRef],
+  );
+
+  const syncFades = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const canScroll = el.scrollHeight > el.clientHeight + 1;
+    setFadeTop(canScroll && el.scrollTop > 4);
+    setFadeBottom(canScroll && el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    syncFades();
+    el.addEventListener("scroll", syncFades, { passive: true });
+    const ro = new ResizeObserver(syncFades);
+    ro.observe(el);
+    for (const child of el.children) {
+      ro.observe(child);
+    }
+    return () => {
+      el.removeEventListener("scroll", syncFades);
+      ro.disconnect();
+    };
+  }, [syncFades, watchKey]);
+
+  return (
+    <div className="hmat-chat-thread relative min-h-0 w-full flex-1 overflow-hidden">
+      <div
+        ref={setScrollRef}
+        className="hmat-chat-thread-scroll flex flex-col gap-2.5 overflow-y-auto px-0.5"
+      >
+        {children}
+      </div>
+      <div
+        className={cn("hmat-chat-thread-fade hmat-chat-thread-fade-top", fadeTop && "visible")}
+        aria-hidden
+      />
+      <div
+        className={cn(
+          "hmat-chat-thread-fade hmat-chat-thread-fade-bottom",
+          fadeBottom && "visible",
+        )}
+        aria-hidden
+      />
+    </div>
+  );
+});
 
 export function HmatFrostCard({
   children,

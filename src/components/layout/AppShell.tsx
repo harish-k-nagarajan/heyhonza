@@ -51,18 +51,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const welcomeBottomPad = isWelcome
       ? "calc(88px + env(safe-area-inset-bottom))"
       : "calc(28px + env(safe-area-inset-bottom))";
+    const stageHeight = isWelcome ? "min-h-dvh" : "h-dvh overflow-hidden";
 
     return (
       <div
-        className="min-h-dvh transition-colors duration-[400ms] ease-out"
+        className={cn(
+          "transition-colors duration-[400ms] ease-out",
+          isWelcome ? "min-h-dvh" : "h-dvh overflow-hidden",
+        )}
         style={rootStyle}
         data-mood={expression.mood}
       >
-        <div className={`relative mx-auto flex min-h-dvh ${stageMax} flex-col`}>
+        <div className={`relative mx-auto flex ${stageHeight} ${stageMax} flex-col`}>
           {!isWelcome ? <div className="mat-bg" aria-hidden /> : null}
           <div
             className={cn(
-              "relative z-10 flex flex-1 flex-col",
+              "relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden",
               isWelcome ? "px-5 pt-0" : "px-5",
             )}
             style={{
