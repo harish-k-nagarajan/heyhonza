@@ -935,3 +935,30 @@ install, file picker). Classic screens unchanged (`surface="flat"` default).
 `Pressable` is now a thin alias over mat-key `Button`.
 
 Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 4 live orb dot backdrop.
+
+---
+
+## Current entry — 2026-08-08 (Chat motion design phases 0–5)
+
+Branch `feature/chat-motion-design`. Spec: `plans/CHAT_MOTION_DESIGN_SPEC.md`.
+
+### Shipped (phases 0–5)
+
+| Phase | Feature |
+| --- | --- |
+| 0 | Motion tokens (`--ease-*`, `--duration-*`) in `globals.css` + `tailwind.config.ts` |
+| 1 | `HonzaTypingBubble`, `typingPreview` store state, reply choreography in `chat-actions.ts` |
+| 2 | Typing bubble wired into `ClassicChat` + `HmatChat` |
+| 3 | `OrbDotHalo` perimeter dots behind orb in both families |
+| 4 | Craft pass: bubble `@starting-style` transitions, orb pop 1.06, opener 280ms easing |
+| 5 | Channel pulse on typing phase start — `channelPulse` on `MoodOrbStrip` (Classic) and `HmatPresenceRecess` mat-channel (Hmat); single 450ms `animate-channel-pulse` |
+
+### Verified
+
+- `npm run lint` + `npm run build` pass after each phase commit.
+
+### Remaining (spec phases 6–7)
+
+- Drawer exit animation (phase 6)
+- P2 polish: error shake, end-chat composer fade, haptic on reveal (phase 7)
+

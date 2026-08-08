@@ -26,12 +26,14 @@ export function HmatPresenceRecess({
   size = 172,
   stackClassName,
   loading,
+  channelPulse,
   onOrbTap,
 }: {
   orbState: HonzaOrbState;
   size?: number;
   stackClassName?: string;
   loading?: boolean;
+  channelPulse?: boolean;
   onOrbTap?: () => void;
 }) {
   const { t } = useLocale();
@@ -54,7 +56,10 @@ export function HmatPresenceRecess({
           <HmatOrb state={orbState} size={size} breathe stackClassName={stackClassName} />
         </button>
         <div
-          className="mat-channel mt-2.5 w-[200px] motion-reduce:animate-none"
+          className={cn(
+            "mat-channel mt-2.5 w-[200px] motion-reduce:animate-none",
+            channelPulse && "motion-safe:animate-channel-pulse",
+          )}
           aria-hidden
         />
         <p className={cn("mt-2.5", TYPE.kicker, "font-display tracking-[0.2em] text-accent")}>

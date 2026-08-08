@@ -42,7 +42,8 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     openerMessage,
   } = screen;
   const typingPreview = useChatStore((s) => s.typingPreview);
-  const showTyping = typingPreview !== null;
+  const typingPhaseActive = typingPreview !== null;
+  const showTyping = typingPhaseActive;
   const composerDisabled = loading || showTyping;
   const threadRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
@@ -86,6 +87,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
           <HmatPresenceRecess
             orbState={orbState}
             loading={loading}
+            channelPulse={typingPhaseActive}
             stackClassName={stackClassName}
             onOrbTap={triggerPop}
           />

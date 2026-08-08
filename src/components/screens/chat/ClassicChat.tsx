@@ -37,7 +37,8 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
     setHistoryOpen,
   } = screen;
   const typingPreview = useChatStore((s) => s.typingPreview);
-  const showTyping = typingPreview !== null;
+  const typingPhaseActive = typingPreview !== null;
+  const showTyping = typingPhaseActive;
   const composerDisabled = loading || showTyping;
   const localizedError = localizeClientError(lastError, t.errors);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -107,6 +108,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
               thinkingLabel={t.chat.thinking}
               compact
               showChannel={false}
+              channelPulse={typingPhaseActive}
               className="min-w-0 flex-1 items-start"
             />
           ) : (
