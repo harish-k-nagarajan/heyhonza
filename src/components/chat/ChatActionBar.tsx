@@ -60,7 +60,7 @@ export function ChatActionBar({
   }, [disabled, onSend, onSent, value]);
 
   return (
-    <div className="mt-3 flex shrink-0 flex-col gap-2.5 transition-all duration-300 motion-reduce:transition-none">
+    <div className="mt-3 flex shrink-0 flex-col gap-2.5 transition-[transform,opacity] duration-[160ms] ease-[var(--ease-out)] motion-reduce:transition-none">
       <div className="flex items-center gap-2.5">
         <div
           className={cn(
@@ -120,7 +120,7 @@ export function ChatActionBar({
             onClick={submit}
             disabled={disabled || empty}
             aria-label={t.chat.send}
-            className="transition-all duration-300 motion-reduce:transition-none"
+            className="transition-[transform,opacity] duration-[160ms] ease-[var(--ease-out)] motion-reduce:transition-none"
           >
             <HardwareIcon name="send" size={22} />
           </Button>

@@ -12,15 +12,15 @@ export function MessageBubble({
   index?: number;
 }) {
   const isUser = message.role === "user";
-  const delay = Math.min(index, 3) * 60;
+  const delay = Math.min(index, 3) * 50;
 
   return (
     <div
       className={cn(
-        "flex w-full motion-safe:animate-message-in motion-reduce:animate-none motion-reduce:opacity-100",
+        "message-enter flex w-full motion-reduce:opacity-100",
         isUser ? "justify-end" : "justify-start",
       )}
-      style={{ animationDelay: `${delay}ms` }}
+      style={delay > 0 ? { transitionDelay: `${delay}ms, 0ms` } : undefined}
     >
       <div
         className={cn(

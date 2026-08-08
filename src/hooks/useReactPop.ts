@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const POP_MS = 550;
+const POP_MS = 280;
 
 /**
  * Toggles the orb react-pop class for one animation cycle. Used when Honza

@@ -317,7 +317,7 @@ body {
 }
 @keyframes hmat-pop {
   0% { transform: scale(1); }
-  35% { transform: scale(1.12); }
+  35% { transform: scale(1.06); }
   100% { transform: scale(1); }
 }
 
@@ -551,13 +551,29 @@ body {
   }
 }
 
+/* Transition-based bubble entrance (interruptible; chat Phase 4). */
+@media (prefers-reduced-motion: no-preference) {
+  .message-enter {
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      opacity var(--duration-bubble-in) var(--ease-out),
+      transform var(--duration-bubble-in) var(--ease-out);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+}
+
 /* Classic orb react-pop (Hmat uses .hmat-orb .react-pop). */
 .honza-pop {
   animation: honza-pop var(--duration-orb-pop) var(--ease-out);
 }
 @keyframes honza-pop {
   0% { transform: scale(1); }
-  35% { transform: scale(1.1); }
+  35% { transform: scale(1.06); }
   100% { transform: scale(1); }
 }
 
