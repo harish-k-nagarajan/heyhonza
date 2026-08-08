@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { ChatActionBar } from "@/components/chat/ChatActionBar";
 import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
+import { HonzaTypingBubble } from "@/components/chat/HonzaTypingBubble";
 import { MessageList } from "@/components/chat/MessageList";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
@@ -15,6 +16,7 @@ import { useLocale } from "@/lib/i18n/useLocale";
 import { localizeClientError } from "@/lib/i18n/extended";
 import { tapLight } from "@/lib/interaction/haptic";
 import { cn } from "@/lib/cn";
+import { useChatStore } from "@/stores/useChatStore";
 
 export function ClassicChat({ screen }: { screen: ChatScreen }) {
   const { t } = useLocale();
@@ -30,6 +32,9 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
     historyOpen,
     setHistoryOpen,
   } = screen;
+  const typingPreview = useChatStore((s) => s.typingPreview);
+  const showTyping = typingPreview !== null;
+  const composerDisabled = loading || showTyping;
   const localizedError = localizeClientError(lastError, t.errors);
   const bottomRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
@@ -38,7 +43,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [threadMessages.length]);
+  }, [threadMessages.length, showTyping]);
 
   if (!screen.ready) {
     return (
@@ -142,14 +147,11 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
             ) : !heroMode ? (
               <>
                 <MessageList messages={threadMessages} />
+                {showTyping ? <HonzaTypingBubble variant="classic" /> : null}
                 <div ref={bottomRef} />
               </>
-            ) : loading && !openerMessage ? (
-              <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-                <p className="font-sans text-sm leading-relaxed text-muted-foreground">
-                  {t.chat.thinking}
-                </p>
-              </div>
+            ) : showTyping ? (
+              <HonzaTypingBubble variant="classic" />
             ) : null}
           </div>
         </Card>
@@ -157,7 +159,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
         <ChatActionBar
           onSend={screen.send}
           onEndChat={screen.endChat}
-          disabled={loading}
+          disabled={composerDisabled}
           onSent={triggerPop}
         />
       </div>
