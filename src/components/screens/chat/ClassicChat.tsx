@@ -7,6 +7,7 @@ import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
 import { HonzaTypingBubble } from "@/components/chat/HonzaTypingBubble";
 import { MessageList } from "@/components/chat/MessageList";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
+import { OrbDotHalo } from "@/components/honza/OrbDotHalo";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { Card } from "@/components/ui/Card";
 import type { ChatScreen } from "@/hooks/useChatScreen";
@@ -17,6 +18,9 @@ import { localizeClientError } from "@/lib/i18n/extended";
 import { tapLight } from "@/lib/interaction/haptic";
 import { cn } from "@/lib/cn";
 import { useChatStore } from "@/stores/useChatStore";
+
+/** Matches `HonzaOrb` hero size (`SIZE_PX.hero`). */
+const CLASSIC_HERO_ORB_PX = 200;
 
 export function ClassicChat({ screen }: { screen: ChatScreen }) {
   const { t } = useLocale();
@@ -84,9 +88,12 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
               tapLight();
               triggerPop();
             }}
-            className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="relative shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             aria-label={t.common.honza}
           >
+            {heroMode ? (
+              <OrbDotHalo state={expression.mood} size={CLASSIC_HERO_ORB_PX} />
+            ) : null}
             <HonzaOrb
               state={expression.mood}
               size={heroMode ? "hero" : "avatar"}
