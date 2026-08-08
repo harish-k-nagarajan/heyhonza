@@ -2,12 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { ChatHistoryDrawer } from "@/components/chat/ChatHistoryDrawer";
-import { Button } from "@/components/ui/Button";
-import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import {
   HmatChatComposerRow,
+  HmatChatThread,
   HmatHonzaBubble,
   HmatOpenerCard,
   HmatPresenceRecess,
@@ -40,18 +38,17 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     lastError,
     heroMode,
     openerMessage,
-    endedSessions,
-    historyOpen,
-    setHistoryOpen,
   } = screen;
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
   const [draft, setDraft] = useState("");
 
   useMoodReactions(triggerPop);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = threadRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [threadMessages.length, loading]);
 
   const composerMode = heroMode ? "idle" : "ongoing";
@@ -79,33 +76,25 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
   return (
     <>
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <div className="flex shrink-0 justify-end">
-          <Button
-            type="button"
-            surface="mat-key"
-            shape="circle"
-            size="icon"
-            onClick={() => setHistoryOpen(true)}
-            aria-label={t.chat.history}
-          >
-            <HardwareIcon name="history" size={20} />
-          </Button>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+        <div className="flex shrink-0 flex-col gap-3">
+          <HmatPresenceRecess
+            orbState={orbState}
+            loading={loading}
+            stackClassName={stackClassName}
+            onOrbTap={triggerPop}
+          />
+
+          <div className="flex flex-col items-center gap-2">
+            <HmatScreenTitle>{t.chat.titlePresent}</HmatScreenTitle>
+            <HmatStatusChip label={chipLabel(screen, t)} />
+          </div>
         </div>
 
-        <HmatPresenceRecess
-          orbState={orbState}
-          loading={loading}
-          stackClassName={stackClassName}
-          onOrbTap={triggerPop}
-        />
-
-        <div className="flex shrink-0 flex-col items-center gap-2">
-          <HmatScreenTitle>{t.chat.titlePresent}</HmatScreenTitle>
-          <HmatStatusChip label={chipLabel(screen, t)} />
-        </div>
-
-        <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-0.5">
+        <HmatChatThread
+          ref={threadRef}
+          watchKey={`${threadMessages.length}-${loading}-${heroMode}`}
+        >
           {localizedError ? (
             <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
               {localizedError}
@@ -139,32 +128,26 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
                   <span className="text-muted-foreground">{t.chat.thinking}</span>
                 </HmatHonzaBubble>
               ) : null}
-              <div ref={bottomRef} />
             </>
           ) : null}
+        </HmatChatThread>
+
+        <div className="shrink-0">
+          <HmatChatComposerRow
+            mode={composerMode}
+            value={draft}
+            onChange={setDraft}
+            onSend={send}
+            onEndChat={screen.endChat}
+            disabled={loading}
+            placeholder={
+              composerMode === "idle" ? t.chat.placeholderIdle : t.chat.placeholderOngoing
+            }
+            sendLabel={t.chat.send}
+            endLabel={t.chat.endChat}
+          />
         </div>
-
-        <HmatChatComposerRow
-          mode={composerMode}
-          value={draft}
-          onChange={setDraft}
-          onSend={send}
-          onEndChat={screen.endChat}
-          disabled={loading}
-          placeholder={
-            composerMode === "idle" ? t.chat.placeholderIdle : t.chat.placeholderOngoing
-          }
-          sendLabel={t.chat.send}
-          endLabel={t.chat.endChat}
-        />
       </div>
-
-      <ChatHistoryDrawer
-        open={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-        sessions={endedSessions}
-        onSelect={screen.openHistorySession}
-      />
     </>
   );
 }

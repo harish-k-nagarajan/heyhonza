@@ -4,19 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { HardwareIcon } from "@/components/icons/HardwareIcons";
-import type { IconName } from "@/components/icons/HardwareIcons";
+import { FernDockIcon } from "@/components/icons/FernDockIcons";
+import type { FernDockIconName } from "@/components/icons/FernDockIcons";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
-import { TYPE } from "@/lib/design/typography";
 import { tapLight } from "@/lib/interaction/haptic";
 import { useLocale } from "@/lib/i18n/useLocale";
 
 /**
- * The floating material dock — Chat · Hovor · Nastavení (chat-first, 3 tabs).
- * Active tab uses a sliding accent pill.
+ * O4 frost dock — Chat · Hovor · Nastavení. Horizontal icon+label tabs on frosted
+ * glass; active tab slides a charcoal tint (#4A433C18) pill behind the selection. Icons match
+ * the O4 handoff (Lucide message-circle · phone · settings).
  */
-const TABS: { href: string; icon: IconName; labelKey: "chat" | "call" | "settings" }[] = [
+const TABS: { href: string; icon: FernDockIconName; labelKey: "chat" | "call" | "settings" }[] = [
   { href: ROUTES.chat, icon: "chat", labelKey: "chat" },
   { href: ROUTES.call, icon: "call", labelKey: "call" },
   { href: ROUTES.settings, icon: "settings", labelKey: "settings" },
@@ -73,12 +73,10 @@ export function HmatDock() {
               href={tab.href}
               aria-current={active ? "page" : undefined}
               onClick={() => tapLight()}
-              className={cn("hmat-tab relative z-[1]", active && "on")}
+              className={cn("hmat-tab relative z-[1] font-display", active && "on")}
             >
-              <HardwareIcon name={tab.icon} size={21} />
-              <span className={cn("lbl", TYPE.kicker)}>
-                {t.nav[tab.labelKey]}
-              </span>
+              <FernDockIcon name={tab.icon} size={16} />
+              <span className="hmat-tab-lbl">{t.nav[tab.labelKey]}</span>
             </Link>
           );
         })}
