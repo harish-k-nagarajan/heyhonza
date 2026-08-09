@@ -9,7 +9,12 @@ import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { callStatusLine, localizeClientError } from "@/lib/i18n/extended";
 import { sendUserTurn, startCallOpener } from "@/lib/client/chat-actions";
-import { speak, stopSpeaking } from "@/lib/client/tts-actions";
+import {
+  applyCallAudioRoute,
+  resetCallAudioRoute,
+  setCallSpeakerPreference,
+} from "@/lib/client/call-audio-route";
+import { speak, stopSpeaking, reapplyAudioRoute } from "@/lib/client/tts-actions";
 import { ROUTES } from "@/lib/constants";
 import { DESIGNS } from "@/lib/design/registry";
 import type { DesignFamily, DesignId } from "@/lib/design/registry";
@@ -56,7 +61,9 @@ export type CallScreen = {
   expression: MoodExpression;
   phase: CallPhase;
   inCall: boolean;
-  /** Honza's orb state for the current phase. */
+  /** Matches chat: thinking overlay while connecting or awaiting Honza's reply. */
+  orbLoading: boolean;
+  /** Honza's orb face — aligned with chat (`loading ? thinking : expression.mood`). */
   orbState: HonzaOrbState;
   caption: string | null;
   captionWho: "honza" | "you";
@@ -69,9 +76,9 @@ export type CallScreen = {
   endCall: (goToChat: boolean) => void;
   /** Toggle the mic: start listening if idle, stop if hot. */
   toggleMic: () => void;
-  /** Show live transcript panel (speaker toggle in handoff). */
-  captionsVisible: boolean;
-  toggleCaptions: () => void;
+  /** Toggle loudspeaker vs earpiece routing. */
+  speakerOn: boolean;
+  toggleSpeaker: () => void;
 };
 
 export function useCallScreen(): CallScreen {
@@ -89,7 +96,7 @@ export function useCallScreen(): CallScreen {
   const [captionWho, setCaptionWho] = useState<"honza" | "you">("honza");
   const [error, setError] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
-  const [captionsVisible, setCaptionsVisible] = useState(false);
+  const [speakerOn, setSpeakerOn] = useState(false);
 
   // `phase` in a ref: the speak→listen→send cycle is driven by callbacks that
   // outlive the render they were created in, and they must not act on a call
@@ -195,6 +202,8 @@ export function useCallScreen(): CallScreen {
       abortRef.current = null;
       stopSpeaking();
       stop();
+      resetCallAudioRoute();
+      setSpeakerOn(false);
       setPhase("ready");
       setCaption(null);
       setSeconds(0);
@@ -207,6 +216,9 @@ export function useCallScreen(): CallScreen {
   const startCall = useCallback(() => {
     setError(null);
     setSeconds(0);
+    setSpeakerOn(false);
+    setCallSpeakerPreference(false);
+    applyCallAudioRoute(false);
     activeRef.current = true;
     setPhase("connecting");
     void (async () => {
@@ -233,6 +245,7 @@ export function useCallScreen(): CallScreen {
       activeRef.current = false;
       abortRef.current?.abort();
       stopSpeaking();
+      resetCallAudioRoute();
       setMood("idle");
     };
   }, [setMood]);
@@ -242,9 +255,18 @@ export function useCallScreen(): CallScreen {
     else startListening();
   }, [listening, stop, startListening]);
 
-  const toggleCaptions = useCallback(() => {
-    setCaptionsVisible((v) => !v);
+  const toggleSpeaker = useCallback(() => {
+    setSpeakerOn((prev) => {
+      const next = !prev;
+      setCallSpeakerPreference(next);
+      applyCallAudioRoute(next);
+      void reapplyAudioRoute();
+      return next;
+    });
   }, []);
+
+  const orbLoading = phase === "connecting" || phase === "thinking";
+  const orbState: HonzaOrbState = orbLoading ? "thinking" : expression.mood;
 
   const statusLine = callStatusLine(phase, listening, t.call);
 
@@ -255,7 +277,8 @@ export function useCallScreen(): CallScreen {
     expression,
     phase,
     inCall,
-    orbState: MOOD_FOR_PHASE[phase],
+    orbLoading,
+    orbState,
     caption,
     captionWho,
     error,
@@ -266,7 +289,7 @@ export function useCallScreen(): CallScreen {
     startCall,
     endCall,
     toggleMic,
-    captionsVisible,
-    toggleCaptions,
+    speakerOn,
+    toggleSpeaker,
   };
 }

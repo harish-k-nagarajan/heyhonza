@@ -1144,6 +1144,11 @@ body {
   box-shadow: 0 6px 16px rgba(196, 107, 107, 0.25);
 }
 
+/* Call control cluster — droplet split stage */
+.call-control-stage {
+  isolation: isolate;
+}
+
 /* Chat thread — frosted scroll edge fades */
 .hmat-chat-thread {
   position: relative;

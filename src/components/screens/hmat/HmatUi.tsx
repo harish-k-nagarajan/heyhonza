@@ -4,7 +4,6 @@ import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState, 
 
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { RecessReverb, recessMotion } from "@/components/honza/RecessReverb";
-import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import type { HonzaOrbState } from "@/components/honza/theme";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
@@ -449,98 +448,6 @@ export function HmatChatComposerRow({
         </button>
       </div>
     </div>
-  );
-}
-
-export function HmatCallButton({
-  onClick,
-  disabled,
-  label,
-}: {
-  onClick: () => void;
-  disabled?: boolean;
-  label: string;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        aria-label={label}
-        className="hmat-call-start flex h-[76px] w-[76px] items-center justify-center rounded-full text-white disabled:opacity-40"
-      >
-        <HardwareIcon name="call" size={30} emboss={false} />
-      </button>
-      <span className={cn(TYPE.bodySm, "font-display font-bold text-[#243D2C]")}>{label}</span>
-    </div>
-  );
-}
-
-export function HmatCallControls({
-  captionsOn,
-  onToggleCaptions,
-  onEndCall,
-  endLabel,
-  showCaptionsLabel,
-  hideCaptionsLabel,
-}: {
-  captionsOn: boolean;
-  onToggleCaptions: () => void;
-  onEndCall: () => void;
-  endLabel: string;
-  showCaptionsLabel: string;
-  hideCaptionsLabel: string;
-}) {
-  return (
-    <div className="flex items-start justify-center gap-7">
-      <div className="flex flex-col items-center">
-        <button
-          type="button"
-          onClick={onToggleCaptions}
-          aria-pressed={captionsOn}
-          aria-label={captionsOn ? hideCaptionsLabel : showCaptionsLabel}
-          className={cn(
-            "flex h-14 w-14 items-center justify-center rounded-full border transition",
-            captionsOn
-              ? "hmat-call-start border-white/25 text-white"
-              : "hmat-frost-action border-black/10 text-[#6E8A74]",
-          )}
-        >
-          <VolumeIcon active={captionsOn} />
-        </button>
-      </div>
-      <div className="flex flex-col items-center gap-2">
-        <button
-          type="button"
-          onClick={onEndCall}
-          aria-label={endLabel}
-          className="hmat-call-end flex h-[76px] w-[76px] items-center justify-center rounded-full text-white"
-        >
-          <HangIcon />
-        </button>
-        <span className={cn(TYPE.bodySm, "font-display font-bold text-[#243D2C]")}>{endLabel}</span>
-      </div>
-    </div>
-  );
-}
-
-function VolumeIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path
-        d="M11 5 6 9H3v6h3l5 4V5zm4.5 2.5a7 7 0 0 1 0 11 1.5 1.5 0 0 0 2.1 2.1 10 10 0 0 0 0-15.2 1.5 1.5 0 0 0-2.1 2.1zM16 9.5a3.5 3.5 0 0 1 0 5 1.5 1.5 0 0 0 2.1 2.1 6.5 6.5 0 0 0 0-9.2 1.5 1.5 0 0 0-2.1 2.1z"
-        opacity={active ? 1 : 0.85}
-      />
-    </svg>
-  );
-}
-
-function HangIcon() {
-  return (
-    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 3a9 9 0 0 0-9 9v3l2-2v-1a7 7 0 0 1 14 0v1l2 2v-3a9 9 0 0 0-9-9zm-5 11 2.3 2.3a3 3 0 0 0 4.2 0L16 14l-1.4-1.4-2.3 2.3a1 1 0 0 1-1.4 0L8.6 12.6 7.2 14z" />
-    </svg>
   );
 }
 

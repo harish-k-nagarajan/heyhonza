@@ -2,10 +2,10 @@
 
 import { useEffect, useRef } from "react";
 
+import { CaptionTextReveal } from "@/components/call/CaptionTextReveal";
+import { CallControlCluster } from "@/components/screens/call/CallControlCluster";
 import { ROUTES } from "@/lib/constants";
 import {
-  HmatCallButton,
-  HmatCallControls,
   HmatCaptionPanel,
   HmatPresenceRecess,
   HmatScreenTitle,
@@ -21,21 +21,23 @@ import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { tapMedium } from "@/lib/interaction/haptic";
 
-function captionKicker(phase: CallScreen["phase"], inCall: boolean, c: ReturnType<typeof useLocale>["t"]["call"]): string {
+function captionKicker(
+  phase: CallScreen["phase"],
+  inCall: boolean,
+  c: ReturnType<typeof useLocale>["t"]["call"],
+): string {
   if (!inCall) return c.captionKicker;
   if (phase === "connecting") return c.captionStatus;
   return c.captionKicker;
 }
 
-function captionFallback(
+function captionPlaceholder(
   phase: CallScreen["phase"],
   inCall: boolean,
-  captionsVisible: boolean,
   c: ReturnType<typeof useLocale>["t"]["call"],
 ): string {
   if (!inCall) return c.captionOffIdle;
   if (phase === "connecting") return c.captionOffConnecting;
-  if (!captionsVisible) return c.captionOffInCall;
   return "…";
 }
 
@@ -46,12 +48,13 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
     phase,
     inCall,
     orbState,
+    orbLoading,
     caption,
     captionWho,
     error,
     listening,
     supported,
-    captionsVisible,
+    speakerOn,
   } = screen;
   const { stackClassName, triggerPop } = useReactPop();
   const wasInCallRef = useRef(false);
@@ -68,10 +71,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
 
   if (!screen.ready) return <HmatScreenLoading />;
 
-  const showLiveCaption = inCall && captionsVisible && caption;
-  const captionText = showLiveCaption
-    ? caption
-    : captionFallback(phase, inCall, captionsVisible, c);
+  const showLiveCaption = inCall && caption;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
@@ -86,7 +86,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
       <HmatPresenceRecess
         orbState={orbState}
         stackClassName={stackClassName}
-        loading={phase === "connecting" || phase === "thinking"}
+        loading={orbLoading}
         onOrbTap={triggerPop}
       />
 
@@ -101,10 +101,10 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
             <span className={cn(TYPE.kicker, "mb-1 block text-[#6E8A74]")}>
               {captionWho === "honza" ? t.common.honza : t.common.you}
             </span>
-            {captionText}
+            <CaptionTextReveal key={`${captionWho}-${caption}`} text={caption!} />
           </>
         ) : (
-          captionText
+          captionPlaceholder(phase, inCall, c)
         )}
       </HmatCaptionPanel>
 
@@ -127,22 +127,18 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
       <div className="flex-1" />
 
       <div className="flex shrink-0 flex-col items-center pb-1">
-        {!inCall ? (
-          <HmatCallButton
-            label={c.callCta}
-            disabled={!supported}
-            onClick={() => screen.startCall()}
-          />
-        ) : (
-          <HmatCallControls
-            captionsOn={captionsVisible}
-            onToggleCaptions={() => screen.toggleCaptions()}
-            onEndCall={() => screen.endCall(true)}
-            endLabel={c.endCall}
-            showCaptionsLabel={c.showCaptions}
-            hideCaptionsLabel={c.hideCaptions}
-          />
-        )}
+        <CallControlCluster
+          inCall={inCall}
+          disabled={!supported}
+          speakerOn={speakerOn}
+          callLabel={c.callCta}
+          endLabel={c.endCall}
+          speakerOnAria={c.speakerOnAria}
+          speakerOffAria={c.speakerOffAria}
+          onStartCall={() => screen.startCall()}
+          onToggleSpeaker={() => screen.toggleSpeaker()}
+          onEndCall={() => screen.endCall(false)}
+        />
       </div>
     </div>
   );
