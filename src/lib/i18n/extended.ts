@@ -32,11 +32,10 @@ export type CallCopy = {
   captionStatus: string;
   captionOffIdle: string;
   captionOffConnecting: string;
-  captionOffInCall: string;
   callCta: string;
   endCall: string;
-  showCaptions: string;
-  hideCaptions: string;
+  speakerOnAria: string;
+  speakerOffAria: string;
   liveCall: string;
   callHonza: string;
   callDurationAria: string;
@@ -215,13 +214,12 @@ const enExtended: ExtendedCopy = {
     chipThinking: "thinking",
     captionKicker: "CAPTIONS",
     captionStatus: "STATUS",
-    captionOffIdle: "Captions off · tap the speaker when you want to read along.",
-    captionOffConnecting: "Calling… Captions will appear in the speaker panel.",
-    captionOffInCall: "Captions off · tap the speaker.",
+    captionOffIdle: "Captions appear here when Honza speaks.",
+    captionOffConnecting: "Calling… Honza's words will appear here.",
     callCta: "Call",
     endCall: "End",
-    showCaptions: "Show captions",
-    hideCaptions: "Hide captions",
+    speakerOnAria: "Using phone speaker — switch to earpiece",
+    speakerOffAria: "Using earpiece — switch to phone speaker",
     liveCall: "Live call",
     callHonza: "Call Honza",
     callDurationAria: "Call duration",
@@ -429,13 +427,12 @@ const csExtended: ExtendedCopy = {
     chipThinking: "přemýšlí",
     captionKicker: "TITULKY",
     captionStatus: "STAV",
-    captionOffIdle: "Titulky vypnuté · zvol reproduktor, až budeš chtít číst.",
-    captionOffConnecting: "Volá se… Titulky se objeví v reproduktoru.",
-    captionOffInCall: "Titulky vypnuté · klepni na reproduktor.",
+    captionOffIdle: "Titulky se objeví, když Honza mluví.",
+    captionOffConnecting: "Volá se… Honzovy slova se objeví zde.",
     callCta: "Zavolat",
     endCall: "Ukončit",
-    showCaptions: "Zobrazit titulky",
-    hideCaptions: "Skrýt titulky",
+    speakerOnAria: "Reproduktor telefonu — přepnout na sluchátko",
+    speakerOffAria: "Sluchátko — přepnout na reproduktor telefonu",
     liveCall: "Probíhající hovor",
     callHonza: "Zavolat Honzovi",
     callDurationAria: "Délka hovoru",

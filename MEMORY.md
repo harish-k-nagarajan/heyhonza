@@ -938,6 +938,26 @@ Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 4 live 
 
 ---
 
+## Current entry — 2026-08-09 (Call screen experience)
+
+Branch `feature/call-screen-experience` off `main`.
+
+### What changed
+- **Orb parity with chat:** `useCallScreen` derives `orbState` as `orbLoading ? "thinking" : expression.mood` and exposes `orbLoading`; `HmatCall` passes it to `HmatPresenceRecess` like `HmatChat`.
+- **Call controls:** `CallControlCluster` replaces abrupt swap — call CTA morphs/splits (motion spring) into speaker + hang-up on connect; respects `prefers-reduced-motion`.
+- **Speaker button = audio routing**, not captions. Default route `navigator.audioSession.type = "play-and-record"` (earpiece intent); toggle sets `"playback"` + best-effort `setSinkId` via `call-audio-route.ts`; applied in `tts-actions` before each play.
+- **Captions always live in-call** when text exists; `CaptionTextReveal` (manual skiper70-style word stagger via `motion`).
+- Removed dead `HmatCallButton` / `HmatCallControls` from `HmatUi.tsx`. i18n: `speakerOnAria` / `speakerOffAria`; caption placeholders no longer say "tap speaker for captions".
+
+### Verified
+- `npm run lint` + `npm run build` pass.
+- Mic + audible playback on a real phone still 🟡 (headless); audio routing is best-effort — Audio Session API is experimental and uneven on mobile.
+
+### Decision
+Call captions are always shown when Honza/you have lines; speaker toggles output only. Do not rebind speaker to caption visibility.
+
+---
+
 ## Current entry — 2026-08-09 (Dock tab transitions: kill View Transitions)
 
 ### What broke

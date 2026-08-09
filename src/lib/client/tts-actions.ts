@@ -1,5 +1,7 @@
 "use client";
 
+import { applyRouteToAudioElement } from "@/lib/client/call-audio-route";
+
 /**
  * Honza's voice, client side. Fetches audio bytes from `/api/tts` and plays
  * them — it never sees a provider key or hostname, which is the whole point of
@@ -28,6 +30,11 @@ function teardown() {
 /** Cut Honza off — used when a call ends or the user starts talking again. */
 export function stopSpeaking() {
   teardown();
+}
+
+/** Re-apply earpiece/speaker routing to audio currently playing (mid-call toggle). */
+export async function reapplyAudioRoute(): Promise<void> {
+  if (current) await applyRouteToAudioElement(current);
 }
 
 export class SpeechPlaybackError extends Error {}
@@ -71,6 +78,8 @@ export async function speak(text: string, opts?: { signal?: AbortSignal }): Prom
   const audio = new Audio(url);
   current = audio;
   currentUrl = url;
+
+  await applyRouteToAudioElement(audio);
 
   await new Promise<void>((resolve, reject) => {
     const done = () => {
