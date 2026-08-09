@@ -53,7 +53,13 @@ export function FernDockIcon({
       style={{ width: size, height: size }}
       aria-hidden
     >
-      <svg viewBox="0 0 24 24" fill="none" width="100%" height="100%" style={{ display: "block" }}>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        width={size}
+        height={size}
+        style={{ display: "block" }}
+      >
         {PATHS[name]}
       </svg>
     </span>
