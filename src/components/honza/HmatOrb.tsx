@@ -151,7 +151,7 @@ export function HmatOrb({
         ["--energy" as string]: expr.energy,
       }}
     >
-      <div className={cn("stack overflow-hidden rounded-full", breathe && "breathe", stackClassName)}>
+      <div className={cn("stack", breathe && "breathe", stackClassName)}>
         <div className="open-layer" style={{ position: "absolute", inset: 0, opacity: 1 }}>
           <Face cells={openCells} />
         </div>
