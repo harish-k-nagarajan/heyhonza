@@ -938,6 +938,24 @@ Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 4 live 
 
 ---
 
+## Current entry — 2026-08-09 (Call screen phone sounds)
+
+### What changed
+- **Ring / pickup / hangup SFX** on `/call`: looping ring during `connecting`, short pickup tone before Honza's first TTS line, disconnect tone on hang-up. Wired in `useCallScreen`; module `src/lib/client/call-sfx.ts` (separate from TTS `Audio` element). Respects earpiece/speaker routing via `call-audio-route.ts`; skipped when `prefers-reduced-motion: reduce`.
+- **Assets** in `public/audio/call/` (Mixkit License, no attribution required):
+  - `ring.mp3` — [Urgent simple tone loop](https://mixkit.co/free-sound-effects/urgent-simple-tone-loop/) (sfx 2976)
+  - `pickup.mp3` — [Magic notification ring](https://mixkit.co/free-sound-effects/magic-notification-ring/) (sfx 2344)
+  - `hangup.mp3` — [Wrong answer fail notification](https://mixkit.co/free-sound-effects/wrong-answer-fail-notification/) (sfx 946)
+
+### Verified
+- `npm run lint` + `npm run build` pass.
+- Audible playback on device still 🟡 (headless); swap any of the three MP3s in `public/audio/call/` without code changes if Harish prefers different tones.
+
+### Decision
+Call SFX are static files, not a library. Pickup plays only on the initial connect (not every Honza reply). Hang-up is fire-and-forget so UI resets immediately.
+
+---
+
 ## Current entry — 2026-08-09 (Call screen experience)
 
 Branch `feature/call-screen-experience` off `main`.

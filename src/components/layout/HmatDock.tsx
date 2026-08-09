@@ -76,7 +76,10 @@ export function HmatDock() {
       className="pointer-events-none fixed inset-x-0 z-40 mx-auto max-w-app px-4"
       style={{ bottom: "max(14px, env(safe-area-inset-bottom))" }}
     >
-      <nav ref={navRef} className="fdock pointer-events-auto relative">
+      <nav
+        ref={navRef}
+        className="fdock pointer-events-auto relative flex gap-1 rounded-[28px] p-2"
+      >
         <span
           className="fdock-pill"
           aria-hidden
@@ -93,7 +96,10 @@ export function HmatDock() {
               href={tab.href}
               aria-current={active ? "page" : undefined}
               onClick={(e) => onTabClick(e, tab.href)}
-              className={cn("hmat-tab relative z-[1] font-display", active && "on")}
+              className={cn(
+                "hmat-tab relative z-[1] flex min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-[22px] px-[18px] py-3 font-display",
+                active && "on",
+              )}
             >
               <FernDockIcon name={tab.icon} size={16} />
               <span className="hmat-tab-lbl">{t.nav[tab.labelKey]}</span>

@@ -14,6 +14,14 @@ import {
   resetCallAudioRoute,
   setCallSpeakerPreference,
 } from "@/lib/client/call-audio-route";
+import {
+  playCallRing,
+  playHangupSound,
+  playPickupSound,
+  reapplyCallSfxRoute,
+  stopAllCallSfx,
+  stopCallRing,
+} from "@/lib/client/call-sfx";
 import { speak, stopSpeaking, reapplyAudioRoute } from "@/lib/client/tts-actions";
 import { ROUTES } from "@/lib/constants";
 import { DESIGNS } from "@/lib/design/registry";
@@ -201,7 +209,9 @@ export function useCallScreen(): CallScreen {
       abortRef.current?.abort();
       abortRef.current = null;
       stopSpeaking();
+      stopCallRing();
       stop();
+      playHangupSound();
       resetCallAudioRoute();
       setSpeakerOn(false);
       setPhase("ready");
@@ -221,10 +231,12 @@ export function useCallScreen(): CallScreen {
     applyCallAudioRoute(false);
     activeRef.current = true;
     setPhase("connecting");
+    playCallRing();
     void (async () => {
       const opener = await startCallOpener();
       if (!activeRef.current) return;
       if (!opener) {
+        stopCallRing();
         setError(
           localizeClientError(
             useChatStore.getState().lastError ?? t.errors.couldNotReach,
@@ -235,6 +247,9 @@ export function useCallScreen(): CallScreen {
         setPhase("ready");
         return;
       }
+      stopCallRing();
+      await playPickupSound();
+      if (!activeRef.current) return;
       await speakThenListen(opener);
     })();
   }, [speakThenListen, t.errors]);
@@ -245,6 +260,7 @@ export function useCallScreen(): CallScreen {
       activeRef.current = false;
       abortRef.current?.abort();
       stopSpeaking();
+      stopAllCallSfx();
       resetCallAudioRoute();
       setMood("idle");
     };
@@ -261,6 +277,7 @@ export function useCallScreen(): CallScreen {
       setCallSpeakerPreference(next);
       applyCallAudioRoute(next);
       void reapplyAudioRoute();
+      void reapplyCallSfxRoute();
       return next;
     });
   }, []);
