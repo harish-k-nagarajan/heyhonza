@@ -1,9 +1,9 @@
 "use client";
 
-import { forwardRef, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 import { HmatOrb } from "@/components/honza/HmatOrb";
-import { OrbRipples } from "@/components/honza/OrbRipples";
+import { RecessReverb, recessMotion } from "@/components/honza/RecessReverb";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import type { HonzaOrbState } from "@/components/honza/theme";
 import { cn } from "@/lib/cn";
@@ -38,29 +38,58 @@ export function HmatPresenceRecess({
 }) {
   const { t } = useLocale();
   const moodLabel = recessMoodLabel(orbState, loading, t);
+  const prevOrbState = useRef(orbState);
+  const [speakFlash, setSpeakFlash] = useState(false);
+
+  useLayoutEffect(() => {
+    if (orbState === "speaking" && prevOrbState.current !== "speaking") {
+      setSpeakFlash(true);
+      // Match --duration-presence-beat (680ms) + wave delay (120ms) + settle.
+      const timer = window.setTimeout(() => setSpeakFlash(false), 820);
+      prevOrbState.current = orbState;
+      return () => window.clearTimeout(timer);
+    }
+    prevOrbState.current = orbState;
+  }, [orbState]);
+
+  const reverbMotion = recessMotion(
+    orbState,
+    loading,
+    speakFlash,
+    stackClassName === "react-pop",
+  );
+  const bezelActive = loading || orbState === "thinking";
 
   return (
-    <div className="relative">
-      <div
-        className={cn(
-          "hmat-pulse-glow",
-          (loading || orbState === "thinking") && "hmat-pulse-glow-active",
-        )}
-        aria-hidden
-      />
-      <div className="hmat-recess-hero mat-recess flex flex-col items-center px-4 pb-3.5 pt-[18px]">
-        <button
-          type="button"
-          onClick={() => {
-            tapLight();
-            onOrbTap?.();
-          }}
-          className="relative rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          aria-label={t.common.honza}
+    <div
+      className={cn(
+        "hmat-recess-hero mat-recess flex flex-col items-center px-4 pb-3.5 pt-[18px]",
+        orbState === "oops" && "hmat-recess-hero-oops",
+      )}
+    >
+      <div className="hmat-display-module hmat-presence-shared">
+        <RecessReverb motion={reverbMotion} />
+        <div
+          className={cn(
+            "hmat-display-bezel",
+            bezelActive && "hmat-display-bezel--active",
+            speakFlash && "hmat-display-bezel--speak",
+            stackClassName === "react-pop" && "hmat-display-bezel--burst",
+          )}
         >
-          <OrbRipples state={orbState} size={size} />
-          <HmatOrb state={orbState} size={size} breathe stackClassName={stackClassName} />
-        </button>
+          <button
+            type="button"
+            onClick={() => {
+              tapLight();
+              onOrbTap?.();
+            }}
+            className="hmat-display-screen relative rounded-[14px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            aria-label={t.common.honza}
+          >
+            <HmatOrb state={orbState} size={size} breathe stackClassName={stackClassName} />
+          </button>
+        </div>
+      </div>
         <div
           className={cn(
             "mat-channel mt-2.5 w-[200px] motion-reduce:animate-none",
@@ -71,7 +100,6 @@ export function HmatPresenceRecess({
         <p className={cn("mt-2.5", TYPE.kicker, "font-display tracking-[0.2em] text-accent")}>
           {moodLabel}
         </p>
-      </div>
     </div>
   );
 }
@@ -102,12 +130,12 @@ export function HmatHonzaBubble({
   children: ReactNode;
   index?: number;
 }) {
-  const delay = Math.min(index, 3) * 50;
+  const delay = Math.min(index, 3) * 40;
 
   return (
     <div
-      className="message-enter max-w-[88%] self-start"
-      style={delay > 0 ? { transitionDelay: `${delay}ms, 0ms` } : undefined}
+      className="message-enter message-enter--presence max-w-[88%] self-start"
+      style={delay > 0 ? { transitionDelay: `${delay}ms, ${delay}ms` } : undefined}
     >
       <div className="hmat-bubble-honza px-4 py-3.5">
         <p className={cn(TYPE.bodySm, "text-[#243D2C]")}>{children}</p>
@@ -527,7 +555,9 @@ export function HmatSettingsHeader({
 }) {
   return (
     <header className="flex items-center gap-3.5">
-      <HmatOrb state={orbState} size={64} breathe={false} />
+      <div className="hmat-presence-shared hmat-presence-compact shrink-0">
+        <HmatOrb state={orbState} size={64} breathe={false} />
+      </div>
       <div className="min-w-0 flex-1">
         <p className={cn(TYPE.kicker, "font-display tracking-[0.2em] text-accent")}>{kicker}</p>
         <p className={cn(TYPE.title, "font-display text-[18px] text-[#243D2C]")}>{title}</p>

@@ -11,6 +11,7 @@ import { useDesignStore } from "@/stores/useDesignStore";
 
 import { BottomNav } from "./BottomNav";
 import { HmatDock } from "./HmatDock";
+import { HmatScreenFrame } from "./HmatScreenFrame";
 import { ServerSync } from "./ServerSync";
 
 /** Hmat landing runs at excited-level energy so the channel and orb feel alive. */
@@ -76,7 +77,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               paddingBottom: hideNav ? welcomeBottomPad : "calc(88px + env(safe-area-inset-bottom))",
             }}
           >
-            {children}
+            {hideNav || isWelcome ? children : <HmatScreenFrame>{children}</HmatScreenFrame>}
           </div>
         </div>
         {!hideNav ? <HmatDock /> : null}

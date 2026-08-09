@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 
 import { FernDockIcon } from "@/components/icons/FernDockIcons";
 import type { FernDockIconName } from "@/components/icons/FernDockIcons";
@@ -13,8 +13,8 @@ import { useLocale } from "@/lib/i18n/useLocale";
 
 /**
  * O4 frost dock — Chat · Hovor · Nastavení. Horizontal icon+label tabs on frosted
- * glass; active tab slides a charcoal tint (#4A433C18) pill behind the selection. Icons match
- * the O4 handoff (Lucide message-circle · phone · settings).
+ * glass; active tab slides a charcoal tint (#4A433C18) pill behind the selection.
+ * Uses plain router.push (no View Transitions) so tab changes cannot hang.
  */
 const TABS: { href: string; icon: FernDockIconName; labelKey: "chat" | "call" | "settings" }[] = [
   { href: ROUTES.chat, icon: "chat", labelKey: "chat" },
@@ -24,6 +24,7 @@ const TABS: { href: string; icon: FernDockIconName; labelKey: "chat" | "call" | 
 
 export function HmatDock() {
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useLocale();
   const navRef = useRef<HTMLElement>(null);
   const tabRefs = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -51,6 +52,25 @@ export function HmatDock() {
     return () => window.removeEventListener("resize", measurePill);
   }, [measurePill, pathname]);
 
+  const onTabClick = useCallback(
+    (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+      if (
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey ||
+        e.button !== 0
+      ) {
+        return;
+      }
+      e.preventDefault();
+      if (pathname === href || pathname.startsWith(`${href}/`)) return;
+      tapLight();
+      router.push(href);
+    },
+    [pathname, router],
+  );
+
   return (
     <div
       className="pointer-events-none fixed inset-x-0 z-40 mx-auto max-w-app px-4"
@@ -72,7 +92,7 @@ export function HmatDock() {
               }}
               href={tab.href}
               aria-current={active ? "page" : undefined}
-              onClick={() => tapLight()}
+              onClick={(e) => onTabClick(e, tab.href)}
               className={cn("hmat-tab relative z-[1] font-display", active && "on")}
             >
               <FernDockIcon name={tab.icon} size={16} />

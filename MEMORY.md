@@ -938,7 +938,58 @@ Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 4 live 
 
 ---
 
-## Current entry — 2026-08-08 (Chat motion design phases 0–5)
+## Current entry — 2026-08-09 (Dock tab transitions: kill View Transitions)
+
+### What broke
+Wrapping dock `router.push` in `document.startViewTransition` hung App Router soft navigations: the tab could focus while the route stayed put, and pages could stick at opacity 0 when CSS enter used `fill: both` from opacity 0 under overlapping VTs.
+
+### What works now
+- `HmatDock` uses plain `router.push` only (no VT, no navigation lock ref).
+- `HmatScreenFrame` CSS rise-in (380ms, light blur) with `forwards` + animationend/failsafe clear.
+- Removed `view-transition-name` / VT pseudo rules for screen + presence from the dock path.
+
+### Decision
+Dock continuity = sliding pill + CSS page enter. Do not reintroduce View Transitions around tab pushes without a Next-native VT path that cannot abort navigations.
+
+---
+
+## Previous entry — 2026-08-09 (Presence beat + page enter polish)
+
+### What changed
+- Shared `--duration-presence-beat: 680ms` for speak/burst dust + Honza chat/typing bubble enter (premium, visible). Thinking ring ~3s with stronger opacity/stroke.
+- Dust brighter, longer hold, farther drift; `speakFlash` 820ms.
+- Page transitions: initially CSS rise-in on live `HmatScreenFrame` + VT presence morph (later fixed — see entry above).
+
+### Decision
+Honza bubble timing locks to the orb presence beat; user bubbles stay snappy (`--duration-bubble-in`).
+
+---
+
+## Previous entry — 2026-08-09 (Fluid reverb + Chat/Call/Settings continuity)
+
+### What changed
+- **RecessReverb smoothness:** removed `stroke-dasharray` morph (jumpy re-phase). Thinking uses fixed dash + `stroke-dashoffset` drift; speak/burst use opacity + ≤2px blur handoff into dust. Speak 360ms / burst 280ms / `speakFlash` 470ms. Speak/burst remount cleanly; idle/oops use one wave.
+- **Chat↔Call↔Settings:** `navigateWithViewTransition` on `HmatDock`; shared `view-transition-name: honza-presence` on recess module + settings compact orb; soft root crossfade. `HmatScreenFrame` CSS enter is fallback when VT unavailable. Dock pill uses `--ease-out` / `--duration-ui` tokens.
+- Fixed pre-existing `.chat-orb-header` layout transition (`padding`/`gap`) that tripped the design hook — removed layout property animation.
+
+### Decision
+Keep square line→dust DNA; continuity via View Transitions API (no new motion library). Reduced motion skips VT and screen enter.
+
+---
+
+## Previous entry — 2026-08-09 (RecessReverb line → particle dissolve)
+
+### What changed
+- Removed corner brackets (they read as a second square outline when Honza acts).
+- Reverb is now SVG rounded-square strokes that expand, then `stroke-dasharray` dissolves into dashes; speak/burst blooms square-pixel dust that drifts outward and dies **inside** `overflow: hidden` on the module.
+- Thinking: line dissolve only (no dust — too frequent). Speak 480ms / burst 320ms. `speakFlash` → 560ms.
+
+### Decision
+No corner brackets or edge ticks on the display reverb. Presence = line → particles, clipped to the module.
+
+---
+
+## Previous entry — 2026-08-08 (Chat motion design phases 0–5)
 
 Branch `feature/chat-motion-design`. Spec: `plans/CHAT_MOTION_DESIGN_SPEC.md`.
 

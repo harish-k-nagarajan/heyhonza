@@ -30,7 +30,7 @@ export function HonzaTypingBubble({ variant, className }: HonzaTypingBubbleProps
     return (
       <div
         className={cn(
-          "flex w-full justify-start motion-safe:animate-typing-bubble-in motion-reduce:animate-none motion-reduce:opacity-100",
+          "hmat-typing-enter flex w-full justify-start",
           className,
         )}
         role="status"

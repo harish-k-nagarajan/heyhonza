@@ -47,9 +47,6 @@ const config: Config = {
         "honza-pop": "honza-pop var(--duration-orb-pop) var(--ease-out)",
         "typing-dot": "typing-dot 450ms var(--ease-in-out) infinite",
         "typing-bubble-in": "typing-bubble-in var(--duration-bubble-in) var(--ease-out) forwards",
-        "orb-ripple-idle": "orb-ripple-idle 5s var(--ease-in-out) infinite",
-        "orb-ripple-thinking": "orb-ripple-thinking 1.8s var(--ease-out) infinite",
-        "orb-ripple-speak": "orb-ripple-speak 600ms var(--ease-out) 1 forwards",
       },
       keyframes: {
         honza: {
@@ -114,18 +111,6 @@ const config: Config = {
         "typing-bubble-in": {
           "0%": { opacity: "0", transform: "scale(0.95)" },
           "100%": { opacity: "1", transform: "scale(1)" },
-        },
-        "orb-ripple-idle": {
-          "0%, 100%": { opacity: "0.05", transform: "scale(1)" },
-          "50%": { opacity: "0.1", transform: "scale(1.06)" },
-        },
-        "orb-ripple-thinking": {
-          "0%": { opacity: "0.22", transform: "scale(1)" },
-          "100%": { opacity: "0", transform: "scale(1.42)" },
-        },
-        "orb-ripple-speak": {
-          "0%": { opacity: "0.2", transform: "scale(1)" },
-          "100%": { opacity: "0", transform: "scale(1.38)" },
         },
       },
       maxWidth: {
