@@ -4,7 +4,6 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
 import { cn } from "@/lib/cn";
-import { TYPE } from "@/lib/design/typography";
 import { tapLight } from "@/lib/interaction/haptic";
 
 function VolumeIcon({ active }: { active: boolean }) {
@@ -54,104 +53,93 @@ export function CallControlCluster({
   const reducedMotion = useReducedMotion();
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="call-control-stage relative flex min-h-[76px] min-w-[220px] items-center justify-center">
-        <AnimatePresence mode="wait" initial={false}>
-          {!inCall ? (
+    <div className="call-control-stage relative flex min-h-[76px] min-w-[220px] items-center justify-center">
+      <AnimatePresence mode="wait" initial={false}>
+        {!inCall ? (
+          <motion.div
+            key="call-cta"
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={
+              reducedMotion
+                ? { opacity: 0 }
+                : {
+                    opacity: 0,
+                    scaleX: 1.65,
+                    scaleY: 0.72,
+                    borderRadius: "38%",
+                    transition: { duration: 0.22, ease: [0.4, 0, 0.2, 1] },
+                  }
+            }
+          >
+            <button
+              type="button"
+              onClick={onStartCall}
+              disabled={disabled}
+              aria-label={callLabel}
+              className="hmat-call-start flex h-[76px] w-[76px] items-center justify-center rounded-full text-white disabled:opacity-40"
+            >
+              <HardwareIcon name="call" size={30} emboss={false} />
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="in-call"
+            className="grid grid-cols-2 gap-x-7 items-center"
+            initial={reducedMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reducedMotion ? { opacity: 0 } : { opacity: 0, transition: { duration: 0.15 } }}
+          >
             <motion.div
-              key="call-cta"
-              className="flex flex-col items-center gap-2"
-              initial={reducedMotion ? false : { opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={
-                reducedMotion
-                  ? { opacity: 0 }
-                  : {
-                      opacity: 0,
-                      scaleX: 1.65,
-                      scaleY: 0.72,
-                      borderRadius: "38%",
-                      transition: { duration: 0.22, ease: [0.4, 0, 0.2, 1] },
-                    }
+              className="flex h-[76px] items-center justify-center"
+              initial={
+                reducedMotion ? false : { x: 34, scale: 0.45, opacity: 0 }
               }
+              animate={{ x: 0, scale: 1, opacity: 1 }}
+              transition={{ ...SPLIT_SPRING, delay: reducedMotion ? 0 : 0.06 }}
             >
               <button
                 type="button"
-                onClick={onStartCall}
-                disabled={disabled}
-                aria-label={callLabel}
-                className="hmat-call-start flex h-[76px] w-[76px] items-center justify-center rounded-full text-white disabled:opacity-40"
+                onClick={() => {
+                  tapLight();
+                  onToggleSpeaker();
+                }}
+                aria-pressed={speakerOn}
+                aria-label={speakerOn ? speakerOnAria : speakerOffAria}
+                className={cn(
+                  "flex h-[76px] w-[76px] items-center justify-center rounded-full border transition",
+                  speakerOn
+                    ? "hmat-call-start border-white/25 text-white"
+                    : "hmat-frost-action border-black/10 text-[#6E8A74]",
+                )}
               >
-                <HardwareIcon name="call" size={30} emboss={false} />
+                <VolumeIcon active={speakerOn} />
               </button>
-              <span className={cn(TYPE.bodySm, "font-display font-bold text-[#243D2C]")}>
-                {callLabel}
-              </span>
             </motion.div>
-          ) : (
-            <motion.div
-              key="in-call"
-              className="flex flex-col items-center gap-2"
-              initial={reducedMotion ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={reducedMotion ? { opacity: 0 } : { opacity: 0, transition: { duration: 0.15 } }}
-            >
-              <div className="grid grid-cols-2 gap-x-7 items-center">
-                <motion.div
-                  className="flex h-[76px] items-center justify-center"
-                  initial={
-                    reducedMotion ? false : { x: 34, scale: 0.45, opacity: 0 }
-                  }
-                  animate={{ x: 0, scale: 1, opacity: 1 }}
-                  transition={{ ...SPLIT_SPRING, delay: reducedMotion ? 0 : 0.06 }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      tapLight();
-                      onToggleSpeaker();
-                    }}
-                    aria-pressed={speakerOn}
-                    aria-label={speakerOn ? speakerOnAria : speakerOffAria}
-                    className={cn(
-                      "flex h-[76px] w-[76px] items-center justify-center rounded-full border transition",
-                      speakerOn
-                        ? "hmat-call-start border-white/25 text-white"
-                        : "hmat-frost-action border-black/10 text-[#6E8A74]",
-                    )}
-                  >
-                    <VolumeIcon active={speakerOn} />
-                  </button>
-                </motion.div>
 
-                <motion.div
-                  className="flex h-[76px] items-center justify-center"
-                  initial={
-                    reducedMotion ? false : { x: -34, scale: 0.45, opacity: 0 }
-                  }
-                  animate={{ x: 0, scale: 1, opacity: 1 }}
-                  transition={{ ...SPLIT_SPRING, delay: reducedMotion ? 0 : 0.12 }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      tapLight();
-                      onEndCall();
-                    }}
-                    aria-label={endLabel}
-                    className="hmat-call-end flex h-[76px] w-[76px] items-center justify-center rounded-full text-white"
-                  >
-                    <HangIcon />
-                  </button>
-                </motion.div>
-              </div>
-              <span className={cn(TYPE.bodySm, "font-display font-bold text-[#243D2C]")}>
-                {endLabel}
-              </span>
+            <motion.div
+              className="flex h-[76px] items-center justify-center"
+              initial={
+                reducedMotion ? false : { x: -34, scale: 0.45, opacity: 0 }
+              }
+              animate={{ x: 0, scale: 1, opacity: 1 }}
+              transition={{ ...SPLIT_SPRING, delay: reducedMotion ? 0 : 0.12 }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  tapLight();
+                  onEndCall();
+                }}
+                aria-label={endLabel}
+                className="hmat-call-end flex h-[76px] w-[76px] items-center justify-center rounded-full text-white"
+              >
+                <HangIcon />
+              </button>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
