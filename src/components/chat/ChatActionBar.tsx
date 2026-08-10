@@ -31,8 +31,7 @@ function SendArrowIcon() {
 }
 
 /**
- * Chat footer composer — consolidated from Composer + HmatComposer. Always
- * visible once a session is active; no separate "Start Chat" gate.
+ * Chat footer composer — consolidated from Composer + HmatComposer.
  */
 export function ChatActionBar({
   onSend,

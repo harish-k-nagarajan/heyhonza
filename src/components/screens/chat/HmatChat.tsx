@@ -8,7 +8,6 @@ import {
   HmatChatComposerRow,
   HmatChatThread,
   HmatHonzaBubble,
-  HmatOpenerCard,
   HmatPresenceRecess,
   HmatScreenTitle,
   HmatStatusChip,
@@ -22,6 +21,7 @@ import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import type { ChatMessage } from "@/types";
 import { cn } from "@/lib/cn";
+import { tapLight } from "@/lib/interaction/haptic";
 import { useChatStore } from "@/stores/useChatStore";
 
 function chipLabel(screen: ChatScreen, t: ReturnType<typeof useLocale>["t"]): string {
@@ -39,7 +39,8 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     loading,
     lastError,
     heroMode,
-    openerMessage,
+    showStartGate,
+    showEmptyState,
   } = screen;
   const typingPreview = useChatStore((s) => s.typingPreview);
   const typingPhaseActive = typingPreview !== null;
@@ -105,20 +106,11 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
           {localizedError ? (
             <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
               {localizedError}
-              {threadMessages.length === 0 ? (
-                <button
-                  type="button"
-                  onClick={screen.retryOpener}
-                  className={cn("mt-2 block w-full underline text-muted-foreground", TYPE.label)}
-                >
-                  {t.chat.tryAgain}
-                </button>
-              ) : null}
             </p>
           ) : null}
 
-          {heroMode && openerMessage ? (
-            <HmatOpenerCard>{openerMessage}</HmatOpenerCard>
+          {showEmptyState ? (
+            <p className={cn(TYPE.bodySm, "text-center text-[#6E8A74]")}>{t.chat.emptyHint}</p>
           ) : null}
 
           {!heroMode
@@ -139,19 +131,34 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
         </HmatChatThread>
 
         <div className="shrink-0">
-          <HmatChatComposerRow
-            mode={composerMode}
-            value={draft}
-            onChange={setDraft}
-            onSend={send}
-            onEndChat={screen.endChat}
-            disabled={composerDisabled}
-            placeholder={
-              composerMode === "idle" ? t.chat.placeholderIdle : t.chat.placeholderOngoing
-            }
-            sendLabel={t.chat.send}
-            endLabel={t.chat.endChat}
-          />
+          {showStartGate ? (
+            <button
+              type="button"
+              onClick={() => {
+                tapLight();
+                screen.startChat();
+              }}
+              className="hmat-ink-action flex h-[52px] w-full items-center justify-center rounded-2xl text-white"
+            >
+              <span className={cn(TYPE.bodySm, "font-display font-semibold")}>
+                {t.chat.startChat}
+              </span>
+            </button>
+          ) : (
+            <HmatChatComposerRow
+              mode={composerMode}
+              value={draft}
+              onChange={setDraft}
+              onSend={send}
+              onEndChat={screen.endChat}
+              disabled={composerDisabled}
+              placeholder={
+                composerMode === "idle" ? t.chat.placeholderIdle : t.chat.placeholderOngoing
+              }
+              sendLabel={t.chat.send}
+              endLabel={t.chat.endChat}
+            />
+          )}
         </div>
       </div>
     </>
