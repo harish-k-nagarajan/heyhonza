@@ -5,7 +5,6 @@ import { useEffect, useRef } from "react";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ROUTES } from "@/lib/constants";
@@ -124,17 +123,18 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
 
       <div className="flex shrink-0 flex-col items-center gap-3 pb-2">
         {!inCall ? (
-          <Button
+          <button
             type="button"
-            className="min-h-14 w-full max-w-[280px] text-base tracking-[0.2em]"
             onClick={() => {
               tapMedium();
               screen.startCall();
             }}
             disabled={!supported}
+            aria-label={c.callHonzaCta}
+            className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-accent bg-accent text-accent-foreground transition active:scale-95 disabled:opacity-40"
           >
-            {c.callHonzaCta}
-          </Button>
+            <HardwareIcon name="call" size={26} emboss={false} />
+          </button>
         ) : (
           <div className="flex items-center gap-4">
             <button
@@ -168,11 +168,6 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
             </button>
           </div>
         )}
-        {inCall ? (
-          <span className="font-sans text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
-            {c.endCallFooter}
-          </span>
-        ) : null}
       </div>
     </div>
   );
