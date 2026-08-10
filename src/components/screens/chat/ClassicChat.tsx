@@ -8,6 +8,7 @@ import { HonzaTypingBubble } from "@/components/chat/HonzaTypingBubble";
 import { MessageList } from "@/components/chat/MessageList";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import type { ChatScreen } from "@/hooks/useChatScreen";
 import { useMoodReactions } from "@/hooks/useMoodReactions";
@@ -27,7 +28,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
     lastError,
     showEmptyState,
     heroMode,
-    openerMessage,
+    showStartGate,
     endedSessions,
     historyOpen,
     setHistoryOpen,
@@ -114,36 +115,18 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
           )}
         </div>
 
-        {heroMode && openerMessage ? (
-          <Card className="motion-safe:animate-landing-fade-in shrink-0 p-4 motion-reduce:animate-none">
-            <p className="mb-2 font-sans text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
-              {t.chat.openerKicker}
-            </p>
-            <p className="font-sans text-sm leading-relaxed text-accent">{openerMessage}</p>
-          </Card>
-        ) : null}
-
         <Card className="flex min-h-0 flex-1 flex-col gap-3 p-3">
           {localizedError ? (
             <div className="shrink-0 rounded-card border border-accent/40 bg-muted px-3 py-2">
               <p className="text-sm text-accent">{localizedError}</p>
-              {threadMessages.length === 0 ? (
-                <button
-                  type="button"
-                  onClick={screen.retryOpener}
-                  className="mt-2 font-sans text-[11px] uppercase tracking-[0.2em] text-muted-foreground underline"
-                >
-                  {t.chat.tryAgain}
-                </button>
-              ) : null}
             </div>
           ) : null}
 
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-            {!heroMode && showEmptyState ? (
+            {showEmptyState ? (
               <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
                 <p className="font-sans text-sm leading-relaxed text-muted-foreground">
-                  {t.chat.thinking}
+                  {t.chat.emptyHint}
                 </p>
               </div>
             ) : !heroMode ? (
@@ -158,12 +141,25 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
           </div>
         </Card>
 
-        <ChatActionBar
-          onSend={screen.send}
-          onEndChat={screen.endChat}
-          disabled={composerDisabled}
-          onSent={triggerPop}
-        />
+        {showStartGate ? (
+          <Button
+            type="button"
+            className="w-full"
+            onClick={() => {
+              tapLight();
+              screen.startChat();
+            }}
+          >
+            {t.chat.startChat}
+          </Button>
+        ) : (
+          <ChatActionBar
+            onSend={screen.send}
+            onEndChat={screen.endChat}
+            disabled={composerDisabled}
+            onSent={triggerPop}
+          />
+        )}
       </div>
 
       <ChatHistoryDrawer

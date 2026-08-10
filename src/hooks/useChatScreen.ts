@@ -7,7 +7,6 @@ import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { useScreenReady } from "@/hooks/useScreenReady";
 import {
   endChatSessionAction,
-  initiateOpener,
   sendUserTurn,
   startChatSession,
 } from "@/lib/client/chat-actions";
@@ -32,17 +31,16 @@ export type ChatScreen = {
   lastError: string | null;
   loading: boolean;
   chatPhase: "idle" | "active";
-  /** Hero recess until the learner sends their first reply. */
+  /** True until the learner sends their first message (composer layout). */
   heroMode: boolean;
-  /** Honza's opening line while waiting in hero mode. */
-  openerMessage: string | null;
+  /** No session yet — show Start chat gate instead of composer. */
+  showStartGate: boolean;
   showEmptyState: boolean;
   historyOpen: boolean;
   setHistoryOpen: (open: boolean) => void;
   startChat: () => void;
   endChat: () => void;
   send: (text: string) => void;
-  retryOpener: () => void;
   openHistorySession: (sessionId: string) => void;
 };
 
@@ -55,7 +53,6 @@ export function useChatScreen(): ChatScreen {
   const status = useChatStore((s) => s.status);
   const lastError = useChatStore((s) => s.lastError);
   const chatPhase = useChatStore((s) => s.chatPhase);
-  const activeSessionId = useChatStore((s) => s.activeSessionId);
   const endedSessions = useChatStore((s) => s.endedSessions);
 
   const design = useDesignStore((s) => s.design);
@@ -72,31 +69,13 @@ export function useChatScreen(): ChatScreen {
     return () => setMood("idle");
   }, [setMood]);
 
-  /** Honza initiates on load (and after End Chat) — no "Start Chat" gate. */
-  useEffect(() => {
-    if (!ready || !onboardingComplete) return;
-    if (chatPhase !== "idle" || activeSessionId) return;
-
-    void (async () => {
-      await startChatSession();
-      if (useChatStore.getState().messages.length === 0) {
-        await initiateOpener();
-      }
-    })();
-  }, [ready, onboardingComplete, chatPhase, activeSessionId]);
-
   const threadMessages = useMemo(
     () => messages.filter((m) => m.role === "user" || m.role === "assistant"),
     [messages],
   );
 
   const heroMode = !threadMessages.some((m) => m.role === "user");
-
-  const openerMessage = useMemo(() => {
-    if (!heroMode) return null;
-    const first = threadMessages.find((m) => m.role === "assistant");
-    return first?.content ?? null;
-  }, [heroMode, threadMessages]);
+  const showStartGate = chatPhase === "idle";
 
   const showEmptyState =
     chatPhase === "active" &&
@@ -105,15 +84,7 @@ export function useChatScreen(): ChatScreen {
     !lastError;
 
   const startChat = useCallback(() => {
-    void (async () => {
-      const chat = useChatStore.getState();
-      if (!chat.activeSessionId) {
-        await startChatSession();
-      }
-      if (useChatStore.getState().messages.length === 0) {
-        await initiateOpener();
-      }
-    })();
+    void startChatSession();
   }, []);
 
   const endChat = useCallback(() => {
@@ -141,14 +112,13 @@ export function useChatScreen(): ChatScreen {
     loading: status === "loading",
     chatPhase,
     heroMode,
-    openerMessage,
+    showStartGate,
     showEmptyState,
     historyOpen,
     setHistoryOpen,
     startChat,
     endChat,
     send: (text) => void sendUserTurn(text),
-    retryOpener: () => void initiateOpener(),
     openHistorySession,
   };
 }
