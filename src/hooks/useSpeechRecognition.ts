@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /**
  * Web Speech API speech-to-text, defaulting to Czech (`cs-CZ`).
@@ -72,7 +72,11 @@ export function useSpeechRecognition({
   onError,
 }: UseSpeechRecognitionOptions) {
   const [listening, setListening] = useState(false);
-  const [supported, setSupported] = useState(true);
+  const supported = useSyncExternalStore(
+    () => () => {},
+    () => getCtor() !== null,
+    () => true,
+  );
   const recRef = useRef<SpeechRecognitionLike | null>(null);
 
   // Keep callbacks in refs so `start` stays stable and a re-render mid-utterance
@@ -84,10 +88,6 @@ export function useSpeechRecognition({
     onErrorRef.current = onError;
   }, [onResult, onError]);
 
-  useEffect(() => {
-    setSupported(getCtor() !== null);
-  }, []);
-
   const stop = useCallback(() => {
     recRef.current?.stop();
     recRef.current = null;
@@ -97,7 +97,6 @@ export function useSpeechRecognition({
   const start = useCallback(() => {
     const Ctor = getCtor();
     if (!Ctor) {
-      setSupported(false);
       onErrorRef.current?.("Voice input is not supported in this browser.");
       return;
     }

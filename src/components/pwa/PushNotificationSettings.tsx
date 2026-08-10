@@ -23,13 +23,14 @@ export function PushNotificationSettings() {
   const isHmat = DESIGNS[design].family === "hmat";
   const { t } = useLocale();
   const s = t.settings;
-  const [support, setSupport] = useState<PushSupport>("unsupported");
+  const [support] = useState<PushSupport>(() =>
+    typeof window === "undefined" ? "unsupported" : pushSupport(),
+  );
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
 
   useEffect(() => {
-    setSupport(pushSupport());
     if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
       void navigator.serviceWorker.ready.then(async (reg) => {
         const sub = await reg.pushManager.getSubscription();

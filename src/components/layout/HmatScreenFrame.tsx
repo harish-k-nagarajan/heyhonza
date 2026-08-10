@@ -1,9 +1,19 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type AnimationEvent, type ReactNode } from "react";
+import { useEffect, useSyncExternalStore, type AnimationEvent, type ReactNode } from "react";
 
 import { cn } from "@/lib/cn";
+
+function subscribeReducedMotion(onStoreChange: () => void) {
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mq.addEventListener("change", onStoreChange);
+  return () => mq.removeEventListener("change", onStoreChange);
+}
+
+function getReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 /**
  * Soft enter for Chat / Call / Settings on dock tab change.
@@ -11,11 +21,12 @@ import { cn } from "@/lib/cn";
  */
 export function HmatScreenFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [motionOk, setMotionOk] = useState(false);
-
-  useEffect(() => {
-    setMotionOk(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotion,
+    () => false,
+  );
+  const motionOk = !reducedMotion;
 
   // Failsafe if animationend never fires (tab switch mid-animation, etc.).
   useEffect(() => {

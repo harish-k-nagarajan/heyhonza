@@ -938,7 +938,25 @@ Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 4 live 
 
 ---
 
-## Current entry — 2026-08-10 (Call pickup SFX + TTS pacing)
+## Current entry — 2026-08-10 (Next.js 16.3.0 upgrade)
+
+Branch `chore/upgrade-nextjs-16` (from updated `main`).
+
+### What changed
+- **Next.js** `^15.5.20` → `16.3.0`; **React** `18.3` → `19.2`; **ESLint** `8` → `9` flat config (`eslint.config.mjs`; `next lint` → `eslint .`).
+- **`src/middleware.ts` → `src/proxy.ts`** (Next 16 rename; same Supabase session refresh + route guards).
+- **Scripts** use `next dev --webpack` / `next build --webpack` because `next-pwa` still injects a webpack config (Turbopack is default in 16 but incompatible with next-pwa today).
+- **React 19 lint fixes:** `useSyncExternalStore` for reduced-motion, settings hydration, speech-recognition support; lazy init for push support; `requestAnimationFrame` deferral in `useLandingVisitor`.
+
+### Verified
+- `npm run lint` + `npm run build` green; dev boots on Next 16.3.0; proxy detected in build output; PWA worker still generated on build.
+
+### Gotcha
+- If build fails on `/_not-found`, wipe `.next` and rebuild (stale cache after major version bump).
+
+---
+
+## Previous entry — 2026-08-10 (Call pickup SFX + TTS pacing)
 
 ### What changed
 - **Pickup** (`pickup.mp3`): Harish's telephone pickup clip plays after dial finishes, before Honza's first TTS line.
