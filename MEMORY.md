@@ -938,7 +938,33 @@ Next design phases (see `design update/DESIGN_ELEVATION_PLAN.md`): Phase 4 live 
 
 ---
 
-## Current entry — 2026-08-09 (Call screen phone sounds)
+## Current entry — 2026-08-10 (Call pickup SFX + TTS pacing)
+
+### What changed
+- **Pickup** (`pickup.mp3`): Harish's telephone pickup clip plays after dial finishes, before Honza's first TTS line.
+- **TTS** explicitly sets `audio.playbackRate = 1` so voice never inherits the dial's 1.5× rate.
+
+### Why Honza sounded fast
+- Dial runs at 1.5× by design; we had removed the pickup beat, so his voice started immediately after sped-up audio — the contrast reads as "rushed" even though TTS was always 1×.
+
+### Verified
+- `call-sfx.ts`, `useCallScreen.ts`, `tts-actions.ts`; assets: `dial.mp3`, `pickup.mp3`, `hangup.mp3`.
+
+---
+
+## 2026-08-10 (Custom call dial + hangup sounds)
+
+### What changed
+- **Dial** (`dial.mp3`): plays once at **1.5×** for the full ~14 s clip (~9.3 s wall time) while the opener fetches in parallel; no loop, no early cut-off.
+- **Hangup** (`hangup.mp3`): plays on disconnect.
+- Removed old Mixkit `ring.mp3` / `pickup.mp3` — the pickup tone was still firing after dial and caused the "old + new" overlap Harish heard.
+
+### Verified
+- `call-sfx.ts` + `useCallScreen.ts` updated; assets in `public/audio/call/` (`dial.mp3`, `hangup.mp3` only).
+
+---
+
+## 2026-08-09 (Call screen phone sounds)
 
 ### What changed
 - **Ring / pickup / hangup SFX** on `/call`: looping ring during `connecting`, short pickup tone before Honza's first TTS line, disconnect tone on hang-up. Wired in `useCallScreen`; module `src/lib/client/call-sfx.ts` (separate from TTS `Audio` element). Respects earpiece/speaker routing via `call-audio-route.ts`; skipped when `prefers-reduced-motion: reduce`.

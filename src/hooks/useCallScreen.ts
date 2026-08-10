@@ -15,12 +15,13 @@ import {
   setCallSpeakerPreference,
 } from "@/lib/client/call-audio-route";
 import {
-  playCallRing,
+  playDialSound,
   playHangupSound,
   playPickupSound,
   reapplyCallSfxRoute,
   stopAllCallSfx,
-  stopCallRing,
+  stopDialSound,
+  stopPickupSound,
 } from "@/lib/client/call-sfx";
 import { speak, stopSpeaking, reapplyAudioRoute } from "@/lib/client/tts-actions";
 import { ROUTES } from "@/lib/constants";
@@ -209,7 +210,8 @@ export function useCallScreen(): CallScreen {
       abortRef.current?.abort();
       abortRef.current = null;
       stopSpeaking();
-      stopCallRing();
+      stopDialSound();
+      stopPickupSound();
       stop();
       playHangupSound();
       resetCallAudioRoute();
@@ -231,12 +233,13 @@ export function useCallScreen(): CallScreen {
     applyCallAudioRoute(false);
     activeRef.current = true;
     setPhase("connecting");
-    playCallRing();
     void (async () => {
-      const opener = await startCallOpener();
+      const openerPromise = startCallOpener();
+      await playDialSound();
+      if (!activeRef.current) return;
+      const opener = await openerPromise;
       if (!activeRef.current) return;
       if (!opener) {
-        stopCallRing();
         setError(
           localizeClientError(
             useChatStore.getState().lastError ?? t.errors.couldNotReach,
@@ -247,7 +250,6 @@ export function useCallScreen(): CallScreen {
         setPhase("ready");
         return;
       }
-      stopCallRing();
       await playPickupSound();
       if (!activeRef.current) return;
       await speakThenListen(opener);

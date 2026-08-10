@@ -3,16 +3,20 @@
 import { applyRouteToAudioElement } from "@/lib/client/call-audio-route";
 
 /**
- * Call-screen sound effects — ring, pickup, hangup. Separate from TTS so they
- * never fight the same `Audio` element. Assets live in `public/audio/call/`.
+ * Call-screen sound effects — dial while connecting, pickup on connect, hangup on disconnect.
+ * Separate from TTS so they never fight the same `Audio` element.
+ * Assets live in `public/audio/call/`.
  */
 
-const RING_SRC = "/audio/call/ring.mp3";
+const DIAL_SRC = "/audio/call/dial.mp3";
 const PICKUP_SRC = "/audio/call/pickup.mp3";
 const HANGUP_SRC = "/audio/call/hangup.mp3";
+/** ~14 s source → ~9.3 s wall time at 1.5×. */
+const DIAL_PLAYBACK_RATE = 1.5;
 
-let ringAudio: HTMLAudioElement | null = null;
-let oneShotAudio: HTMLAudioElement | null = null;
+let dialAudio: HTMLAudioElement | null = null;
+let pickupAudio: HTMLAudioElement | null = null;
+let hangupAudio: HTMLAudioElement | null = null;
 
 function sfxAllowed(): boolean {
   if (typeof window === "undefined") return false;
@@ -26,47 +30,17 @@ function stopElement(audio: HTMLAudioElement | null) {
   audio.onended = null;
 }
 
-/** Looping ring while Honza's opener is fetched (`connecting` phase). */
-export function playCallRing(): void {
+/** Full dial tone once at 1.5× before Honza's first spoken line. */
+export async function playDialSound(): Promise<void> {
   if (!sfxAllowed()) return;
-  stopCallRing();
-  const audio = new Audio(RING_SRC);
-  audio.loop = true;
-  ringAudio = audio;
-  void applyRouteToAudioElement(audio);
-  audio.play().catch(() => {
-    if (ringAudio === audio) stopCallRing();
-  });
-}
-
-export function stopCallRing(): void {
-  stopElement(ringAudio);
-  ringAudio = null;
-}
-
-/** Short connect tone before Honza's first spoken line. */
-export async function playPickupSound(): Promise<void> {
-  if (!sfxAllowed()) return;
-  await playOneShot(PICKUP_SRC);
-}
-
-/** Disconnect tone when the learner hangs up — fire-and-forget. */
-export function playHangupSound(): void {
-  if (!sfxAllowed()) return;
-  void playOneShot(HANGUP_SRC);
-}
-
-async function playOneShot(src: string): Promise<void> {
-  if (oneShotAudio) {
-    stopElement(oneShotAudio);
-    oneShotAudio = null;
-  }
-  const audio = new Audio(src);
-  oneShotAudio = audio;
+  stopDialSound();
+  const audio = new Audio(DIAL_SRC);
+  audio.playbackRate = DIAL_PLAYBACK_RATE;
+  dialAudio = audio;
   await applyRouteToAudioElement(audio);
   await new Promise<void>((resolve) => {
     const done = () => {
-      if (oneShotAudio === audio) oneShotAudio = null;
+      if (dialAudio === audio) dialAudio = null;
       resolve();
     };
     audio.onended = done;
@@ -75,16 +49,67 @@ async function playOneShot(src: string): Promise<void> {
   });
 }
 
+export function stopDialSound(): void {
+  stopElement(dialAudio);
+  dialAudio = null;
+}
+
+/** Short "line connected" tone after dial, before Honza's first spoken line. */
+export async function playPickupSound(): Promise<void> {
+  if (!sfxAllowed()) return;
+  stopPickupSound();
+  const audio = new Audio(PICKUP_SRC);
+  audio.playbackRate = 1;
+  pickupAudio = audio;
+  await applyRouteToAudioElement(audio);
+  await new Promise<void>((resolve) => {
+    const done = () => {
+      if (pickupAudio === audio) pickupAudio = null;
+      resolve();
+    };
+    audio.onended = done;
+    audio.onerror = done;
+    audio.play().catch(done);
+  });
+}
+
+export function stopPickupSound(): void {
+  stopElement(pickupAudio);
+  pickupAudio = null;
+}
+
+/** Disconnect tone when the learner hangs up — fire-and-forget. */
+export function playHangupSound(): void {
+  if (!sfxAllowed()) return;
+  if (hangupAudio) {
+    stopElement(hangupAudio);
+    hangupAudio = null;
+  }
+  const audio = new Audio(HANGUP_SRC);
+  audio.playbackRate = 1;
+  hangupAudio = audio;
+  void applyRouteToAudioElement(audio).then(() => {
+    const done = () => {
+      if (hangupAudio === audio) hangupAudio = null;
+    };
+    audio.onended = done;
+    audio.onerror = done;
+    audio.play().catch(done);
+  });
+}
+
 export function stopAllCallSfx(): void {
-  stopCallRing();
-  if (oneShotAudio) {
-    stopElement(oneShotAudio);
-    oneShotAudio = null;
+  stopDialSound();
+  stopPickupSound();
+  if (hangupAudio) {
+    stopElement(hangupAudio);
+    hangupAudio = null;
   }
 }
 
-/** Re-route ring / one-shot SFX when the learner toggles speaker mid-call. */
+/** Re-route dial / pickup / hangup SFX when the learner toggles speaker mid-call. */
 export async function reapplyCallSfxRoute(): Promise<void> {
-  if (ringAudio) await applyRouteToAudioElement(ringAudio);
-  if (oneShotAudio) await applyRouteToAudioElement(oneShotAudio);
+  if (dialAudio) await applyRouteToAudioElement(dialAudio);
+  if (pickupAudio) await applyRouteToAudioElement(pickupAudio);
+  if (hangupAudio) await applyRouteToAudioElement(hangupAudio);
 }

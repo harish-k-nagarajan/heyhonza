@@ -76,6 +76,7 @@ export async function speak(text: string, opts?: { signal?: AbortSignal }): Prom
 
   const url = URL.createObjectURL(blob);
   const audio = new Audio(url);
+  audio.playbackRate = 1;
   current = audio;
   currentUrl = url;
 
