@@ -64,9 +64,9 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
         <SectionLabel>{s.serverStatus}</SectionLabel>
         <p className="text-sm text-muted-foreground">
           OpenRouter env on server:{" "}
-          {screen.serverOk === null
+          {screen.llmOk === null
             ? s.serverChecking
-            : screen.serverOk
+            : screen.llmOk
               ? s.serverConfigured
               : s.serverMissing}
         </p>
@@ -97,9 +97,9 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
       </Card>
 
       <Card className="space-y-3">
-        <SectionLabel>{s.sections.model}</SectionLabel>
+        <SectionLabel>{s.modelLabel}</SectionLabel>
         <Label htmlFor="model" className="sr-only">
-          {s.sections.model}
+          {s.modelLabel}
         </Label>
         <select
           id="model"
