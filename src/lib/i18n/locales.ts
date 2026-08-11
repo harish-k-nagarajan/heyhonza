@@ -102,16 +102,49 @@ export type SettingsCopy = {
   title: string;
   subtitle: string;
   accountTitle: string;
+  accountEmailFallback: string;
   sections: {
     notifications: string;
+    schedule: string;
     appLanguage: string;
-    server: string;
+    aiText: string;
+    aiVoice: string;
     level: string;
-    model: string;
     topics: string;
+    formality: string;
     context: string;
     deviceData: string;
   };
+  pushTitle: string;
+  pushSubtitle: string;
+  scheduleTitle: string;
+  scheduleSubtitle: (count: number) => string;
+  scheduleHowOften: string;
+  scheduleWhen: string;
+  scheduleSpecificTime: string;
+  scheduleRandom: string;
+  scheduleFirstMessage: string;
+  scheduleFirstMessageAria: string;
+  appLanguageHint: string;
+  aiTextHint: string;
+  aiVoiceHint: string;
+  openRouterName: string;
+  openRouterDesc: string;
+  elevenLabsName: string;
+  elevenLabsDesc: string;
+  connected: string;
+  disconnected: string;
+  modelLabel: string;
+  formalityHint: string;
+  formalityTy: string;
+  formalityVy: string;
+  contextHint: string;
+  instructionsLabel: string;
+  activeSources: string;
+  connectGoogleDoc: string;
+  googleDocConnected: string;
+  fileUploadHint: string;
+  resetChat: string;
   notificationsHint: string;
   notificationsOn: string;
   notificationsOff: string;
@@ -241,16 +274,50 @@ const en: LocaleStrings = {
     title: "How Honza talks to you",
     subtitle: "Change your level, your topics, and what Honza knows about you.",
     accountTitle: "Your account",
+    accountEmailFallback: "you@email.com",
     sections: {
       notifications: "NOTIFICATIONS",
+      schedule: "HONZA WRITES",
       appLanguage: "APP LANGUAGE",
-      server: "SERVER",
+      aiText: "AI · TEXT MODELS",
+      aiVoice: "AI · VOICE MODELS",
       level: "LEARNING LEVEL",
-      model: "MODEL",
       topics: "TOPICS",
-      context: "CONTEXT",
-      deviceData: "DEVICE DATA",
+      formality: "ADDRESSING",
+      context: "MORE CONTEXT",
+      deviceData: "DATA & ACCOUNT",
     },
+    pushTitle: "Push notifications",
+    pushSubtitle: "Honza will nudge you when he has a tip",
+    scheduleTitle: "Scheduled messages",
+    scheduleSubtitle: (count) => `Honza will message you ${count}× a day`,
+    scheduleHowOften: "How many per day",
+    scheduleWhen: "When",
+    scheduleSpecificTime: "Specific time",
+    scheduleRandom: "Random",
+    scheduleFirstMessage: "First message",
+    scheduleFirstMessageAria: "First message time",
+    appLanguageHint: "Which language should the app use?",
+    aiTextHint: "OpenRouter via API key. Honza calls the language model from it.",
+    aiVoiceHint: "ElevenLabs gives Honza a voice on calls and audio replies.",
+    openRouterName: "OpenRouter",
+    openRouterDesc: "Text replies in chat",
+    elevenLabsName: "ElevenLabs",
+    elevenLabsDesc: "Czech voice for calls",
+    connected: "Connected",
+    disconnected: "Not connected",
+    modelLabel: "Model",
+    formalityHint: "Should Honza use informal or formal address?",
+    formalityTy: "Ty",
+    formalityVy: "Vy",
+    contextHint:
+      "Write instructions, attach a Google Doc, or upload a .md file — Honza reads from these.",
+    instructionsLabel: "Your instructions",
+    activeSources: "Active sources",
+    connectGoogleDoc: "Connect",
+    googleDocConnected: "Connected",
+    fileUploadHint: "Tap to choose a file",
+    resetChat: "Reset chat",
     notificationsHint:
       "Get notified when Honza is ready to write first — foundation only until scheduling ships.",
     notificationsOn: "Turn on",
@@ -282,7 +349,7 @@ const en: LocaleStrings = {
     fileLabel: "File (.txt, .md)",
     googleDocKind: "Google Doc",
     remove: "Remove",
-    resetData: "Reset data and run onboarding again",
+    resetData: "Delete data and run onboarding again",
     signOut: "Sign out",
   },
   ...EXTENDED.en,
@@ -381,16 +448,50 @@ const cs: LocaleStrings = {
     title: "Jak s tebou Honza mluví",
     subtitle: "Změň úroveň, témata a to, co o tobě Honza ví.",
     accountTitle: "Tvůj účet",
+    accountEmailFallback: "ahoj@honza.app",
     sections: {
       notifications: "OZNÁMENÍ",
+      schedule: "HONZA PÍŠE",
       appLanguage: "JAZYK APLIKACE",
-      server: "SERVER",
+      aiText: "AI · TEXTOVÉ MODELY",
+      aiVoice: "AI · HLASOVÉ MODELY",
       level: "ÚROVEŇ UČENÍ",
-      model: "MODEL",
       topics: "TÉMATA",
-      context: "KONTEXT",
-      deviceData: "DATA ZAŘÍZENÍ",
+      formality: "OSLOVENÍ",
+      context: "DALŠÍ KONTEXT",
+      deviceData: "DATA & ÚČET",
     },
+    pushTitle: "Push upozornění",
+    pushSubtitle: "Honza ti napíše, když má tip",
+    scheduleTitle: "Plánované zprávy",
+    scheduleSubtitle: (count) => `Honza ti napíše ${count}× denně`,
+    scheduleHowOften: "Kolikrát denně",
+    scheduleWhen: "Kdy",
+    scheduleSpecificTime: "Konkrétní čas",
+    scheduleRandom: "Náhodně",
+    scheduleFirstMessage: "První zpráva",
+    scheduleFirstMessageAria: "Čas první zprávy",
+    appLanguageHint: "V jakém jazyce chceš rozhraní?",
+    aiTextHint: "OpenRouter přes API klíč. Honza z něj volá jazykový model.",
+    aiVoiceHint: "ElevenLabs dává Honzovi hlas ve hovorech a audio odpovědích.",
+    openRouterName: "OpenRouter",
+    openRouterDesc: "Textové odpovědi v chatu",
+    elevenLabsName: "ElevenLabs",
+    elevenLabsDesc: "Český hlas pro hovory",
+    connected: "Připojeno",
+    disconnected: "Nepřipojeno",
+    modelLabel: "Model",
+    formalityHint: "Má ti Honza tykat, nebo vykat?",
+    formalityTy: "Ty",
+    formalityVy: "Vy",
+    contextHint:
+      "Napiš instrukce, připoj Google Doc nebo nahraj .md soubor — Honza z toho čte.",
+    instructionsLabel: "Tvoje instrukce",
+    activeSources: "Aktivní zdroje",
+    connectGoogleDoc: "Připojit",
+    googleDocConnected: "Připojeno",
+    fileUploadHint: "Klepnutím vyber soubor",
+    resetChat: "Resetovat chat",
     notificationsHint:
       "Upozornění, až bude Honza připraven psát ti první — zatím jen příprava.",
     notificationsOn: "Zapnout",

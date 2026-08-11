@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import { endChatSessionAction } from "@/lib/client/chat-actions";
 import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { useScreenReady } from "@/hooks/useScreenReady";
 import { isLikelyGoogleDocUrl } from "@/lib/validators";
@@ -12,13 +13,21 @@ import {
   removeContext,
   resetUserData,
 } from "@/lib/client/context-actions";
-import { ROUTES } from "@/lib/constants";
+import {
+  ROUTES,
+  type DailyMessageCount,
+  type LevelId,
+  type ModelId,
+  type ScheduleMode,
+  type TopicId,
+} from "@/lib/constants";
 import { DESIGNS } from "@/lib/design/registry";
 import type { DesignFamily, DesignId } from "@/lib/design/registry";
-import type { LevelId, ModelId, TopicId } from "@/lib/constants";
 import type { MoodExpression } from "@/lib/mood/expression";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useDesignStore } from "@/stores/useDesignStore";
-import { useSettingsStore } from "@/stores/useSettingsStore";
+import { useSettingsStore, type FormalityMode } from "@/stores/useSettingsStore";
 import type { ContextChunk } from "@/types";
 
 /**
@@ -33,6 +42,7 @@ export type SettingsScreen = {
   design: DesignId;
   family: DesignFamily;
   expression: MoodExpression;
+  accountEmail: string;
 
   level: LevelId;
   chooseLevel: (l: LevelId) => void;
@@ -41,9 +51,22 @@ export type SettingsScreen = {
   topics: TopicId[];
   toggleTopic: (id: TopicId) => void;
 
+  scheduleEnabled: boolean;
+  setScheduleEnabled: (enabled: boolean) => void;
+  dailyMessageCount: DailyMessageCount;
+  setDailyMessageCount: (count: DailyMessageCount) => void;
+  scheduleMode: ScheduleMode;
+  setScheduleMode: (mode: ScheduleMode) => void;
+  firstMessageTime: string;
+  setFirstMessageTime: (time: string) => void;
+
+  formality: FormalityMode;
+  setFormality: (mode: FormalityMode) => void;
+
   contextChunks: ContextChunk[];
   lastSynced: number;
   removeContext: (id: string) => void;
+  hasGoogleDoc: boolean;
 
   docUrl: string;
   setDocUrl: (v: string) => void;
@@ -56,9 +79,12 @@ export type SettingsScreen = {
   addPaste: () => void;
 
   onFile: (f: File | null) => void;
+  uploadedFileName: string | null;
 
-  serverOk: boolean | null;
+  llmOk: boolean | null;
+  ttsOk: boolean | null;
   resetData: () => void;
+  resetChat: () => void;
 };
 
 export function useSettingsScreen(): SettingsScreen {
@@ -76,12 +102,25 @@ export function useSettingsScreen(): SettingsScreen {
   const selectedTopics = useSettingsStore((s) => s.selectedTopics);
   const setTopics = useSettingsStore((s) => s.setTopics);
   const contextChunks = useSettingsStore((s) => s.contextChunks);
+  const scheduleEnabled = useSettingsStore((s) => s.scheduleEnabled);
+  const setScheduleEnabled = useSettingsStore((s) => s.setScheduleEnabled);
+  const dailyMessageCount = useSettingsStore((s) => s.dailyMessageCount);
+  const setDailyMessageCount = useSettingsStore((s) => s.setDailyMessageCount);
+  const scheduleMode = useSettingsStore((s) => s.scheduleMode);
+  const setScheduleMode = useSettingsStore((s) => s.setScheduleMode);
+  const firstMessageTime = useSettingsStore((s) => s.firstMessageTime);
+  const setFirstMessageTime = useSettingsStore((s) => s.setFirstMessageTime);
+  const formality = useSettingsStore((s) => s.formality);
+  const setFormality = useSettingsStore((s) => s.setFormality);
 
   const [docUrl, setDocUrl] = useState("");
   const [paste, setPaste] = useState("");
   const [docLoading, setDocLoading] = useState(false);
   const [docError, setDocError] = useState<string | null>(null);
-  const [serverOk, setServerOk] = useState<boolean | null>(null);
+  const [llmOk, setLlmOk] = useState<boolean | null>(null);
+  const [ttsOk, setTtsOk] = useState<boolean | null>(null);
+  const [accountEmail, setAccountEmail] = useState("");
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
   useEffect(() => {
     if (ready && !onboardingComplete) router.replace(ROUTES.onboarding);
@@ -91,12 +130,25 @@ export function useSettingsScreen(): SettingsScreen {
     void (async () => {
       try {
         const res = await fetch("/api/health");
-        const data = (await res.json()) as { llmConfigured?: boolean };
-        setServerOk(Boolean(data.llmConfigured));
+        const data = (await res.json()) as {
+          llmConfigured?: boolean;
+          ttsConfigured?: boolean;
+        };
+        setLlmOk(Boolean(data.llmConfigured));
+        setTtsOk(Boolean(data.ttsConfigured));
       } catch {
-        setServerOk(false);
+        setLlmOk(false);
+        setTtsOk(false);
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createSupabaseBrowserClient();
+    void supabase.auth.getUser().then(({ data }) => {
+      setAccountEmail(data.user?.email ?? "");
+    });
   }, []);
 
   const chooseLevel = (l: LevelId) => {
@@ -170,26 +222,44 @@ export function useSettingsScreen(): SettingsScreen {
         setDocError("File is empty.");
         return;
       }
+      setUploadedFileName(f.name);
       await addContext(text.trim(), { kind: "file", name: f.name, addedAt: Date.now() });
     })();
   };
 
   const lastSynced = contextChunks.reduce((max, c) => Math.max(max, c.meta.addedAt), 0);
+  const hasGoogleDoc = contextChunks.some((c) => c.meta.kind === "google_doc");
+
+  const resetChat = useCallback(() => {
+    void endChatSessionAction();
+  }, []);
 
   return {
     ready: ready && onboardingComplete,
     design,
     family: DESIGNS[design].family,
     expression,
+    accountEmail,
     level,
     chooseLevel,
     model: preferredModel,
     chooseModel,
     topics: selectedTopics,
     toggleTopic,
+    scheduleEnabled,
+    setScheduleEnabled,
+    dailyMessageCount,
+    setDailyMessageCount,
+    scheduleMode,
+    setScheduleMode,
+    firstMessageTime,
+    setFirstMessageTime,
+    formality,
+    setFormality,
     contextChunks,
     lastSynced,
     removeContext: (id) => void removeContext(id),
+    hasGoogleDoc,
     docUrl,
     setDocUrl,
     docLoading,
@@ -199,10 +269,13 @@ export function useSettingsScreen(): SettingsScreen {
     setPaste,
     addPaste,
     onFile,
-    serverOk,
+    uploadedFileName,
+    llmOk,
+    ttsOk,
     resetData: () => {
       void resetUserData();
       router.push(ROUTES.onboarding);
     },
+    resetChat,
   };
 }
