@@ -1,7 +1,14 @@
 import OpenAI from "openai";
 
-import { DEFAULT_LEVEL_ID, LEVEL_OPTIONS, TOPIC_OPTIONS } from "@/lib/constants";
-import type { LevelId } from "@/lib/constants";
+import {
+  DEFAULT_FORMALITY,
+  DEFAULT_LEVEL_ID,
+  LEVEL_OPTIONS,
+  TOPIC_OPTIONS,
+  type FormalityMode,
+  type LevelId,
+} from "@/lib/constants";
+import { MAX_CONTEXT_CHARS } from "@/lib/context";
 
 import { resolveModel } from "./models";
 
@@ -17,7 +24,7 @@ import { resolveModel } from "./models";
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 const REQUEST_TIMEOUT_MS = 30_000;
 
-export const MAX_CONTEXT_CHARS = 48_000;
+export { MAX_CONTEXT_CHARS };
 export const MAX_MESSAGE_CHARS = 8_000;
 
 export type EngineMessage = { role: "user" | "assistant"; content: string };
@@ -73,9 +80,28 @@ function levelGuidance(level: LevelId): string {
       return "Úroveň studenta: B1 (středně pokročilý). Piš skoro výhradně česky, delší souvětí, bohatší slovní zásoba. Opravuj i jemnější chyby (vid, předložky) a nabídni přirozenější formulace.";
     case "B2":
       return "Úroveň studenta: B2 (pokročilý). Mluv přirozeně a plynule česky, idiomy vítány. Opravuj nuance (styl, kolokace, vid) a tlač studenta k přesnějšímu vyjadřování. Angličtinu prakticky nepoužívej.";
-    default:
-      return "";
+    default: {
+      const _exhaustive: never = level;
+      return _exhaustive;
+    }
   }
+}
+
+function formalityGuidance(mode: FormalityMode): string {
+  switch (mode) {
+    case "ty":
+      return "Oslovení: studentovi tykej (ty, ti, tě).";
+    case "vy":
+      return "Oslovení: studentovi vykej (vy, vám, vás).";
+    default: {
+      const _exhaustive: never = mode;
+      return _exhaustive;
+    }
+  }
+}
+
+function resolveFormality(requested: string | undefined): FormalityMode {
+  return requested === "vy" ? "vy" : DEFAULT_FORMALITY;
 }
 
 /**
@@ -95,16 +121,23 @@ export function buildSystemPrompt(params: {
   learnerContext: string;
   level: LevelId;
   mode?: EngineMode;
+  learnerName?: string | null;
+  formality?: FormalityMode;
 }): string {
   const topics =
     params.topics.length > 0 ? params.topics.join(", ") : "běžná konverzace";
   const ctx = params.learnerContext.slice(0, MAX_CONTEXT_CHARS);
-  const ctxBlock = ctx ? `\n\nKontext o uživateli (může být prázdný):\n${ctx}` : "";
+  const ctxBlock = ctx ? `\n\nKontext o uživateli:\n${ctx}` : "";
   const modeBlock = params.mode === "call" ? `\n\n${CALL_GUIDANCE}` : "";
+  const name = params.learnerName?.trim();
+  const nameLine = name ? `Uživatele jmenuj / oslovuj: ${name}.` : "";
+  const formality = formalityGuidance(params.formality ?? DEFAULT_FORMALITY);
 
   return `Jsi Honza — přátelská postava, která učí češtinu. Oslovuješ uživatele v češtině, iniciuješ zprávy a malé úkoly. Uživatel má odpovídat v češtině. Buď stručný v chatu (max pár odstavců), vtipný ale slušný. Témata, která uživatele zajímají: ${topics}.
+${nameLine}
 
 ${levelGuidance(params.level)}
+${formality}
 
 Jako učitel: když student udělá chybu, nejdřív ho jemně oprav (ukaž správný tvar), pak krátce pokračuj v konverzaci další otázkou, ať rozhovor plyne. Chval pokrok.${ctxBlock}${modeBlock}
 
@@ -194,8 +227,11 @@ export async function generateReply(params: {
   level: string | undefined;
   messages: EngineMessage[];
   mode?: EngineMode;
+  apiKey?: string | null;
+  learnerName?: string | null;
+  formality?: string;
 }): Promise<{ text: string; model: string }> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = params.apiKey?.trim() || process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new EngineError(
       "OPENROUTER_API_KEY is missing on the server (e.g. Vercel env).",
@@ -204,12 +240,14 @@ export async function generateReply(params: {
     );
   }
 
-  const model = resolveModel(params.requestedModel);
+  const model = await resolveModel(params.requestedModel);
   const system = buildSystemPrompt({
     topics: topicLabels(params.topics),
     learnerContext: params.learnerContext,
     level: resolveLevel(params.level),
     mode: params.mode,
+    learnerName: params.learnerName,
+    formality: resolveFormality(params.formality),
   });
 
   const client = new OpenAI({

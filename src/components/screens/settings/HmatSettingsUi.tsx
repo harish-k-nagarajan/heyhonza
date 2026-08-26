@@ -91,30 +91,25 @@ export function HmatSettingsStatusBadge({
   connected,
   connectedLabel,
   disconnectedLabel,
+  tone,
 }: {
   connected: boolean;
   connectedLabel: string;
   disconnectedLabel: string;
+  tone?: "ok" | "warn" | "off";
 }) {
+  const resolved = tone ?? (connected ? "ok" : "off");
+  const styles =
+    resolved === "ok"
+      ? { wrap: "bg-[#E8F5E9]", dot: "bg-[#2F8F4E]", text: "text-[#2F8F4E]" }
+      : resolved === "warn"
+        ? { wrap: "bg-[#FFF4E5]", dot: "bg-[#D97706]", text: "text-[#B45309]" }
+        : { wrap: "bg-[#FFF0F0]", dot: "bg-[#C46B6B]", text: "text-[#C46B6B]" };
+  const label = connected ? connectedLabel : disconnectedLabel;
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
-        connected ? "bg-[#E8F5E9]" : "bg-[#FFF0F0]",
-      )}
-    >
-      <span
-        className={cn("h-1.5 w-1.5 rounded-full", connected ? "bg-[#2F8F4E]" : "bg-[#C46B6B]")}
-        aria-hidden
-      />
-      <span
-        className={cn(
-          "font-display text-[11px] font-bold",
-          connected ? "text-[#2F8F4E]" : "text-[#C46B6B]",
-        )}
-      >
-        {connected ? connectedLabel : disconnectedLabel}
-      </span>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1", styles.wrap)}>
+      <span className={cn("h-1.5 w-1.5 rounded-full", styles.dot)} aria-hidden />
+      <span className={cn("font-display text-[11px] font-bold", styles.text)}>{label}</span>
     </span>
   );
 }

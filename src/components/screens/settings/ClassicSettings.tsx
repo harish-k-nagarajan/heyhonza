@@ -8,10 +8,9 @@ import { Label } from "@/components/ui/Label";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Textarea } from "@/components/ui/Textarea";
 import { LEVEL_OPTIONS, MODEL_OPTIONS, TOPIC_OPTIONS } from "@/lib/constants";
-import type { LevelId, ModelId } from "@/lib/constants";
+import type { LevelId } from "@/lib/constants";
 import type { SettingsScreen } from "@/hooks/useSettingsScreen";
 
-import { PushNotificationSettings } from "@/components/pwa/PushNotificationSettings";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/useLocale";
 
@@ -56,19 +55,17 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
         <LanguageSwitcher />
       </Card>
 
-      <Card className="space-y-3">
-        <PushNotificationSettings />
-      </Card>
-
       <Card className="space-y-2">
         <SectionLabel>{s.serverStatus}</SectionLabel>
         <p className="text-sm text-muted-foreground">
-          OpenRouter env on server:{" "}
-          {screen.llmOk === null
+          OpenRouter:{" "}
+          {screen.llm === null
             ? s.serverChecking
-            : screen.llmOk
-              ? s.serverConfigured
-              : s.serverMissing}
+            : screen.llm.connected
+              ? screen.llm.source === "env"
+                ? s.serverKey
+                : s.connected
+              : s.disconnected}
         </p>
       </Card>
 
@@ -105,13 +102,20 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
           id="model"
           className="h-11 w-full rounded-card border border-border bg-muted px-3 text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
           value={screen.model}
-          onChange={(e) => screen.chooseModel(e.target.value as ModelId)}
+          onChange={(e) => screen.chooseModel(e.target.value)}
         >
           {MODEL_OPTIONS.map((m) => (
             <option key={m.id} value={m.id}>
               {m.label}
             </option>
           ))}
+          {screen.models
+            .filter((m) => !MODEL_OPTIONS.some((o) => o.id === m.id))
+            .map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.label}
+              </option>
+            ))}
         </select>
       </Card>
 
@@ -168,8 +172,8 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
           onChange={(e) => screen.setPaste(e.target.value)}
           rows={3}
         />
-        <Button type="button" variant="secondary" onClick={screen.addPaste}>
-          {s.addText}
+        <Button type="button" variant="secondary" onClick={screen.savePaste}>
+          {screen.pasteLoaded ? s.updateText : s.addText}
         </Button>
         <Label htmlFor="s-file">{s.fileLabel}</Label>
         <Input

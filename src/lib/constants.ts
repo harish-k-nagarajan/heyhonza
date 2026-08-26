@@ -9,6 +9,7 @@ export const ROUTES = {
   chat: "/chat",
   call: "/call",
   settings: "/settings",
+  account: "/settings/account",
 } as const;
 
 export function chatHistoryRoute(id: string) {
@@ -45,8 +46,11 @@ export const DEFAULT_MODEL_ID = MODEL_OPTIONS[0].id;
 export const DEFAULT_LEVEL_ID = "A2";
 
 export type TopicId = (typeof TOPIC_OPTIONS)[number]["id"];
-export type ModelId = (typeof MODEL_OPTIONS)[number]["id"];
+/** OpenRouter model slug — curated paid IDs plus live `:free` catalog. */
+export type ModelId = string;
 export type LevelId = (typeof LEVEL_OPTIONS)[number]["id"];
+export type FormalityMode = "ty" | "vy";
+export const DEFAULT_FORMALITY: FormalityMode = "ty";
 
 /** Onboarding step 4 — how often Honza initiates per day. */
 export const DAILY_MESSAGE_COUNTS = [1, 2, 3] as const;

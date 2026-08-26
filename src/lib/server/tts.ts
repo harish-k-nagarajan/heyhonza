@@ -145,8 +145,11 @@ async function errorDetail(res: Response): Promise<string> {
  * Synthesize Honza's spoken Czech. Throws {@link TtsError} on any failure so the
  * caller can produce a friendly response.
  */
-export async function synthesizeSpeech(text: string): Promise<SynthResult> {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
+export async function synthesizeSpeech(
+  text: string,
+  opts?: { apiKey?: string | null },
+): Promise<SynthResult> {
+  const apiKey = opts?.apiKey?.trim() || process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
     throw new TtsError(
       "ELEVENLABS_API_KEY is missing on the server (e.g. Vercel env).",

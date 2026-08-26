@@ -198,6 +198,7 @@ Full spec in `DESIGN.md` § Design Lab; the source of truth is
 - [x] **Nav + drawer motion** — Hmat dock sliding pill; history drawer slide-in; BottomNav haptic + press scale. `[depends on: Interaction layer]`
 - [x] **Classic polish** — accent Honza bubbles, circular send arrow, HardwareIcons on Call mic/hang; deleted dead `Composer`, `HmatComposer`, `HmatWelcome`. `[depends on: Chat alive]`
 - [x] **Push foundation** — `push_subscriptions` migration, `/api/push/subscribe`, Settings toggle (`PushNotificationSettings`); honest copy until scheduled sends ship. `[independent]`
+- [x] **Settings overhaul (2026-08-26)** — `/settings/account` (name/email/password), Daily check-ins + Web Push (cron + VAPID), BYOK OpenRouter/ElevenLabs, live free-model catalog, slot-based context, name/formality in the prompt. Apply `0004_settings_overhaul.sql`. Phone alerts need VAPID + installed PWA + `npm start` (SW off in `next dev`). `[depends on: Push foundation]`
 - [x] **Docs** — DESIGN.md § interaction + 3-tab IA; MEMORY.md entry. `[depends on: all above]`
 
 ---

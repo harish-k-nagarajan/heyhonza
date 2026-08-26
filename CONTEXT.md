@@ -41,8 +41,8 @@ The product goal is habitual practice driven by Honza’s presence, not passive 
 
 ## Out of scope
 
-- **Scheduling** (calendar, reminders beyond what the OS/browser already provides).
-- **Social features** (friends, leaderboards, sharing).
+- **Calendar / social** (friends, leaderboards, sharing, a real calendar).
+- **Daily check-ins + Web Push are in scope** — Honza can write first on a schedule and notify an installed PWA. iOS only delivers Web Push after Add to Home Screen.
 
 **Real voice calls used to be listed here and no longer are** — adopting `BUILD_SPEC.md` on 2026-07-14 moved them into v1 as Phase 8, and **they shipped on 2026-07-15**: `/call` is a live-call screen where you speak Czech and Honza answers out loud, with the transcript landing in the same history as chat. The old double gate (TTS key + Harish's OK) is cleared. See `BUILD_SPEC_STATUS.md` row 8 for what's verified and the one gap (mic/audio confirmation) still open.
 
