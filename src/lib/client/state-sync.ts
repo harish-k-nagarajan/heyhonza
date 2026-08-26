@@ -25,6 +25,12 @@ export type ServerState = {
     topics: string[];
     preferredModel: string | null;
     onboardingCompleted: boolean;
+    formality?: "ty" | "vy";
+    scheduleEnabled?: boolean;
+    dailyMessageCount?: 1 | 2 | 3;
+    scheduleMode?: "specific" | "random";
+    firstMessageTime?: string;
+    timezone?: string | null;
   };
   contextChunks?: ContextChunk[];
   activeSessionId?: string | null;
@@ -55,6 +61,7 @@ export async function fetchServerState(): Promise<ServerState> {
 type StatePatch = {
   profile?: ProfilePatch;
   addContext?: { text: string; meta: ContextSource };
+  upsertContext?: { text: string; meta: ContextSource };
   removeContextId?: string;
   reset?: boolean;
 };

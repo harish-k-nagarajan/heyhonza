@@ -103,6 +103,19 @@ export type SettingsCopy = {
   subtitle: string;
   accountTitle: string;
   accountEmailFallback: string;
+  accountPageKicker: string;
+  accountPageTitle: string;
+  accountNameLabel: string;
+  accountEmailLabel: string;
+  accountCurrentPassword: string;
+  accountNewPassword: string;
+  accountSaveName: string;
+  accountSaveEmail: string;
+  accountSavePassword: string;
+  accountEmailConfirm: string;
+  accountSaved: string;
+  accountNeedAuth: string;
+  accountBack: string;
   sections: {
     notifications: string;
     schedule: string;
@@ -125,6 +138,7 @@ export type SettingsCopy = {
   scheduleRandom: string;
   scheduleFirstMessage: string;
   scheduleFirstMessageAria: string;
+  scheduleHint: string;
   appLanguageHint: string;
   aiTextHint: string;
   aiVoiceHint: string;
@@ -134,7 +148,13 @@ export type SettingsCopy = {
   elevenLabsDesc: string;
   connected: string;
   disconnected: string;
+  serverKey: string;
+  yourKey: string;
+  pasteApiKey: string;
+  saveKey: string;
+  disconnect: string;
   modelLabel: string;
+  modelsLoading: string;
   formalityHint: string;
   formalityTy: string;
   formalityVy: string;
@@ -143,6 +163,7 @@ export type SettingsCopy = {
   activeSources: string;
   connectGoogleDoc: string;
   googleDocConnected: string;
+  googleDocFailed: string;
   fileUploadHint: string;
   resetChat: string;
   notificationsHint: string;
@@ -170,6 +191,8 @@ export type SettingsCopy = {
   pastedTextAria: string;
   pastePlaceholder: string;
   addText: string;
+  updateText: string;
+  textLoaded: string;
   fileLabel: string;
   googleDocKind: string;
   remove: string;
@@ -275,9 +298,22 @@ const en: LocaleStrings = {
     subtitle: "Change your level, your topics, and what Honza knows about you.",
     accountTitle: "Your account",
     accountEmailFallback: "you@email.com",
+    accountPageKicker: "ACCOUNT",
+    accountPageTitle: "Name, email, password",
+    accountNameLabel: "What Honza should call you",
+    accountEmailLabel: "Email",
+    accountCurrentPassword: "Current password",
+    accountNewPassword: "New password",
+    accountSaveName: "Save name",
+    accountSaveEmail: "Update email",
+    accountSavePassword: "Update password",
+    accountEmailConfirm: "Check your inbox to confirm the new email.",
+    accountSaved: "Saved.",
+    accountNeedAuth: "Sign in to change email and password.",
+    accountBack: "Back to settings",
     sections: {
       notifications: "NOTIFICATIONS",
-      schedule: "HONZA WRITES",
+      schedule: "DAILY CHECK-INS",
       appLanguage: "APP LANGUAGE",
       aiText: "AI · TEXT MODELS",
       aiVoice: "AI · VOICE MODELS",
@@ -289,14 +325,16 @@ const en: LocaleStrings = {
     },
     pushTitle: "Push notifications",
     pushSubtitle: "Honza will nudge you when he has a tip",
-    scheduleTitle: "Scheduled messages",
-    scheduleSubtitle: (count) => `Honza will message you ${count}× a day`,
+    scheduleTitle: "Daily check-ins",
+    scheduleSubtitle: (count) => `Honza writes first, ${count}× a day`,
     scheduleHowOften: "How many per day",
     scheduleWhen: "When",
     scheduleSpecificTime: "Specific time",
     scheduleRandom: "Random",
     scheduleFirstMessage: "First message",
     scheduleFirstMessageAria: "First message time",
+    scheduleHint:
+      "Turning this on asks for notifications. On iPhone, add Honza to the Home Screen first. This cannot be tested in local dev (no service worker).",
     appLanguageHint: "Which language should the app use?",
     aiTextHint: "OpenRouter via API key. Honza calls the language model from it.",
     aiVoiceHint: "ElevenLabs gives Honza a voice on calls and audio replies.",
@@ -306,7 +344,13 @@ const en: LocaleStrings = {
     elevenLabsDesc: "Czech voice for calls",
     connected: "Connected",
     disconnected: "Not connected",
+    serverKey: "Server key",
+    yourKey: "Your key",
+    pasteApiKey: "Paste API key",
+    saveKey: "Save key",
+    disconnect: "Disconnect",
     modelLabel: "Model",
+    modelsLoading: "Loading models…",
     formalityHint: "Should Honza use informal or formal address?",
     formalityTy: "Ty",
     formalityVy: "Vy",
@@ -316,6 +360,7 @@ const en: LocaleStrings = {
     activeSources: "Active sources",
     connectGoogleDoc: "Connect",
     googleDocConnected: "Connected",
+    googleDocFailed: "Couldn’t load — check the link",
     fileUploadHint: "Tap to choose a file",
     resetChat: "Reset chat",
     notificationsHint:
@@ -346,6 +391,8 @@ const en: LocaleStrings = {
     pastedTextAria: "Pasted text",
     pastePlaceholder: "…or paste text",
     addText: "Add text",
+    updateText: "Update text",
+    textLoaded: "Loaded in context",
     fileLabel: "File (.txt, .md)",
     googleDocKind: "Google Doc",
     remove: "Remove",
@@ -449,9 +496,22 @@ const cs: LocaleStrings = {
     subtitle: "Změň úroveň, témata a to, co o tobě Honza ví.",
     accountTitle: "Tvůj účet",
     accountEmailFallback: "ahoj@honza.app",
+    accountPageKicker: "ÚČET",
+    accountPageTitle: "Jméno, e-mail, heslo",
+    accountNameLabel: "Jak ti má Honza říkat",
+    accountEmailLabel: "E-mail",
+    accountCurrentPassword: "Současné heslo",
+    accountNewPassword: "Nové heslo",
+    accountSaveName: "Uložit jméno",
+    accountSaveEmail: "Změnit e-mail",
+    accountSavePassword: "Změnit heslo",
+    accountEmailConfirm: "Potvrď nový e-mail v schránce.",
+    accountSaved: "Uloženo.",
+    accountNeedAuth: "Pro změnu e-mailu a hesla se přihlas.",
+    accountBack: "Zpět do nastavení",
     sections: {
       notifications: "OZNÁMENÍ",
-      schedule: "HONZA PÍŠE",
+      schedule: "DENNÍ CHECK-INY",
       appLanguage: "JAZYK APLIKACE",
       aiText: "AI · TEXTOVÉ MODELY",
       aiVoice: "AI · HLASOVÉ MODELY",
@@ -463,14 +523,16 @@ const cs: LocaleStrings = {
     },
     pushTitle: "Push upozornění",
     pushSubtitle: "Honza ti napíše, když má tip",
-    scheduleTitle: "Plánované zprávy",
-    scheduleSubtitle: (count) => `Honza ti napíše ${count}× denně`,
+    scheduleTitle: "Denní check-iny",
+    scheduleSubtitle: (count) => `Honza napíše první, ${count}× denně`,
     scheduleHowOften: "Kolikrát denně",
     scheduleWhen: "Kdy",
     scheduleSpecificTime: "Konkrétní čas",
     scheduleRandom: "Náhodně",
     scheduleFirstMessage: "První zpráva",
     scheduleFirstMessageAria: "Čas první zprávy",
+    scheduleHint:
+      "Zapnutí požádá o oznámení. Na iPhonu nejdřív přidej Honzu na plochu. V lokálním vývoji to nejde ověřit (chybí service worker).",
     appLanguageHint: "V jakém jazyce chceš rozhraní?",
     aiTextHint: "OpenRouter přes API klíč. Honza z něj volá jazykový model.",
     aiVoiceHint: "ElevenLabs dává Honzovi hlas ve hovorech a audio odpovědích.",
@@ -480,7 +542,13 @@ const cs: LocaleStrings = {
     elevenLabsDesc: "Český hlas pro hovory",
     connected: "Připojeno",
     disconnected: "Nepřipojeno",
+    serverKey: "Serverový klíč",
+    yourKey: "Tvůj klíč",
+    pasteApiKey: "Vlož API klíč",
+    saveKey: "Uložit klíč",
+    disconnect: "Odpojit",
     modelLabel: "Model",
+    modelsLoading: "Načítám modely…",
     formalityHint: "Má ti Honza tykat, nebo vykat?",
     formalityTy: "Ty",
     formalityVy: "Vy",
@@ -490,6 +558,7 @@ const cs: LocaleStrings = {
     activeSources: "Aktivní zdroje",
     connectGoogleDoc: "Připojit",
     googleDocConnected: "Připojeno",
+    googleDocFailed: "Nešlo načíst — zkontroluj odkaz",
     fileUploadHint: "Klepnutím vyber soubor",
     resetChat: "Resetovat chat",
     notificationsHint:
@@ -520,6 +589,8 @@ const cs: LocaleStrings = {
     pastedTextAria: "Vložený text",
     pastePlaceholder: "…nebo vlož text",
     addText: "Přidat text",
+    updateText: "Aktualizovat text",
+    textLoaded: "Už je v kontextu",
     fileLabel: "Soubor (.txt, .md)",
     googleDocKind: "Google Doc",
     remove: "Odebrat",

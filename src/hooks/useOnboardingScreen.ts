@@ -191,6 +191,11 @@ export function useOnboardingScreen(): OnboardingScreen {
         onboardingCompleted: true,
         topics: selectedTopics,
         level,
+        scheduleEnabled: true,
+        dailyMessageCount,
+        scheduleMode,
+        firstMessageTime,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
       });
       router.push(ROUTES.chat);
     })();

@@ -4,22 +4,22 @@ import { persist } from "zustand/middleware";
 import {
   DEFAULT_DAILY_MESSAGE_COUNT,
   DEFAULT_FIRST_MESSAGE_TIME,
+  DEFAULT_FORMALITY,
   DEFAULT_LEVEL_ID,
   DEFAULT_MODEL_ID,
   DEFAULT_SCHEDULE_MODE,
-} from "@/lib/constants";
-import type {
-  DailyMessageCount,
-  LevelId,
-  ModelId,
-  ScheduleMode,
-  TopicId,
+  type DailyMessageCount,
+  type FormalityMode,
+  type LevelId,
+  type ModelId,
+  type ScheduleMode,
+  type TopicId,
 } from "@/lib/constants";
 import { buildLearnerContextText } from "@/lib/context";
 import { DEFAULT_LOCALE, type UiLocale } from "@/lib/i18n/locales";
 import type { ContextChunk, ContextSource } from "@/types";
 
-export type FormalityMode = "ty" | "vy";
+export type { FormalityMode };
 
 export type SettingsState = {
   onboardingComplete: boolean;
@@ -27,6 +27,8 @@ export type SettingsState = {
   contextChunks: ContextChunk[];
   preferredModel: ModelId;
   level: LevelId;
+  learnerName: string;
+  timezone: string;
   scheduleEnabled: boolean;
   dailyMessageCount: DailyMessageCount;
   scheduleMode: ScheduleMode;
@@ -38,12 +40,15 @@ export type SettingsState = {
   setTopics: (topics: TopicId[]) => void;
   setPreferredModel: (m: ModelId) => void;
   setLevel: (l: LevelId) => void;
+  setLearnerName: (name: string) => void;
+  setTimezone: (tz: string) => void;
   setScheduleEnabled: (enabled: boolean) => void;
   setDailyMessageCount: (count: DailyMessageCount) => void;
   setScheduleMode: (mode: ScheduleMode) => void;
   setFirstMessageTime: (time: string) => void;
   setFormality: (mode: FormalityMode) => void;
   addContextChunk: (text: string, meta: ContextSource, id?: string) => void;
+  replaceContextByKind: (text: string, meta: ContextSource, id?: string) => void;
   removeContextChunk: (id: string) => void;
   setContextChunks: (chunks: ContextChunk[]) => void;
   getLearnerContextText: () => string;
@@ -60,11 +65,13 @@ const initial = {
   contextChunks: [] as ContextChunk[],
   preferredModel: DEFAULT_MODEL_ID as ModelId,
   level: DEFAULT_LEVEL_ID as LevelId,
+  learnerName: "",
+  timezone: "UTC",
   scheduleEnabled: true,
   dailyMessageCount: DEFAULT_DAILY_MESSAGE_COUNT,
   scheduleMode: DEFAULT_SCHEDULE_MODE,
   firstMessageTime: DEFAULT_FIRST_MESSAGE_TIME,
-  formality: "ty" as FormalityMode,
+  formality: DEFAULT_FORMALITY as FormalityMode,
   uiLocale: DEFAULT_LOCALE as UiLocale,
 };
 
@@ -77,6 +84,8 @@ export const useSettingsStore = create<SettingsState>()(
       setTopics: (topics) => set({ selectedTopics: topics }),
       setPreferredModel: (m) => set({ preferredModel: m }),
       setLevel: (l) => set({ level: l }),
+      setLearnerName: (learnerName) => set({ learnerName }),
+      setTimezone: (timezone) => set({ timezone }),
       setScheduleEnabled: (scheduleEnabled) => set({ scheduleEnabled }),
       setDailyMessageCount: (dailyMessageCount) => set({ dailyMessageCount }),
       setScheduleMode: (scheduleMode) => set({ scheduleMode }),
@@ -88,6 +97,16 @@ export const useSettingsStore = create<SettingsState>()(
         set((s) => ({
           contextChunks: [
             ...s.contextChunks,
+            { id: id ?? rid(), text: t, meta },
+          ],
+        }));
+      },
+      replaceContextByKind: (text, meta, id) => {
+        const t = text.trim();
+        if (!t) return;
+        set((s) => ({
+          contextChunks: [
+            ...s.contextChunks.filter((c) => c.meta.kind !== meta.kind),
             { id: id ?? rid(), text: t, meta },
           ],
         }));

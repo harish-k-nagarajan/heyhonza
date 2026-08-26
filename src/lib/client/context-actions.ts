@@ -22,12 +22,23 @@ export function persistProfile(patch: ProfilePatch): void {
 export async function addContext(text: string, meta: ContextSource): Promise<void> {
   const { persisted, added } = await patchServerState({ addContext: { text, meta } });
   if (persisted && added) {
-    // Use the DB row's id + ingestion time so a later remove targets the DB row.
     useSettingsStore
       .getState()
       .addContextChunk(text, { ...meta, addedAt: added.syncedAt }, added.id);
   } else {
     useSettingsStore.getState().addContextChunk(text, meta);
+  }
+}
+
+/** Replace the existing chunk of this source kind (paste / doc / file). */
+export async function upsertContext(text: string, meta: ContextSource): Promise<void> {
+  const { persisted, added } = await patchServerState({ upsertContext: { text, meta } });
+  if (persisted && added) {
+    useSettingsStore
+      .getState()
+      .replaceContextByKind(text, { ...meta, addedAt: added.syncedAt }, added.id);
+  } else {
+    useSettingsStore.getState().replaceContextByKind(text, meta);
   }
 }
 

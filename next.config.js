@@ -4,6 +4,7 @@ const withPWA = require("next-pwa")({
   register: true,
   // New service worker activates immediately (paired with clientsClaim by next-pwa).
   skipWaiting: true,
+  customWorkerDir: "worker",
   // PWA/service worker is disabled in dev (next-pwa plugin behavior).
   disable: process.env.NODE_ENV === "development",
   // App Router emits manifests Workbox shouldn't precache (they 404 / churn).

@@ -112,4 +112,4 @@ Deploy to Vercel and set environment variables in the project dashboard. The `ne
 - PWA install support
 - **Voice calls — built (2026-07-15).** `/call` is a live-call screen: speech-to-text on your spoken Czech (Web Speech API, `cs-CZ`) and ElevenLabs text-to-speech for Honza's replies, proxied server-side so the key never reaches the browser. The transcript persists into the same history as chat. *Mic + audible playback still need a human spot-check, and on ElevenLabs' free tier Honza speaks Czech with an English accent — see `BUILD_SPEC_STATUS.md` row 8.*
 
-**Out of scope:** scheduling, social features.
+**Out of scope:** calendar/social features. Daily check-ins + PWA Web Push are in.

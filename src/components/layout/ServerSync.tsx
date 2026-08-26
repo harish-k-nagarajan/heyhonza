@@ -7,7 +7,7 @@ import { useChatStore } from "@/stores/useChatStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { useSyncStore } from "@/stores/useSyncStore";
 import type { ChatMessage } from "@/types";
-import type { LevelId, ModelId, TopicId } from "@/lib/constants";
+import type { LevelId, TopicId } from "@/lib/constants";
 
 /**
  * On first mount, ask the server whether this browser is a signed-in user with
@@ -30,9 +30,22 @@ export function ServerSync() {
         settings.setLevel(data.profile.level as LevelId);
         settings.setTopics(data.profile.topics as TopicId[]);
         if (data.profile.preferredModel) {
-          settings.setPreferredModel(data.profile.preferredModel as ModelId);
+          settings.setPreferredModel(data.profile.preferredModel);
         }
         settings.setOnboardingComplete(data.profile.onboardingCompleted);
+        if (data.profile.name) settings.setLearnerName(data.profile.name);
+        if (data.profile.formality) settings.setFormality(data.profile.formality);
+        if (typeof data.profile.scheduleEnabled === "boolean") {
+          settings.setScheduleEnabled(data.profile.scheduleEnabled);
+        }
+        if (data.profile.dailyMessageCount) {
+          settings.setDailyMessageCount(data.profile.dailyMessageCount);
+        }
+        if (data.profile.scheduleMode) settings.setScheduleMode(data.profile.scheduleMode);
+        if (data.profile.firstMessageTime) {
+          settings.setFirstMessageTime(data.profile.firstMessageTime);
+        }
+        if (data.profile.timezone) settings.setTimezone(data.profile.timezone);
         settings.setContextChunks(data.contextChunks ?? []);
 
         // `kind` must survive hydration: it's what makes a call transcript

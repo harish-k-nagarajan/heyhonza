@@ -36,6 +36,8 @@ async function callChatApi(
       topics: s.selectedTopics,
       learnerContext: buildLearnerContextText(s.contextChunks),
       level: s.level,
+      formality: s.formality,
+      learnerName: s.learnerName || undefined,
       messages,
       bootstrap,
       ...extra,

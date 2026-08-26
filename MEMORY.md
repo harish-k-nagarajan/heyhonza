@@ -4,6 +4,26 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
+## Current entry — 2026-08-26 (Settings overhaul)
+
+### What changed
+- `/settings/account` — name (into `profiles.name` + system prompt), email, password.
+- Daily check-ins replaced the separate Push row. Schedule persists on `profiles`. Cron `/api/cron/check-ins` (15 min) generates an opener, inserts it, Web Push. Custom SW `worker/index.js`.
+- BYOK OpenRouter / ElevenLabs: encrypted in `user_provider_keys`, never echoed. Env remains fallback; Disconnect clears the user key only.
+- Model picker loads OpenRouter free models via `/api/models`.
+- Context is one slot per source (paste / Google Doc / file) with honest Connected / failed badges. Prompt context capped ~4k chars. Formality + name in the system prompt.
+- Removed Settings “Reset chat”.
+
+### Gates for Harish
+- Apply `supabase/migrations/0004_settings_overhaul.sql`.
+- Set `SECRETS_ENCRYPTION_KEY`, VAPID pair, `CRON_SECRET`, and `SUPABASE_SERVICE_ROLE_KEY` on Vercel (server-only) so cron can deliver.
+- Phone notifications: installed PWA, not `next dev` (SW disabled).
+
+### Decision
+Daily check-ins + PWA Web Push are in product scope; calendar/social stay out.
+
+---
+
 ## 1. What has been built and confirmed working
 
 _Last updated: 2026-05-12_

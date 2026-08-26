@@ -2,6 +2,12 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { buildLearnerContextText } from "@/lib/context";
+import type {
+  DailyMessageCount,
+  FormalityMode,
+  ScheduleMode,
+} from "@/lib/constants";
 import type { ContextChunk, ContextSource } from "@/types";
 
 /**
@@ -34,6 +40,12 @@ export type PersistedProfile = {
   topics: string[];
   preferredModel: string | null;
   onboardingCompleted: boolean;
+  formality: FormalityMode;
+  scheduleEnabled: boolean;
+  dailyMessageCount: DailyMessageCount;
+  scheduleMode: ScheduleMode;
+  firstMessageTime: string;
+  timezone: string | null;
 };
 
 export type UserState = {
@@ -149,7 +161,9 @@ export async function loadUserState(): Promise<UserState | null> {
   const [profileRes, contextRes, sessionsRes, messagesRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("name, level, topics, preferred_model, onboarding_completed")
+      .select(
+        "name, level, topics, preferred_model, onboarding_completed, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
+      )
       .eq("id", user.id)
       .maybeSingle(),
     supabase
@@ -170,12 +184,22 @@ export async function loadUserState(): Promise<UserState | null> {
   ]);
 
   const p = profileRes.data;
+  const daily = Number(p?.daily_message_count ?? 1);
   const profile: PersistedProfile = {
     name: p?.name ?? null,
     level: p?.level ?? "A2",
     topics: (p?.topics as string[] | null) ?? [],
     preferredModel: p?.preferred_model ?? null,
     onboardingCompleted: Boolean(p?.onboarding_completed),
+    formality: p?.formality === "vy" ? "vy" : "ty",
+    scheduleEnabled: p?.schedule_enabled !== false,
+    dailyMessageCount: daily === 2 || daily === 3 ? daily : 1,
+    scheduleMode: p?.schedule_mode === "random" ? "random" : "specific",
+    firstMessageTime:
+      typeof p?.first_message_time === "string" && p.first_message_time
+        ? p.first_message_time
+        : "09:00",
+    timezone: (p?.timezone as string | null) ?? null,
   };
 
   const contextChunks = (contextRes.data ?? []).map(chunkFromRow);
@@ -210,7 +234,7 @@ export async function loadUserState(): Promise<UserState | null> {
     persisted: true,
     profile,
     contextChunks,
-    contextText: buildContextText(contextChunks),
+    contextText: buildLearnerContextText(contextChunks),
     activeSessionId,
     endedSessions,
     messages,
@@ -219,18 +243,7 @@ export async function loadUserState(): Promise<UserState | null> {
 
 /** Rebuild the same context blob the engine consumes, but from DB rows. */
 export function buildContextText(chunks: ContextChunk[]): string {
-  if (!chunks.length) return "";
-  return chunks
-    .map((c) => {
-      const head =
-        c.meta.kind === "google_doc"
-          ? `## Google Doc\n${c.meta.url}`
-          : c.meta.kind === "file"
-            ? `## File: ${c.meta.name}`
-            : `## ${c.meta.label}`;
-      return `${head}\n\n${c.text}`;
-    })
-    .join("\n\n---\n\n");
+  return buildLearnerContextText(chunks);
 }
 
 /** Load only what the engine needs to build context (context + topics + level). */
@@ -239,6 +252,8 @@ export async function loadEngineContext(): Promise<{
   topics: string[];
   level: string;
   preferredModel: string | null;
+  name: string | null;
+  formality: FormalityMode;
 } | null> {
   const state = await loadUserState();
   if (!state) return null;
@@ -247,6 +262,8 @@ export async function loadEngineContext(): Promise<{
     topics: state.profile.topics,
     level: state.profile.level,
     preferredModel: state.profile.preferredModel,
+    name: state.profile.name,
+    formality: state.profile.formality,
   };
 }
 
@@ -371,6 +388,12 @@ export type ProfilePatch = Partial<{
   topics: string[];
   preferredModel: string | null;
   onboardingCompleted: boolean;
+  formality: FormalityMode;
+  scheduleEnabled: boolean;
+  dailyMessageCount: DailyMessageCount;
+  scheduleMode: ScheduleMode;
+  firstMessageTime: string;
+  timezone: string | null;
 }>;
 
 export async function updateProfile(patch: ProfilePatch): Promise<boolean> {
@@ -384,6 +407,13 @@ export async function updateProfile(patch: ProfilePatch): Promise<boolean> {
   if ("preferredModel" in patch) row.preferred_model = patch.preferredModel;
   if ("onboardingCompleted" in patch)
     row.onboarding_completed = patch.onboardingCompleted;
+  if ("formality" in patch) row.formality = patch.formality;
+  if ("scheduleEnabled" in patch) row.schedule_enabled = patch.scheduleEnabled;
+  if ("dailyMessageCount" in patch)
+    row.daily_message_count = patch.dailyMessageCount;
+  if ("scheduleMode" in patch) row.schedule_mode = patch.scheduleMode;
+  if ("firstMessageTime" in patch) row.first_message_time = patch.firstMessageTime;
+  if ("timezone" in patch) row.timezone = patch.timezone;
   if (Object.keys(row).length === 0) return true;
   const { error } = await supabase.from("profiles").update(row).eq("id", userId);
   return !error;
@@ -409,6 +439,22 @@ export async function addContextChunk(
     .single();
   if (error || !data) return null;
   return { id: data.id as string, syncedAt: new Date(data.synced_at as string).getTime() };
+}
+
+/** Replace all chunks of a source kind with one new blob. */
+export async function upsertContextByKind(
+  text: string,
+  meta: ContextSource,
+): Promise<{ id: string; syncedAt: number } | null> {
+  const userId = await getUserId();
+  if (!userId) return null;
+  const supabase = await createSupabaseServerClient();
+  await supabase
+    .from("user_context")
+    .delete()
+    .eq("user_id", userId)
+    .eq("source_kind", meta.kind);
+  return addContextChunk(text, meta);
 }
 
 export async function removeContextChunk(id: string): Promise<boolean> {

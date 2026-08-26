@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRef, useState } from "react";
 
 import {
   HmatSettingsCard,
@@ -26,20 +27,14 @@ import { HmatSettingsHeader } from "@/components/screens/hmat/HmatUi";
 import {
   DAILY_MESSAGE_COUNTS,
   MODEL_OPTIONS,
+  ROUTES,
   type LevelId,
-  type ModelId,
   type TopicId,
 } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
-import type { SettingsScreen } from "@/hooks/useSettingsScreen";
+import type { ProviderUiStatus, SettingsScreen } from "@/hooks/useSettingsScreen";
 import { useLocale } from "@/lib/i18n/useLocale";
-import {
-  pushSupport,
-  subscribeToPush,
-  unsubscribeFromPush,
-  type PushSupport,
-} from "@/lib/push/client";
 
 const TOPIC_ROWS: TopicId[][] = [
   ["daily", "travel", "food"],
@@ -55,21 +50,6 @@ function formatDisplayTime(value: string): string {
   const [h, m] = value.split(":");
   if (!h || !m) return value;
   return `${h}:${m}`;
-}
-
-function BellIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"
-        stroke="#FF6B4A"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#FF6B4A" strokeWidth="2" />
-    </svg>
-  );
 }
 
 function MessageIcon() {
@@ -157,17 +137,6 @@ function DatabaseIcon() {
   );
 }
 
-function ResetIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" stroke="#C46B6B" strokeWidth="2" />
-      <path d="M21 3v5h-5" stroke="#C46B6B" strokeWidth="2" />
-      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" stroke="#C46B6B" strokeWidth="2" />
-      <path d="M8 16H3v5" stroke="#C46B6B" strokeWidth="2" />
-    </svg>
-  );
-}
-
 function SettingsFileDrop({
   hint,
   fileName,
@@ -202,65 +171,75 @@ function SettingsFileDrop({
   );
 }
 
-function PushNotificationRow({
-  title,
-  subtitle,
-  ariaLabel,
+function providerBadge(
+  status: ProviderUiStatus | null,
+  s: ReturnType<typeof useLocale>["t"]["settings"],
+) {
+  if (!status || !status.connected) {
+    return { connected: false, label: s.disconnected, tone: "off" as const };
+  }
+  if (status.source === "env") {
+    return { connected: true, label: s.serverKey, tone: "ok" as const };
+  }
+  return { connected: true, label: s.yourKey, tone: "ok" as const };
+}
+
+function ProviderKeyEditor({
+  status,
+  busy,
+  onSave,
+  onDisconnect,
+  pasteLabel,
+  saveLabel,
+  disconnectLabel,
 }: {
-  title: string;
-  subtitle: string;
-  ariaLabel: string;
+  status: ProviderUiStatus | null;
+  busy: boolean;
+  onSave: (key: string) => Promise<string | null>;
+  onDisconnect: () => Promise<void>;
+  pasteLabel: string;
+  saveLabel: string;
+  disconnectLabel: string;
 }) {
-  const [support] = useState<PushSupport>(() =>
-    typeof window === "undefined" ? "unsupported" : pushSupport(),
-  );
-  const [enabled, setEnabled] = useState(false);
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
-      void navigator.serviceWorker.ready.then(async (reg) => {
-        const sub = await reg.pushManager.getSubscription();
-        setEnabled(!!sub);
-      });
-    }
-  }, []);
-
-  const toggle = useCallback(async () => {
-    if (busy || support === "denied") return;
-    setBusy(true);
-    try {
-      if (enabled) {
-        await unsubscribeFromPush();
-        setEnabled(false);
-      } else {
-        const result = await subscribeToPush();
-        if (result.ok) setEnabled(true);
-      }
-    } finally {
-      setBusy(false);
-    }
-  }, [busy, enabled, support]);
-
-  if (support === "unsupported") return null;
+  const [key, setKey] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   return (
-    <div className="flex items-center justify-between gap-3 px-3.5 py-3">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <HmatSettingsIconWrap>
-          <BellIcon />
-        </HmatSettingsIconWrap>
-        <div className="min-w-0">
-          <HmatSettingsRowTitle>{title}</HmatSettingsRowTitle>
-          <HmatSettingsRowSubtitle>{subtitle}</HmatSettingsRowSubtitle>
-        </div>
-      </div>
-      <HmatSettingsToggle
-        on={enabled}
-        onChange={() => void toggle()}
-        disabled={busy || support === "denied"}
-        ariaLabel={ariaLabel}
+    <div className="space-y-2">
+      <HmatSettingsField
+        type="password"
+        autoComplete="off"
+        value={key}
+        onChange={(e) => setKey(e.target.value)}
+        placeholder={pasteLabel}
+        aria-label={pasteLabel}
       />
+      {error ? <p className={cn(TYPE.helper, "text-accent")}>{error}</p> : null}
+      <div className="flex flex-wrap gap-2">
+        <HmatSettingsPrimaryButton
+          disabled={busy || !key.trim()}
+          onClick={() => {
+            void (async () => {
+              setError(null);
+              const reason = await onSave(key.trim());
+              if (reason) setError(reason);
+              else setKey("");
+            })();
+          }}
+        >
+          {saveLabel}
+        </HmatSettingsPrimaryButton>
+        {status?.source === "user" ? (
+          <HmatSettingsSecondaryButton
+            disabled={busy}
+            onClick={() => {
+              void onDisconnect();
+            }}
+          >
+            {disconnectLabel}
+          </HmatSettingsSecondaryButton>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -289,33 +268,45 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       : "";
 
   const accountEmail = screen.accountEmail || s.accountEmailFallback;
-  const modelLabel =
-    MODEL_OPTIONS.find((m) => m.id === screen.model)?.label ?? screen.model;
+  const accountCard = (
+    <HmatSettingsCard className="flex items-center gap-3 p-4">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[#FFE5DC]">
+        <span className="font-display text-[13px] font-bold text-accent">
+          {(screen.accountName || "TY").slice(0, 2).toUpperCase()}
+        </span>
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="font-display text-[15px] font-bold text-[#243D2C]">{s.accountTitle}</p>
+        <p className="font-sans text-[13px] text-[#9c9089]">
+          {screen.accountName ? `${screen.accountName} · ${accountEmail}` : accountEmail}
+        </p>
+      </div>
+      <ChevronRightIcon />
+    </HmatSettingsCard>
+  );
+
+  const llmBadge = providerBadge(screen.llm, s);
+  const ttsBadge = providerBadge(screen.tts, s);
+  const modelOptions = [
+    ...(screen.models.length > 0
+      ? screen.models
+      : MODEL_OPTIONS.map((m) => ({ id: m.id, label: m.label, free: false }))),
+  ];
+  if (!modelOptions.some((m) => m.id === screen.model)) {
+    modelOptions.unshift({ id: screen.model, label: screen.model, free: false });
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-2 [-webkit-overflow-scrolling:touch]">
       <HmatSettingsHeader orbState={expression.mood} kicker={s.kicker} title={s.title} />
 
-      <HmatSettingsCard className="flex items-center gap-3 p-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[#FFE5DC]">
-          <span className="font-display text-[13px] font-bold text-accent">TY</span>
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-[15px] font-bold text-[#243D2C]">{s.accountTitle}</p>
-          <p className="font-sans text-[13px] text-[#9c9089]">{accountEmail}</p>
-        </div>
-        <ChevronRightIcon />
-      </HmatSettingsCard>
-
-      <HmatSettingsSection label={s.sections.notifications}>
-        <HmatSettingsCard className="p-1">
-          <PushNotificationRow
-            title={s.pushTitle}
-            subtitle={s.pushSubtitle}
-            ariaLabel={s.sections.notifications}
-          />
-        </HmatSettingsCard>
-      </HmatSettingsSection>
+      {screen.authConfigured ? (
+        <Link href={ROUTES.account} className="block">
+          {accountCard}
+        </Link>
+      ) : (
+        accountCard
+      )}
 
       <HmatSettingsSection label={s.sections.schedule}>
         <HmatSettingsCard className="p-1">
@@ -339,6 +330,12 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
               ariaLabel={s.scheduleTitle}
             />
           </div>
+          <p className="px-3.5 pb-3 font-sans text-[11px] leading-relaxed text-[#9c9089]">
+            {s.scheduleHint}
+          </p>
+          {screen.pushHint ? (
+            <p className="px-3.5 pb-3 font-sans text-[11px] text-accent">{screen.pushHint}</p>
+          ) : null}
 
           {screen.scheduleEnabled ? (
             <>
@@ -428,11 +425,21 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
               </div>
             </div>
             <HmatSettingsStatusBadge
-              connected={screen.llmOk === true}
-              connectedLabel={s.connected}
+              connected={llmBadge.connected}
+              connectedLabel={llmBadge.label}
               disconnectedLabel={s.disconnected}
+              tone={llmBadge.tone}
             />
           </div>
+          <ProviderKeyEditor
+            status={screen.llm}
+            busy={screen.providerBusy}
+            onSave={(key) => screen.saveProviderKey("openrouter", key)}
+            onDisconnect={() => screen.disconnectProvider("openrouter")}
+            pasteLabel={s.pasteApiKey}
+            saveLabel={s.saveKey}
+            disconnectLabel={s.disconnect}
+          />
           <div className="space-y-2">
             <HmatSettingsMicroLabel>{s.modelLabel}</HmatSettingsMicroLabel>
             <div className="relative">
@@ -440,11 +447,11 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
                 aria-label={s.modelLabel}
                 className="h-12 w-full appearance-none rounded-[14px] border border-black/10 bg-white px-3.5 font-sans text-sm text-[#243D2C] outline-none"
                 value={screen.model}
-                onChange={(e) => screen.chooseModel(e.target.value as ModelId)}
+                onChange={(e) => screen.chooseModel(e.target.value)}
               >
-                {MODEL_OPTIONS.map((m) => (
+                {modelOptions.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.label}
+                    {m.free ? `${m.label} · free` : m.label}
                   </option>
                 ))}
               </select>
@@ -452,7 +459,6 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
                 ▾
               </span>
             </div>
-            <p className="sr-only">{modelLabel}</p>
           </div>
         </HmatSettingsCard>
       </HmatSettingsSection>
@@ -471,11 +477,21 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
               </div>
             </div>
             <HmatSettingsStatusBadge
-              connected={screen.ttsOk === true}
-              connectedLabel={s.connected}
+              connected={ttsBadge.connected}
+              connectedLabel={ttsBadge.label}
               disconnectedLabel={s.disconnected}
+              tone={ttsBadge.tone}
             />
           </div>
+          <ProviderKeyEditor
+            status={screen.tts}
+            busy={screen.providerBusy}
+            onSave={(key) => screen.saveProviderKey("elevenlabs", key)}
+            onDisconnect={() => screen.disconnectProvider("elevenlabs")}
+            pasteLabel={s.pasteApiKey}
+            saveLabel={s.saveKey}
+            disconnectLabel={s.disconnect}
+          />
         </HmatSettingsCard>
       </HmatSettingsSection>
 
@@ -544,15 +560,24 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
           </p>
 
           <div className="space-y-2">
-            <HmatSettingsMicroLabel>{s.instructionsLabel}</HmatSettingsMicroLabel>
+            <div className="flex items-center justify-between gap-2">
+              <HmatSettingsMicroLabel>{s.instructionsLabel}</HmatSettingsMicroLabel>
+              {screen.pasteLoaded ? (
+                <HmatSettingsStatusBadge
+                  connected
+                  connectedLabel={s.textLoaded}
+                  disconnectedLabel={s.disconnected}
+                />
+              ) : null}
+            </div>
             <HmatSettingsTextarea
               value={screen.paste}
               onChange={(e) => screen.setPaste(e.target.value)}
               placeholder={s.pastePlaceholder}
               aria-label={s.pastedTextAria}
             />
-            <HmatSettingsSecondaryButton onClick={screen.addPaste} disabled={!screen.paste.trim()}>
-              {s.addText}
+            <HmatSettingsSecondaryButton onClick={screen.savePaste} disabled={!screen.paste.trim() && !screen.pasteLoaded}>
+              {screen.pasteLoaded ? s.updateText : s.addText}
             </HmatSettingsSecondaryButton>
           </div>
 
@@ -574,12 +599,28 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
               >
                 {screen.docLoading ? s.fetching : s.connectGoogleDoc}
               </HmatSettingsPrimaryButton>
-              {screen.hasGoogleDoc ? (
+              {screen.docError ? (
+                <HmatSettingsStatusBadge
+                  connected={false}
+                  connectedLabel={s.googleDocConnected}
+                  disconnectedLabel={s.googleDocFailed}
+                  tone="warn"
+                />
+              ) : screen.docConnected ? (
                 <HmatSettingsStatusBadge
                   connected
                   connectedLabel={s.googleDocConnected}
                   disconnectedLabel={s.disconnected}
                 />
+              ) : null}
+              {screen.docConnected ? (
+                <button
+                  type="button"
+                  className="font-sans text-[11px] font-bold text-accent"
+                  onClick={screen.disconnectGoogleDoc}
+                >
+                  {s.disconnect}
+                </button>
               ) : null}
             </div>
           </div>
@@ -588,9 +629,18 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
             <HmatSettingsMicroLabel>{s.fileLabel}</HmatSettingsMicroLabel>
             <SettingsFileDrop
               hint={s.fileUploadHint}
-              fileName={screen.uploadedFileName}
+              fileName={screen.fileName}
               onFile={screen.onFile}
             />
+            {screen.fileName ? (
+              <button
+                type="button"
+                className="font-sans text-[11px] font-bold text-accent"
+                onClick={screen.disconnectFile}
+              >
+                {s.disconnect}
+              </button>
+            ) : null}
           </div>
 
           {contextChunks.length > 0 ? (
@@ -611,7 +661,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
                             : s.pastedText}
                       </p>
                       <p className="line-clamp-2 font-sans text-[11px] text-[#9c9089]">
-                        {c.text}
+                        {c.meta.kind === "google_doc" ? c.meta.url : c.text}
                       </p>
                     </div>
                     <button
@@ -633,13 +683,6 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
         <div className="space-y-2.5">
           <HmatSettingsDangerButton onClick={screen.resetData} icon={<DatabaseIcon />}>
             {s.resetData}
-          </HmatSettingsDangerButton>
-          <HmatSettingsDangerButton
-            onClick={screen.resetChat}
-            variant="danger"
-            icon={<ResetIcon />}
-          >
-            {s.resetChat}
           </HmatSettingsDangerButton>
           <form action="/auth/signout" method="post" className="w-full">
             <button

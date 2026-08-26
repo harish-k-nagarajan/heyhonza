@@ -1,21 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { endChatSessionAction } from "@/lib/client/chat-actions";
 import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { useScreenReady } from "@/hooks/useScreenReady";
 import { isLikelyGoogleDocUrl } from "@/lib/validators";
 import {
-  addContext,
   persistProfile,
   removeContext,
   resetUserData,
+  upsertContext,
 } from "@/lib/client/context-actions";
 import {
   ROUTES,
   type DailyMessageCount,
+  type FormalityMode,
   type LevelId,
   type ModelId,
   type ScheduleMode,
@@ -24,30 +24,39 @@ import {
 import { DESIGNS } from "@/lib/design/registry";
 import type { DesignFamily, DesignId } from "@/lib/design/registry";
 import type { MoodExpression } from "@/lib/mood/expression";
+import {
+  pushSupport,
+  subscribeToPush,
+  unsubscribeFromPush,
+  type PushSupport,
+} from "@/lib/push/client";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useDesignStore } from "@/stores/useDesignStore";
-import { useSettingsStore, type FormalityMode } from "@/stores/useSettingsStore";
+import { useSettingsStore } from "@/stores/useSettingsStore";
 import type { ContextChunk } from "@/types";
 
-/**
- * Behaviour for the Settings surface, extracted so Classic and Hmat share one
- * source of truth for the profile form (level, model, topics), the context
- * documents (Google Doc / file / paste), server status, and data reset. The
- * Design Lab (Phase 6) is a separate shared section that reads the design store
- * directly.
- */
+export type ProviderUiStatus = {
+  source: "none" | "env" | "user";
+  connected: boolean;
+};
+
+export type CatalogModel = { id: string; label: string; free: boolean };
+
 export type SettingsScreen = {
   ready: boolean;
   design: DesignId;
   family: DesignFamily;
   expression: MoodExpression;
   accountEmail: string;
+  accountName: string;
+  authConfigured: boolean;
 
   level: LevelId;
   chooseLevel: (l: LevelId) => void;
   model: ModelId;
   chooseModel: (m: ModelId) => void;
+  models: CatalogModel[];
   topics: TopicId[];
   toggleTopic: (id: TopicId) => void;
 
@@ -59,6 +68,8 @@ export type SettingsScreen = {
   setScheduleMode: (mode: ScheduleMode) => void;
   firstMessageTime: string;
   setFirstMessageTime: (time: string) => void;
+  pushHint: string | null;
+  pushSupport: PushSupport;
 
   formality: FormalityMode;
   setFormality: (mode: FormalityMode) => void;
@@ -66,26 +77,40 @@ export type SettingsScreen = {
   contextChunks: ContextChunk[];
   lastSynced: number;
   removeContext: (id: string) => void;
-  hasGoogleDoc: boolean;
+
+  paste: string;
+  setPaste: (v: string) => void;
+  pasteLoaded: boolean;
+  savePaste: () => void;
 
   docUrl: string;
   setDocUrl: (v: string) => void;
   docLoading: boolean;
   docError: string | null;
+  docConnected: boolean;
   importGoogleDoc: () => void;
-
-  paste: string;
-  setPaste: (v: string) => void;
-  addPaste: () => void;
+  disconnectGoogleDoc: () => void;
 
   onFile: (f: File | null) => void;
-  uploadedFileName: string | null;
+  fileName: string | null;
+  disconnectFile: () => void;
 
-  llmOk: boolean | null;
-  ttsOk: boolean | null;
+  llm: ProviderUiStatus | null;
+  tts: ProviderUiStatus | null;
+  providerBusy: boolean;
+  saveProviderKey: (provider: "openrouter" | "elevenlabs", key: string) => Promise<string | null>;
+  disconnectProvider: (provider: "openrouter" | "elevenlabs") => Promise<void>;
+
   resetData: () => void;
-  resetChat: () => void;
 };
+
+function detectTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
 
 export function useSettingsScreen(): SettingsScreen {
   const router = useRouter();
@@ -103,44 +128,100 @@ export function useSettingsScreen(): SettingsScreen {
   const setTopics = useSettingsStore((s) => s.setTopics);
   const contextChunks = useSettingsStore((s) => s.contextChunks);
   const scheduleEnabled = useSettingsStore((s) => s.scheduleEnabled);
-  const setScheduleEnabled = useSettingsStore((s) => s.setScheduleEnabled);
+  const setScheduleEnabledStore = useSettingsStore((s) => s.setScheduleEnabled);
   const dailyMessageCount = useSettingsStore((s) => s.dailyMessageCount);
-  const setDailyMessageCount = useSettingsStore((s) => s.setDailyMessageCount);
+  const setDailyMessageCountStore = useSettingsStore((s) => s.setDailyMessageCount);
   const scheduleMode = useSettingsStore((s) => s.scheduleMode);
-  const setScheduleMode = useSettingsStore((s) => s.setScheduleMode);
+  const setScheduleModeStore = useSettingsStore((s) => s.setScheduleMode);
   const firstMessageTime = useSettingsStore((s) => s.firstMessageTime);
-  const setFirstMessageTime = useSettingsStore((s) => s.setFirstMessageTime);
+  const setFirstMessageTimeStore = useSettingsStore((s) => s.setFirstMessageTime);
   const formality = useSettingsStore((s) => s.formality);
-  const setFormality = useSettingsStore((s) => s.setFormality);
+  const setFormalityStore = useSettingsStore((s) => s.setFormality);
+  const learnerName = useSettingsStore((s) => s.learnerName);
+  const setTimezone = useSettingsStore((s) => s.setTimezone);
 
-  const [docUrl, setDocUrl] = useState("");
-  const [paste, setPaste] = useState("");
+  const [docUrlDraft, setDocUrlDraft] = useState<string | null>(null);
+  const [pasteDraft, setPasteDraft] = useState<string | null>(null);
+  const [pasteTouched, setPasteTouched] = useState(false);
   const [docLoading, setDocLoading] = useState(false);
   const [docError, setDocError] = useState<string | null>(null);
-  const [llmOk, setLlmOk] = useState<boolean | null>(null);
-  const [ttsOk, setTtsOk] = useState<boolean | null>(null);
+  const [llm, setLlm] = useState<ProviderUiStatus | null>(null);
+  const [tts, setTts] = useState<ProviderUiStatus | null>(null);
+  const [providerBusy, setProviderBusy] = useState(false);
   const [accountEmail, setAccountEmail] = useState("");
-  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [models, setModels] = useState<CatalogModel[]>([]);
+  const [pushHint, setPushHint] = useState<string | null>(null);
+  const [support] = useState<PushSupport>(() =>
+    typeof window === "undefined" ? "unsupported" : pushSupport(),
+  );
+
+  const pastedChunk = useMemo(
+    () => contextChunks.find((c) => c.meta.kind === "pasted") ?? null,
+    [contextChunks],
+  );
+  const docChunk = useMemo(
+    () => contextChunks.find((c) => c.meta.kind === "google_doc") ?? null,
+    [contextChunks],
+  );
+  const fileChunk = useMemo(
+    () => contextChunks.find((c) => c.meta.kind === "file") ?? null,
+    [contextChunks],
+  );
+
+  const storedDocUrl = docChunk?.meta.kind === "google_doc" ? docChunk.meta.url : "";
+  const docUrl = docUrlDraft ?? storedDocUrl;
+  const setDocUrl = (v: string) => setDocUrlDraft(v);
+  const paste = pasteTouched ? (pasteDraft ?? "") : (pastedChunk?.text ?? pasteDraft ?? "");
+  const setPaste = (v: string) => {
+    setPasteTouched(true);
+    setPasteDraft(v);
+  };
 
   useEffect(() => {
     if (ready && !onboardingComplete) router.replace(ROUTES.onboarding);
   }, [ready, onboardingComplete, router]);
 
+  const refreshProviders = useCallback(async () => {
+    try {
+      const res = await fetch("/api/providers/status", { cache: "no-store" });
+      const data = (await res.json()) as {
+        llm?: ProviderUiStatus;
+        tts?: ProviderUiStatus;
+      };
+      if (data.llm) setLlm(data.llm);
+      if (data.tts) setTts(data.tts);
+    } catch {
+      setLlm({ source: "none", connected: false });
+      setTts({ source: "none", connected: false });
+    }
+  }, []);
+
   useEffect(() => {
-    void (async () => {
-      try {
-        const res = await fetch("/api/health");
-        const data = (await res.json()) as {
-          llmConfigured?: boolean;
-          ttsConfigured?: boolean;
-        };
-        setLlmOk(Boolean(data.llmConfigured));
-        setTtsOk(Boolean(data.ttsConfigured));
-      } catch {
-        setLlmOk(false);
-        setTtsOk(false);
-      }
-    })();
+    let cancelled = false;
+    void fetch("/api/providers/status", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data: { llm?: ProviderUiStatus; tts?: ProviderUiStatus }) => {
+        if (cancelled) return;
+        if (data.llm) setLlm(data.llm);
+        if (data.tts) setTts(data.tts);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLlm({ source: "none", connected: false });
+        setTts({ source: "none", connected: false });
+      });
+    void fetch("/api/models", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data: { models?: CatalogModel[] }) => {
+        if (cancelled) return;
+        if (data.models?.length) setModels(data.models);
+      })
+      .catch(() => {
+        /* keep curated defaults */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -150,6 +231,33 @@ export function useSettingsScreen(): SettingsScreen {
       setAccountEmail(data.user?.email ?? "");
     });
   }, []);
+
+  const schedulePatch = useCallback(
+    (extra: {
+      scheduleEnabled?: boolean;
+      dailyMessageCount?: DailyMessageCount;
+      scheduleMode?: ScheduleMode;
+      firstMessageTime?: string;
+    }) => {
+      const tz = detectTimezone();
+      setTimezone(tz);
+      persistProfile({
+        timezone: tz,
+        scheduleEnabled,
+        dailyMessageCount,
+        scheduleMode,
+        firstMessageTime,
+        ...extra,
+      });
+    },
+    [
+      dailyMessageCount,
+      firstMessageTime,
+      scheduleEnabled,
+      scheduleMode,
+      setTimezone,
+    ],
+  );
 
   const chooseLevel = (l: LevelId) => {
     setLevel(l);
@@ -167,11 +275,45 @@ export function useSettingsScreen(): SettingsScreen {
     persistProfile({ topics: next });
   };
 
+  const setFormality = (mode: FormalityMode) => {
+    setFormalityStore(mode);
+    persistProfile({ formality: mode });
+  };
+
+  const setDailyMessageCount = (count: DailyMessageCount) => {
+    setDailyMessageCountStore(count);
+    schedulePatch({ dailyMessageCount: count });
+  };
+  const setScheduleMode = (mode: ScheduleMode) => {
+    setScheduleModeStore(mode);
+    schedulePatch({ scheduleMode: mode });
+  };
+  const setFirstMessageTime = (time: string) => {
+    setFirstMessageTimeStore(time);
+    schedulePatch({ firstMessageTime: time });
+  };
+
+  const setScheduleEnabled = (enabled: boolean) => {
+    void (async () => {
+      setScheduleEnabledStore(enabled);
+      schedulePatch({ scheduleEnabled: enabled });
+      setPushHint(null);
+      if (!enabled) {
+        await unsubscribeFromPush();
+        return;
+      }
+      const result = await subscribeToPush();
+      if (!result.ok) {
+        setPushHint(result.reason ?? "Notifications could not be enabled.");
+      }
+    })();
+  };
+
   const importGoogleDoc = () => {
     void (async () => {
       setDocError(null);
       if (!isLikelyGoogleDocUrl(docUrl)) {
-        setDocError("Invalid URL.");
+        setDocError("That doesn’t look like a public Google Doc link.");
         return;
       }
       setDocLoading(true);
@@ -183,30 +325,31 @@ export function useSettingsScreen(): SettingsScreen {
         });
         const data = (await res.json()) as { text?: string; error?: string };
         if (!res.ok) {
-          setDocError(data.error ?? "Error");
+          setDocError(data.error ?? "Couldn’t load that document. Check the link.");
           return;
         }
         if (data.text) {
-          await addContext(data.text, {
+          await upsertContext(data.text, {
             kind: "google_doc",
             url: docUrl.trim(),
             addedAt: Date.now(),
           });
-          setDocUrl("");
         }
       } catch {
-        setDocError("Network error");
+        setDocError("Network error — try again.");
       } finally {
         setDocLoading(false);
       }
     })();
   };
 
-  const addPaste = () => {
+  const savePaste = () => {
     const t = paste.trim();
-    if (!t) return;
-    void addContext(t, { kind: "pasted", label: "Pasted text", addedAt: Date.now() });
-    setPaste("");
+    if (!t) {
+      if (pastedChunk) void removeContext(pastedChunk.id);
+      return;
+    }
+    void upsertContext(t, { kind: "pasted", label: "Pasted text", addedAt: Date.now() });
   };
 
   const onFile = (f: File | null) => {
@@ -222,17 +365,47 @@ export function useSettingsScreen(): SettingsScreen {
         setDocError("File is empty.");
         return;
       }
-      setUploadedFileName(f.name);
-      await addContext(text.trim(), { kind: "file", name: f.name, addedAt: Date.now() });
+      await upsertContext(text.trim(), { kind: "file", name: f.name, addedAt: Date.now() });
     })();
   };
 
   const lastSynced = contextChunks.reduce((max, c) => Math.max(max, c.meta.addedAt), 0);
-  const hasGoogleDoc = contextChunks.some((c) => c.meta.kind === "google_doc");
 
-  const resetChat = useCallback(() => {
-    void endChatSessionAction();
-  }, []);
+  const saveProviderKey = async (
+    provider: "openrouter" | "elevenlabs",
+    key: string,
+  ): Promise<string | null> => {
+    setProviderBusy(true);
+    try {
+      const res = await fetch("/api/providers/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, key }),
+      });
+      const data = (await res.json()) as { ok?: boolean; reason?: string };
+      if (!res.ok || !data.ok) return data.reason ?? "Could not save that key.";
+      await refreshProviders();
+      return null;
+    } catch {
+      return "Network error.";
+    } finally {
+      setProviderBusy(false);
+    }
+  };
+
+  const disconnectProvider = async (provider: "openrouter" | "elevenlabs") => {
+    setProviderBusy(true);
+    try {
+      await fetch("/api/providers/keys", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider }),
+      });
+      await refreshProviders();
+    } finally {
+      setProviderBusy(false);
+    }
+  };
 
   return {
     ready: ready && onboardingComplete,
@@ -240,10 +413,13 @@ export function useSettingsScreen(): SettingsScreen {
     family: DESIGNS[design].family,
     expression,
     accountEmail,
+    accountName: learnerName,
+    authConfigured: isSupabaseConfigured(),
     level,
     chooseLevel,
     model: preferredModel,
     chooseModel,
+    models,
     topics: selectedTopics,
     toggleTopic,
     scheduleEnabled,
@@ -254,28 +430,41 @@ export function useSettingsScreen(): SettingsScreen {
     setScheduleMode,
     firstMessageTime,
     setFirstMessageTime,
+    pushHint,
+    pushSupport: support,
     formality,
     setFormality,
     contextChunks,
     lastSynced,
     removeContext: (id) => void removeContext(id),
-    hasGoogleDoc,
+    paste,
+    setPaste,
+    pasteLoaded: Boolean(pastedChunk),
+    savePaste,
     docUrl,
     setDocUrl,
     docLoading,
     docError,
+    docConnected: Boolean(docChunk) && !docError,
     importGoogleDoc,
-    paste,
-    setPaste,
-    addPaste,
+    disconnectGoogleDoc: () => {
+      if (docChunk) void removeContext(docChunk.id);
+      setDocUrl("");
+      setDocError(null);
+    },
     onFile,
-    uploadedFileName,
-    llmOk,
-    ttsOk,
+    fileName: fileChunk?.meta.kind === "file" ? fileChunk.meta.name : null,
+    disconnectFile: () => {
+      if (fileChunk) void removeContext(fileChunk.id);
+    },
+    llm,
+    tts,
+    providerBusy,
+    saveProviderKey,
+    disconnectProvider,
     resetData: () => {
       void resetUserData();
       router.push(ROUTES.onboarding);
     },
-    resetChat,
   };
 }

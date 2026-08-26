@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { clientKey, rateLimit } from "@/lib/server/rate-limit";
 import { MAX_TTS_CHARS, TtsError, synthesizeSpeech } from "@/lib/server/tts";
+import { resolveProviderKey } from "@/lib/server/provider-keys";
 
 export const runtime = "nodejs";
 
@@ -37,8 +38,10 @@ export async function POST(req: Request) {
   }
 
   try {
+    const tts = await resolveProviderKey("elevenlabs");
     const { audio, contentType, voiceId } = await synthesizeSpeech(
       body.text.slice(0, MAX_TTS_CHARS),
+      { apiKey: tts.key },
     );
     return new NextResponse(audio, {
       status: 200,

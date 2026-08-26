@@ -7,6 +7,7 @@ import {
   removeContextChunk,
   resetUserData,
   updateProfile,
+  upsertContextByKind,
   type ProfilePatch,
 } from "@/lib/server/user-data";
 
@@ -30,6 +31,7 @@ export async function GET() {
 type StatePatch = {
   profile?: ProfilePatch;
   addContext?: { text: string; meta: ContextSource };
+  upsertContext?: { text: string; meta: ContextSource };
   removeContextId?: string;
   reset?: boolean;
 };
@@ -58,6 +60,16 @@ export async function PUT(req: Request) {
   }
   if (body.addContext && typeof body.addContext.text === "string") {
     const added = await addContextChunk(body.addContext.text, body.addContext.meta);
+    if (added) {
+      result.added = added;
+      persisted = true;
+    }
+  }
+  if (body.upsertContext && typeof body.upsertContext.text === "string") {
+    const added = await upsertContextByKind(
+      body.upsertContext.text,
+      body.upsertContext.meta,
+    );
     if (added) {
       result.added = added;
       persisted = true;

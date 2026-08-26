@@ -8,6 +8,7 @@ import {
 } from "@/lib/server/conversation-engine";
 import { clientKey, rateLimit } from "@/lib/server/rate-limit";
 import { insertMessages, loadEngineContext } from "@/lib/server/user-data";
+import { resolveProviderKey } from "@/lib/server/provider-keys";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,8 @@ type ChatRequestBody = {
    */
   kind?: "chat" | "call";
   sessionId?: string;
+  formality?: string;
+  learnerName?: string;
 };
 
 export async function POST(req: Request) {
@@ -65,6 +68,7 @@ export async function POST(req: Request) {
   // client"). Falls back to the client-sent values in local pass-through dev.
   const serverContext = await loadEngineContext();
   const persisted = serverContext !== null;
+  const llm = await resolveProviderKey("openrouter");
 
   // On bootstrap, Honza initiates: replace the thread with a single synthetic
   // opener instruction that's aware of time-of-day + time since last contact.
@@ -97,6 +101,13 @@ export async function POST(req: Request) {
           ? body.learnerContext
           : "",
       level: serverContext?.level ?? (typeof body.level === "string" ? body.level : undefined),
+      learnerName:
+        serverContext?.name ??
+        (typeof body.learnerName === "string" ? body.learnerName : undefined),
+      formality:
+        serverContext?.formality ??
+        (typeof body.formality === "string" ? body.formality : undefined),
+      apiKey: llm.key,
       messages: engineMessages,
     });
 

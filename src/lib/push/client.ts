@@ -1,9 +1,8 @@
 "use client";
 
 /**
- * Web Push subscription helper (foundation). Stores the subscription on the
- * server when Supabase auth + VAPID keys are configured. Scheduled sends are
- * not wired yet — this is the honest opt-in layer only.
+ * Web Push for installed PWAs. next-pwa disables the service worker in
+ * `next dev`, so subscribe will time out there on purpose.
  */
 
 export type PushSupport = "unsupported" | "denied" | "prompt" | "granted";
@@ -25,10 +24,26 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return out;
 }
 
+async function registrationOrTimeout(ms = 4000): Promise<ServiceWorkerRegistration> {
+  if (!("serviceWorker" in navigator)) {
+    throw new Error("no-sw");
+  }
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<never>((_, reject) => {
+      window.setTimeout(() => reject(new Error("no-sw")), ms);
+    }),
+  ]);
+}
+
 export async function subscribeToPush(): Promise<{ ok: boolean; reason?: string }> {
   const support = pushSupport();
   if (support === "unsupported") {
-    return { ok: false, reason: "Push notifications are not supported in this browser." };
+    return {
+      ok: false,
+      reason:
+        "Notifications need an installed PWA (Add to Home Screen on iPhone; Chrome on Android).",
+    };
   }
   if (support === "denied") {
     return { ok: false, reason: "Notifications are blocked in your browser settings." };
@@ -36,7 +51,11 @@ export async function subscribeToPush(): Promise<{ ok: boolean; reason?: string 
 
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   if (!vapidPublic) {
-    return { ok: false, reason: "Push is not configured on the server yet." };
+    return {
+      ok: false,
+      reason:
+        "Phone alerts need VAPID keys on the server. Daily check-ins still save; they just won’t ping this device yet.",
+    };
   }
 
   const permission = await Notification.requestPermission();
@@ -44,7 +63,17 @@ export async function subscribeToPush(): Promise<{ ok: boolean; reason?: string 
     return { ok: false, reason: "Notification permission was not granted." };
   }
 
-  const reg = await navigator.serviceWorker.ready;
+  let reg: ServiceWorkerRegistration;
+  try {
+    reg = await registrationOrTimeout();
+  } catch {
+    return {
+      ok: false,
+      reason:
+        "No service worker yet. Install Honza to the home screen, or use a production build (not local dev).",
+    };
+  }
+
   const existing = await reg.pushManager.getSubscription();
   const sub =
     existing ??
@@ -67,14 +96,18 @@ export async function subscribeToPush(): Promise<{ ok: boolean; reason?: string 
 
 export async function unsubscribeFromPush(): Promise<void> {
   if (!("serviceWorker" in navigator)) return;
-  const reg = await navigator.serviceWorker.ready;
-  const sub = await reg.pushManager.getSubscription();
-  if (sub) {
-    await fetch("/api/push/subscribe", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ endpoint: sub.endpoint }),
-    });
-    await sub.unsubscribe();
+  try {
+    const reg = await registrationOrTimeout(2000);
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      await fetch("/api/push/subscribe", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint: sub.endpoint }),
+      });
+      await sub.unsubscribe();
+    }
+  } catch {
+    // Dev / no SW — nothing to drop.
   }
 }
