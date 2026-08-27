@@ -61,11 +61,9 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
           OpenRouter:{" "}
           {screen.llm === null
             ? s.serverChecking
-            : screen.llm.connected
-              ? screen.llm.source === "env"
-                ? s.serverKey
-                : s.connected
-              : s.disconnected}
+            : screen.llm.source === "user"
+              ? s.apiKeyAdded
+              : s.addApiKey}
         </p>
       </Card>
 

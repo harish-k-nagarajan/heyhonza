@@ -66,20 +66,12 @@ function MessageIcon() {
   );
 }
 
-function BrainIcon() {
+function TextIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"
-        stroke="#FF6B4A"
-        strokeWidth="2"
-      />
-      <path
-        d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"
-        stroke="#FF6B4A"
-        strokeWidth="2"
-      />
-      <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" stroke="#FF6B4A" strokeWidth="2" />
+      <path d="M4 7h16" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
+      <path d="M4 12h11" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
+      <path d="M4 17h14" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -175,13 +167,10 @@ function providerBadge(
   status: ProviderUiStatus | null,
   s: ReturnType<typeof useLocale>["t"]["settings"],
 ) {
-  if (!status || !status.connected) {
-    return { connected: false, label: s.disconnected, tone: "off" as const };
+  if (status?.source === "user") {
+    return { connected: true, label: s.apiKeyAdded, tone: "ok" as const };
   }
-  if (status.source === "env") {
-    return { connected: true, label: s.serverKey, tone: "ok" as const };
-  }
-  return { connected: true, label: s.yourKey, tone: "ok" as const };
+  return { connected: false, label: s.addApiKey, tone: "warn" as const };
 }
 
 function ProviderKeyEditor({
@@ -203,6 +192,21 @@ function ProviderKeyEditor({
 }) {
   const [key, setKey] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const hasUserKey = status?.source === "user";
+
+  if (hasUserKey) {
+    return (
+      <HmatSettingsDangerButton
+        variant="danger"
+        onClick={() => {
+          if (busy) return;
+          void onDisconnect();
+        }}
+      >
+        {disconnectLabel}
+      </HmatSettingsDangerButton>
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -215,31 +219,19 @@ function ProviderKeyEditor({
         aria-label={pasteLabel}
       />
       {error ? <p className={cn(TYPE.helper, "text-accent")}>{error}</p> : null}
-      <div className="flex flex-wrap gap-2">
-        <HmatSettingsPrimaryButton
-          disabled={busy || !key.trim()}
-          onClick={() => {
-            void (async () => {
-              setError(null);
-              const reason = await onSave(key.trim());
-              if (reason) setError(reason);
-              else setKey("");
-            })();
-          }}
-        >
-          {saveLabel}
-        </HmatSettingsPrimaryButton>
-        {status?.source === "user" ? (
-          <HmatSettingsSecondaryButton
-            disabled={busy}
-            onClick={() => {
-              void onDisconnect();
-            }}
-          >
-            {disconnectLabel}
-          </HmatSettingsSecondaryButton>
-        ) : null}
-      </div>
+      <HmatSettingsPrimaryButton
+        disabled={busy || !key.trim()}
+        onClick={() => {
+          void (async () => {
+            setError(null);
+            const reason = await onSave(key.trim());
+            if (reason) setError(reason);
+            else setKey("");
+          })();
+        }}
+      >
+        {saveLabel}
+      </HmatSettingsPrimaryButton>
     </div>
   );
 }
@@ -309,20 +301,16 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       )}
 
       <HmatSettingsSection label={s.sections.schedule}>
-        <HmatSettingsCard className="p-1">
-          <div className="flex items-center justify-between gap-3 px-3.5 py-3">
-            <div className="flex min-w-0 flex-1 items-center gap-3">
+        <HmatSettingsCard className="space-y-3 p-4">
+          <HmatSettingsHint>{s.scheduleHint}</HmatSettingsHint>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-2.5">
               <HmatSettingsIconWrap>
                 <MessageIcon />
               </HmatSettingsIconWrap>
-              <div className="min-w-0">
-                <p className="font-sans text-[15px] font-semibold text-[#2A2420]">
-                  {s.scheduleTitle}
-                </p>
-                <HmatSettingsRowSubtitle>
-                  {s.scheduleSubtitle(screen.dailyMessageCount)}
-                </HmatSettingsRowSubtitle>
-              </div>
+              <HmatSettingsRowSubtitle>
+                {s.scheduleSubtitle(screen.dailyMessageCount)}
+              </HmatSettingsRowSubtitle>
             </div>
             <HmatSettingsToggle
               on={screen.scheduleEnabled}
@@ -330,19 +318,14 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
               ariaLabel={s.scheduleTitle}
             />
           </div>
-          <p className="px-3.5 pb-3 font-sans text-[11px] leading-relaxed text-[#9c9089]">
-            {s.scheduleHint}
-          </p>
           {screen.pushHint ? (
-            <p className="px-3.5 pb-3 font-sans text-[11px] text-accent">{screen.pushHint}</p>
+            <p className="font-sans text-xs leading-relaxed text-accent">{screen.pushHint}</p>
           ) : null}
 
           {screen.scheduleEnabled ? (
             <>
-              <div className="space-y-2 px-3.5 pb-3">
-                <p className="font-sans text-xs font-semibold text-[#2A2420]">
-                  {s.scheduleHowOften}
-                </p>
+              <div className="space-y-2">
+                <HmatSettingsMicroLabel>{s.scheduleHowOften}</HmatSettingsMicroLabel>
                 <div className="flex flex-wrap gap-2">
                   {DAILY_MESSAGE_COUNTS.map((count) => (
                     <HmatSettingsPill
@@ -356,8 +339,8 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
                 </div>
               </div>
 
-              <div className="space-y-2 px-3.5 pb-3.5">
-                <p className="font-sans text-xs font-semibold text-[#2A2420]">{s.scheduleWhen}</p>
+              <div className="space-y-2">
+                <HmatSettingsMicroLabel>{s.scheduleWhen}</HmatSettingsMicroLabel>
                 <div className="flex flex-wrap gap-2">
                   <HmatSettingsPill
                     on={screen.scheduleMode === "specific"}
@@ -417,7 +400,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <HmatSettingsIconWrap>
-                <BrainIcon />
+                <TextIcon />
               </HmatSettingsIconWrap>
               <div>
                 <HmatSettingsRowTitle>{s.openRouterName}</HmatSettingsRowTitle>
@@ -427,7 +410,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
             <HmatSettingsStatusBadge
               connected={llmBadge.connected}
               connectedLabel={llmBadge.label}
-              disconnectedLabel={s.disconnected}
+              disconnectedLabel={llmBadge.label}
               tone={llmBadge.tone}
             />
           </div>
@@ -479,7 +462,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
             <HmatSettingsStatusBadge
               connected={ttsBadge.connected}
               connectedLabel={ttsBadge.label}
-              disconnectedLabel={s.disconnected}
+              disconnectedLabel={ttsBadge.label}
               tone={ttsBadge.tone}
             />
           </div>
