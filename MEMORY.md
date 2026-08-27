@@ -20,7 +20,7 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ### What changed
 - `/settings/account` — name (into `profiles.name` + system prompt), email, password.
-- Daily check-ins replaced the separate Push row. Schedule persists on `profiles`. Cron `/api/cron/check-ins` (15 min) generates an opener, inserts it, Web Push. Custom SW `worker/index.js`.
+- Daily check-ins replaced the separate Push row. Schedule persists on `profiles`. Cron `/api/cron/check-ins` (once daily `0 8 * * *` UTC — Hobby only allows daily crons; 15-min was rejected on deploy). Custom SW `worker/index.js`.
 - BYOK OpenRouter / ElevenLabs: encrypted in `user_provider_keys`, never echoed. Env remains fallback; Disconnect clears the user key only.
 - Model picker loads OpenRouter free models via `/api/models`.
 - Context is one slot per source (paste / Google Doc / file) with honest Connected / failed badges. Prompt context capped ~4k chars. Formality + name in the system prompt.
