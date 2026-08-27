@@ -4,7 +4,19 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-26 (Settings overhaul)
+## Current entry — 2026-08-27 (check-in / push provisioning)
+
+### What changed
+- Applied `push_subscriptions` on live Hey Honza (was missing; `0004` / `settings_overhaul` was already on the DB).
+- Local public VAPID was named `VAPID_PUBLIC_KEY`; the client reads `NEXT_PUBLIC_VAPID_PUBLIC_KEY`. Copied the value. Generated `CRON_SECRET` + `SECRETS_ENCRYPTION_KEY`.
+- Vercel CLI 59.7.0 linked to heyhonza. Pushed `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CRON_SECRET`, `SECRETS_ENCRYPTION_KEY`. `SUPABASE_SERVICE_ROLE_KEY` was already on the project. Rebuilt production (`heyhonza.vercel.app`) and the settings preview.
+
+### Still blocked
+- Phone alerts: installed PWA, not `next dev` (SW disabled).
+
+---
+
+## 2026-08-26 (Settings overhaul)
 
 ### What changed
 - `/settings/account` — name (into `profiles.name` + system prompt), email, password.
