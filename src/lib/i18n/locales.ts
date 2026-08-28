@@ -1,3 +1,4 @@
+import type { ModelOptionId } from "@/lib/constants";
 import type { ExtendedCopy } from "@/lib/i18n/extended";
 import { EXTENDED } from "@/lib/i18n/extended";
 
@@ -157,6 +158,10 @@ export type SettingsCopy = {
   disconnect: string;
   modelLabel: string;
   modelsLoading: string;
+  modelSearch: string;
+  modelSearchEmpty: string;
+  modelFree: string;
+  modelBlurb: Record<ModelOptionId, string>;
   formalityHint: string;
   formalityTy: string;
   formalityVy: string;
@@ -199,6 +204,10 @@ export type SettingsCopy = {
   googleDocKind: string;
   remove: string;
   resetData: string;
+  resetDataConfirmTitle: string;
+  resetDataConfirmBody: string;
+  resetDataConfirmAction: string;
+  resetDataCancel: string;
   signOut: string;
 };
 
@@ -354,6 +363,17 @@ const en: LocaleStrings = {
     disconnect: "Remove key",
     modelLabel: "Model",
     modelsLoading: "Loading models…",
+    modelSearch: "Search models",
+    modelSearchEmpty: "No match",
+    modelFree: "Free",
+    modelBlurb: {
+      "openai/gpt-4o-mini": "everyday Czech chat — cost-effective",
+      "moonshotai/kimi-k2": "longer practice, still cheap",
+      "minimax/minimax-m3:free": "short daily chats",
+      "z-ai/glm-5.2:free": "longer free conversations",
+      "google/gemini-3.7-flash": "fast replies and drills",
+      "openai/gpt-5.4-mini": "complex grammar and topics",
+    },
     formalityHint: "Should Honza use informal or formal address?",
     formalityTy: "Ty",
     formalityVy: "Vy",
@@ -379,7 +399,7 @@ const en: LocaleStrings = {
     serverConfigured: "configured",
     serverMissing: "missing OPENROUTER_API_KEY",
     levelHint: "Honza adjusts pace, vocabulary, and difficulty.",
-    levelHints: { A1: "Start", A2: "Basics", B1: "Next", B2: "Advanced" },
+    levelHints: { A1: "Start", A2: "Basics", B1: "Intermediate", B2: "Advanced" },
     topicsHint: "Pick topics you want to talk about with Honza.",
     contextSynced: (date, count) =>
       `Last synced ${date} · ${count} source${count === 1 ? "" : "s"} Honza reads from.`,
@@ -399,7 +419,12 @@ const en: LocaleStrings = {
     fileLabel: "File (.txt, .md)",
     googleDocKind: "Google Doc",
     remove: "Remove",
-    resetData: "Delete data and run onboarding again",
+    resetData: "Delete data & start over",
+    resetDataConfirmTitle: "Delete everything?",
+    resetDataConfirmBody:
+      "This wipes your chat, topics, and context. You’ll go through onboarding again.",
+    resetDataConfirmAction: "Delete everything",
+    resetDataCancel: "Cancel",
     signOut: "Sign out",
   },
   ...EXTENDED.en,
@@ -553,6 +578,17 @@ const cs: LocaleStrings = {
     disconnect: "Odebrat klíč",
     modelLabel: "Model",
     modelsLoading: "Načítám modely…",
+    modelSearch: "Hledat model",
+    modelSearchEmpty: "Nic nenašlo",
+    modelFree: "Zdarma",
+    modelBlurb: {
+      "openai/gpt-4o-mini": "každodenní čeština — výhodné",
+      "moonshotai/kimi-k2": "delší cvičení, pořád levné",
+      "minimax/minimax-m3:free": "krátké denní chaty",
+      "z-ai/glm-5.2:free": "delší konverzace zdarma",
+      "google/gemini-3.7-flash": "rychlé odpovědi a drily",
+      "openai/gpt-5.4-mini": "složitá gramatika a témata",
+    },
     formalityHint: "Má ti Honza tykat, nebo vykat?",
     formalityTy: "Ty",
     formalityVy: "Vy",
@@ -578,7 +614,7 @@ const cs: LocaleStrings = {
     serverConfigured: "připojeno",
     serverMissing: "chybí OPENROUTER_API_KEY",
     levelHint: "Honza přizpůsobí tempo, slovní zásobu a obtížnost.",
-    levelHints: { A1: "Start", A2: "Základ", B1: "Dál", B2: "Pokroč." },
+    levelHints: { A1: "Start", A2: "Základy", B1: "Střední", B2: "Pokročilý" },
     topicsHint: "Vyber témata, o kterých chceš s Honzou mluvit.",
     contextSynced: (date, count) =>
       `Naposledy ${date} · ${count} zdroj${count === 1 ? "" : "ů"}, ze kterých Honza čte.`,
@@ -598,7 +634,12 @@ const cs: LocaleStrings = {
     fileLabel: "Soubor (.txt, .md)",
     googleDocKind: "Google Doc",
     remove: "Odebrat",
-    resetData: "Smazat data a projít onboarding znovu",
+    resetData: "Smazat data a začít znovu",
+    resetDataConfirmTitle: "Smazat všechno?",
+    resetDataConfirmBody:
+      "Smaže se chat, témata i kontext. Onboarding projdeš znovu.",
+    resetDataConfirmAction: "Smazat všechno",
+    resetDataCancel: "Zpět",
     signOut: "Odhlásit se",
   },
   ...EXTENDED.cs,

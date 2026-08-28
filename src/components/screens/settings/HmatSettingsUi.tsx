@@ -302,12 +302,14 @@ export function HmatSettingsField({
 
 export function HmatSettingsTextarea({
   className,
+  embedded,
   ...props
-}: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { embedded?: boolean }) {
   return (
     <textarea
       className={cn(
-        "hmat-frost-field min-h-[88px] w-full resize-none rounded-[14px] bg-transparent px-3.5 py-3 font-sans text-sm text-[#243D2C] outline-none",
+        "min-h-[88px] w-full resize-none bg-transparent px-3.5 py-3 font-sans text-sm text-[#243D2C] outline-none",
+        embedded ? "" : "hmat-frost-field rounded-[14px]",
         className,
       )}
       {...props}
@@ -359,6 +361,117 @@ export function HmatSettingsPrimaryButton({
 
 export function HmatSettingsHint({ children }: { children: ReactNode }) {
   return <p className={cn(TYPE.helper, "text-[#9c9089]")}>{children}</p>;
+}
+
+export function HmatSettingsGlyphButton({
+  children,
+  onClick,
+  disabled,
+  ariaLabel,
+  tone = "accent",
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  ariaLabel: string;
+  tone?: "accent" | "danger";
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={ariaLabel}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "hmat-glyph-lite flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] border bg-white transition-[transform,background-color,border-color,color] duration-[160ms] ease-[var(--ease-out)] active:scale-[0.96] disabled:opacity-40",
+        tone === "danger"
+          ? "hmat-glyph-lite--danger border-[#C46B6B]/35 text-[#C46B6B]"
+          : "border-black/15 text-accent",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function HmatSettingsInlineField({
+  action,
+  actionVisible,
+  className,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & {
+  action: ReactNode;
+  actionVisible: boolean;
+}) {
+  return (
+    <div className="hmat-frost-field relative flex min-h-[52px] items-center">
+      <input
+        className={cn(
+          "h-11 w-full min-w-0 bg-transparent px-3.5 pr-14 font-sans text-sm text-[#243D2C] outline-none",
+          className,
+        )}
+        {...props}
+      />
+      <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+        <div
+          className={cn(
+            "hmat-inline-action",
+            actionVisible ? "hmat-inline-action--in" : "hmat-inline-action--out",
+          )}
+        >
+          {action}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function HmatSettingsConfirm({
+  title,
+  body,
+  confirmLabel,
+  cancelLabel,
+  onConfirm,
+  onCancel,
+}: {
+  title: string;
+  body: string;
+  confirmLabel: string;
+  cancelLabel: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#2A2420]/35 p-4 sm:items-center">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="hmat-reset-title"
+        className="hmat-frost-card hmat-confirm-sheet w-full max-w-[390px] space-y-3 p-4"
+      >
+        <p id="hmat-reset-title" className="font-display text-base tracking-[0.04em] text-[#243D2C]">
+          {title}
+        </p>
+        <p className={cn(TYPE.bodySm, "text-[#5c5a57]")}>{body}</p>
+        <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex h-11 flex-1 items-center justify-center rounded-xl border border-black/10 bg-white font-display text-[13px] text-[#243D2C]"
+          >
+            {cancelLabel}
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex h-11 flex-1 items-center justify-center rounded-xl bg-[#C46B6B] font-display text-[13px] text-white"
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function HmatSettingsRowTitle({ children }: { children: ReactNode }) {

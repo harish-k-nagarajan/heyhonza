@@ -13,6 +13,7 @@ import {
   upsertContext,
 } from "@/lib/client/context-actions";
 import {
+  canonicalizeModelId,
   ROUTES,
   type DailyMessageCount,
   type FormalityMode,
@@ -41,8 +42,6 @@ export type ProviderUiStatus = {
   connected: boolean;
 };
 
-export type CatalogModel = { id: string; label: string; free: boolean };
-
 export type SettingsScreen = {
   ready: boolean;
   design: DesignId;
@@ -56,7 +55,6 @@ export type SettingsScreen = {
   chooseLevel: (l: LevelId) => void;
   model: ModelId;
   chooseModel: (m: ModelId) => void;
-  models: CatalogModel[];
   topics: TopicId[];
   toggleTopic: (id: TopicId) => void;
 
@@ -149,7 +147,6 @@ export function useSettingsScreen(): SettingsScreen {
   const [tts, setTts] = useState<ProviderUiStatus | null>(null);
   const [providerBusy, setProviderBusy] = useState(false);
   const [accountEmail, setAccountEmail] = useState("");
-  const [models, setModels] = useState<CatalogModel[]>([]);
   const [pushHint, setPushHint] = useState<string | null>(null);
   const [support] = useState<PushSupport>(() =>
     typeof window === "undefined" ? "unsupported" : pushSupport(),
@@ -210,15 +207,6 @@ export function useSettingsScreen(): SettingsScreen {
         setLlm({ source: "none", connected: false });
         setTts({ source: "none", connected: false });
       });
-    void fetch("/api/models", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data: { models?: CatalogModel[] }) => {
-        if (cancelled) return;
-        if (data.models?.length) setModels(data.models);
-      })
-      .catch(() => {
-        /* keep curated defaults */
-      });
     return () => {
       cancelled = true;
     };
@@ -264,8 +252,9 @@ export function useSettingsScreen(): SettingsScreen {
     persistProfile({ level: l });
   };
   const chooseModel = (m: ModelId) => {
-    setPreferredModel(m);
-    persistProfile({ preferredModel: m });
+    const id = canonicalizeModelId(m);
+    setPreferredModel(id);
+    persistProfile({ preferredModel: id });
   };
   const toggleTopic = (id: TopicId) => {
     const next = selectedTopics.includes(id)
@@ -417,9 +406,8 @@ export function useSettingsScreen(): SettingsScreen {
     authConfigured: isSupabaseConfigured(),
     level,
     chooseLevel,
-    model: preferredModel,
+    model: canonicalizeModelId(preferredModel),
     chooseModel,
-    models,
     topics: selectedTopics,
     toggleTopic,
     scheduleEnabled,

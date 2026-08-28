@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-27 (check-in / push provisioning)
+## Current entry — 2026-08-28 (settings picker + denser keys)
+
+### What changed
+- Settings model list is a **curated 6** (2 free / 4 paid), not the live OpenRouter free dump. Default stays `openai/gpt-4o-mini`.
+- Custom frost dropdown with search; each row is `Name — what it’s good for`.
+- API key, Google Doc, and paste actions sit **inside** the field (save → unlink / connect / add text). No extra Save/Connect rows.
+- Reset sits under Sign out, short copy, light red, with a confirm dialog.
+
+### Decision
+Free OpenRouter catalog in the picker is out — too many “free” options, most of them a bad fit for daily Czech chat.
+
+---
+
+## 2026-08-27 (check-in / push provisioning)
 
 ### What changed
 - Applied `push_subscriptions` on live Hey Honza (was missing; `0004` / `settings_overhaul` was already on the DB).
