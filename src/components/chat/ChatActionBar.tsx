@@ -132,7 +132,7 @@ export function ChatActionBar({
             }}
             disabled={disabled || empty}
             aria-label={t.chat.send}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-sm shadow-black/10 transition-all duration-300 active:scale-[0.95] disabled:opacity-40 motion-reduce:transition-none"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-sm shadow-black/10 transition-[transform,opacity] duration-[160ms] ease-[var(--td-ease-smooth-out)] active:scale-[0.97] disabled:opacity-40 motion-reduce:transition-none"
           >
             <SendArrowIcon />
           </button>

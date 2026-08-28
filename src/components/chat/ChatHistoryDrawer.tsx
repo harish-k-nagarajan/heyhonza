@@ -24,6 +24,7 @@ function formatSessionDate(ts: number, locale: string) {
 
 /**
  * Slide-over drawer listing ended chat sessions.
+ * Stays mounted so close can play (open 400ms / close 350ms).
  */
 export function ChatHistoryDrawer({
   open,
@@ -44,23 +45,27 @@ export function ChatHistoryDrawer({
     if (open) closeBtnRef.current?.focus();
   }, [open]);
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 mx-auto max-w-app">
+    <div
+      className="hmat-drawer-root fixed inset-0 z-50 mx-auto max-w-app"
+      data-open={open ? "true" : "false"}
+      aria-hidden={!open}
+    >
       <button
         type="button"
-        className="absolute inset-0 bg-foreground/20 backdrop-blur-[2px] motion-safe:animate-drawer-backdrop motion-reduce:animate-none"
+        className="hmat-drawer-backdrop absolute inset-0 bg-foreground/20 backdrop-blur-[2px]"
         aria-label={t.chat.backToChat}
+        tabIndex={open ? 0 : -1}
         onClick={onClose}
       />
       <aside
         className={cn(
-          "absolute right-0 top-0 flex h-full w-[min(320px,92vw)] flex-col border-l border-border shadow-xl motion-safe:animate-drawer-in motion-reduce:animate-none",
+          "hmat-drawer-panel absolute right-0 top-0 flex h-full w-[min(320px,92vw)] flex-col border-l border-border shadow-xl",
           isHmat ? "mat bg-card" : "bg-card",
         )}
         role="dialog"
         aria-labelledby="chat-history-title"
+        inert={!open}
       >
         <header className="flex items-center justify-between border-b border-border px-4 py-3">
           <h2
@@ -102,7 +107,7 @@ export function ChatHistoryDrawer({
                       onSelect(session.id);
                     }}
                     className={cn(
-                      "w-full rounded-[16px] border border-border px-3.5 py-3 text-left transition hover:border-accent/40",
+                      "w-full rounded-[16px] border border-border px-3.5 py-3 text-left",
                       isHmat && "mat mat-tilt border-0",
                     )}
                   >

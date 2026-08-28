@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import { useCallback, type MouseEvent } from "react";
 
 import { FernDockIcon } from "@/components/icons/FernDockIcons";
 import type { FernDockIconName } from "@/components/icons/FernDockIcons";
+import { useSlidingPill } from "@/hooks/useSlidingPill";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { tapLight } from "@/lib/interaction/haptic";
@@ -26,31 +27,14 @@ export function HmatDock() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
-  const navRef = useRef<HTMLElement>(null);
-  const tabRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-  const [pill, setPill] = useState({ left: 0, width: 0 });
 
   const activeIndex = TABS.findIndex(
     (tab) => pathname === tab.href || pathname.startsWith(`${tab.href}/`),
   );
-
-  const measurePill = useCallback(() => {
-    const nav = navRef.current;
-    const tab = tabRefs.current[activeIndex >= 0 ? activeIndex : 0];
-    if (!nav || !tab) return;
-    const navRect = nav.getBoundingClientRect();
-    const tabRect = tab.getBoundingClientRect();
-    setPill({
-      left: tabRect.left - navRect.left,
-      width: tabRect.width,
-    });
-  }, [activeIndex]);
-
-  useEffect(() => {
-    measurePill();
-    window.addEventListener("resize", measurePill);
-    return () => window.removeEventListener("resize", measurePill);
-  }, [measurePill, pathname]);
+  const { barRef, pillRef, setItemRef } = useSlidingPill(
+    activeIndex >= 0 ? activeIndex : 0,
+    `${pathname}:${t.nav.chat}:${t.nav.call}:${t.nav.settings}`,
+  );
 
   const onTabClick = useCallback(
     (e: MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -77,22 +61,16 @@ export function HmatDock() {
       style={{ bottom: "max(14px, env(safe-area-inset-bottom))" }}
     >
       <nav
-        ref={navRef}
+        ref={barRef}
         className="fdock pointer-events-auto relative flex gap-1 rounded-[28px] p-2"
       >
-        <span
-          className="fdock-pill"
-          aria-hidden
-          style={{ left: pill.left, width: pill.width }}
-        />
+        <span ref={pillRef} className="fdock-pill" aria-hidden />
         {TABS.map((tab, i) => {
           const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
           return (
             <Link
               key={tab.href}
-              ref={(el) => {
-                tabRefs.current[i] = el;
-              }}
+              ref={setItemRef(i)}
               href={tab.href}
               aria-current={active ? "page" : undefined}
               onClick={(e) => onTabClick(e, tab.href)}

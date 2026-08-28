@@ -98,6 +98,14 @@ export function AuthScreen({
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState<string | null>(initialErrorCopy(initialError, c));
+  const [shaking, setShaking] = useState(false);
+
+  const shakeForm = () => {
+    setShaking(false);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setShaking(true));
+    });
+  };
 
   if (!configured) {
     return (
@@ -122,14 +130,17 @@ export function AuthScreen({
 
     if (mode === "signup" && !cleanName) {
       setMessage(c.enterName);
+      shakeForm();
       return;
     }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail)) {
       setMessage(c.invalidEmail);
+      shakeForm();
       return;
     }
     if (password.length < MIN_PASSWORD) {
       setMessage(c.passwordTooShort);
+      shakeForm();
       return;
     }
 
@@ -150,6 +161,7 @@ export function AuthScreen({
       if (error) {
         setStatus("idle");
         setMessage(friendlyError(error.message, c));
+        shakeForm();
         return;
       }
 
@@ -170,6 +182,7 @@ export function AuthScreen({
     if (error) {
       setStatus("idle");
       setMessage(friendlyError(error.message, c));
+      shakeForm();
       return;
     }
 
@@ -210,7 +223,10 @@ export function AuthScreen({
     <div className="flex min-h-[calc(100dvh-4rem)] w-full items-center justify-center px-4 py-10">
       <form
         onSubmit={onSubmit}
-        className="auth-card flex w-full max-w-[390px] flex-col items-center gap-3.5 rounded-[28px] border border-border bg-background px-5 pb-7 pt-6"
+        className={cn(
+          "auth-card flex w-full max-w-[390px] flex-col items-center gap-3.5 rounded-[28px] border border-border bg-background px-5 pb-7 pt-6",
+          shaking && "is-shaking",
+        )}
       >
         <div className="flex w-full justify-end">
           <LanguageSwitcher />

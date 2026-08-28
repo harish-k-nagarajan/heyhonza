@@ -4,7 +4,24 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-28 (settings picker + denser keys)
+## Current entry — 2026-08-28 (UX motion polish)
+
+### What changed
+- Namespaced `--td-*` motion tokens in `globals.css` so transitions-dev scale does not clobber Honza `--ease-out`.
+- Dock: pill uses `transform` + `width` (250ms smooth-out); tab labels stay put; press `scale(0.97)` 160ms; hover gated to fine pointers. Screen enter/exit 250ms / 8px / 3px blur, `forwards` not `both`; overlay clone for exit. Nested Settings ↔ Account uses 8px X slide.
+- Settings: toggle bounce (`.is-init`), sliding CEFR/language pills, named chip color transitions, press on primary/secondary/danger, confirm + model picker keep mounted through close (open 250 / close 150, no bounce close). Chat history drawer stays mounted (open 400 / close 350).
+- Onboarding step swap + auth submit shake + classic send button no longer `transition-all`. Mood canvas color 400ms with smooth-out, no extra movement. Character/orb/chat/call choreography untouched.
+
+### Verify
+- `npm run lint` passes. Do not `npm run build` while `next dev` is up.
+- Reduced motion: toggles still change color; pages do not slide. Rapid dock taps stay visible (`forwards`).
+
+### Decision
+No View Transitions on dock tabs (they hung App Router). No new motion library.
+
+---
+
+## 2026-08-28 (settings picker + denser keys)
 
 ### What changed
 - Settings model list is a **curated 6** (2 free / 4 paid), not the live OpenRouter free dump. Default stays `openai/gpt-4o-mini`.

@@ -57,7 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return (
       <div
         className={cn(
-          "transition-colors duration-[400ms] ease-out",
+          "transition-[background-color] duration-[400ms] [transition-timing-function:var(--td-ease-smooth-out)]",
           isWelcome ? "min-h-dvh" : "h-dvh overflow-hidden",
         )}
         style={rootStyle}
@@ -88,7 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className="min-h-dvh transition-colors duration-[400ms] ease-out"
+      className="min-h-dvh transition-[background-color] duration-[400ms] [transition-timing-function:var(--td-ease-smooth-out)]"
       style={rootStyle}
       data-mood={expression.mood}
     >

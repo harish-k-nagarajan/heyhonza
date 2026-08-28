@@ -750,7 +750,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
           <form action="/auth/signout" method="post" className="w-full">
             <button
               type="submit"
-              className="flex h-12 w-full items-center justify-center rounded-2xl border border-black/10 bg-white font-display text-sm font-bold text-[#243D2C] transition active:scale-[0.99]"
+              className="hmat-press flex h-12 w-full items-center justify-center rounded-2xl border border-black/10 bg-white font-display text-sm font-bold text-[#243D2C]"
             >
               {s.signOut}
             </button>
@@ -758,26 +758,25 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
           <button
             type="button"
             onClick={() => setResetOpen(true)}
-            className="flex h-12 w-full items-center justify-center rounded-2xl border-2 border-[#C46B6B] bg-[#FFF0F0] font-display text-sm font-bold text-[#C46B6B] transition active:scale-[0.99]"
+            className="hmat-press hmat-press--danger flex h-12 w-full items-center justify-center rounded-2xl border-2 border-[#C46B6B] bg-[#FFF0F0] font-display text-sm font-bold text-[#C46B6B]"
           >
             {s.resetData}
           </button>
         </div>
       </HmatSettingsSection>
 
-      {resetOpen ? (
-        <HmatSettingsConfirm
-          title={s.resetDataConfirmTitle}
-          body={s.resetDataConfirmBody}
-          confirmLabel={s.resetDataConfirmAction}
-          cancelLabel={s.resetDataCancel}
-          onCancel={() => setResetOpen(false)}
-          onConfirm={() => {
-            setResetOpen(false);
-            screen.resetData();
-          }}
-        />
-      ) : null}
+      <HmatSettingsConfirm
+        open={resetOpen}
+        title={s.resetDataConfirmTitle}
+        body={s.resetDataConfirmBody}
+        confirmLabel={s.resetDataConfirmAction}
+        cancelLabel={s.resetDataCancel}
+        onCancel={() => setResetOpen(false)}
+        onConfirm={() => {
+          setResetOpen(false);
+          screen.resetData();
+        }}
+      />
     </div>
   );
 }

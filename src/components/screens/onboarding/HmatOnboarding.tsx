@@ -1,5 +1,7 @@
 "use client";
 
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { Button } from "@/components/ui/Button";
 import { HmatFileInput } from "@/components/screens/hmat/HmatChrome";
@@ -13,6 +15,7 @@ import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import type { OnboardingScreen } from "@/hooks/useOnboardingScreen";
 import { useLocale } from "@/lib/i18n/useLocale";
+import { readCssMs } from "@/lib/motion/readCssMs";
 
 const TOPIC_ROWS: TopicId[][] = [
   ["daily", "travel", "food"],
@@ -26,7 +29,7 @@ function ProgressDots({ step }: { step: number }) {
         <span
           key={dot}
           className={cn(
-            "h-2 w-2 rounded-full",
+            "hmat-chip h-2 w-2 rounded-full",
             dot === step ? "bg-accent" : "bg-[#E8E2DC]",
           )}
           aria-hidden
@@ -109,7 +112,7 @@ function PillChip({
       onClick={onClick}
       aria-pressed={pressed}
       className={cn(
-        "rounded-full border px-3.5 py-1.5 font-sans text-[15px] transition",
+        "hmat-chip rounded-full border px-3.5 py-1.5 font-sans text-[15px]",
         on
           ? "border-accent bg-accent text-white"
           : "border-[#E8E2DC] bg-[#F5F2EE] text-[#2A2420]",
@@ -124,6 +127,63 @@ function formatDisplayTime(value: string): string {
   const [hour, minute] = value.split(":");
   if (!hour || !minute) return value;
   return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+}
+
+function StepSwap({ step, children }: { step: number; children: ReactNode }) {
+  const liveRef = useRef<HTMLDivElement>(null);
+  const exitRef = useRef<HTMLDivElement>(null);
+  const snapshotRef = useRef<HTMLElement | null>(null);
+  const prevRef = useRef(step);
+  const booted = useRef(false);
+  const [swap, setSwap] = useState({
+    step,
+    dir: "fwd" as "fwd" | "back",
+    enter: false,
+  });
+  if (swap.step !== step) {
+    setSwap({
+      step,
+      dir: step > swap.step ? "fwd" : "back",
+      enter: true,
+    });
+  }
+
+  useLayoutEffect(() => {
+    const exitSlot = exitRef.current;
+    if (booted.current && prevRef.current !== step && snapshotRef.current && exitSlot) {
+      exitSlot.replaceChildren(snapshotRef.current);
+      exitSlot.dataset.dir = swap.dir;
+      exitSlot.classList.remove("is-exiting");
+      void exitSlot.offsetWidth;
+      exitSlot.classList.add("is-exiting");
+      const ms = readCssMs("--td-duration-fast", 250);
+      window.setTimeout(() => {
+        if (exitRef.current === exitSlot) {
+          exitSlot.classList.remove("is-exiting");
+          exitSlot.replaceChildren();
+        }
+      }, ms + 20);
+    }
+    booted.current = true;
+    prevRef.current = step;
+    if (liveRef.current) {
+      snapshotRef.current = liveRef.current.cloneNode(true) as HTMLElement;
+    }
+  }, [step, children, swap.dir]);
+
+  return (
+    <div className="relative min-h-0 overflow-hidden">
+      <div ref={exitRef} className="hmat-onboard-exit pointer-events-none absolute inset-0" aria-hidden />
+      <div
+        key={step}
+        ref={liveRef}
+        data-dir={swap.dir}
+        className={cn("hmat-onboard-live", swap.enter && "hmat-onboard-enter")}
+      >
+        {children}
+      </div>
+    </div>
+  );
 }
 
 /** Hmat onboarding — 5-step flow from Handoff — Onboarding Flow. */
@@ -153,6 +213,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
       >
         <ProgressDots step={screen.step} />
 
+        <StepSwap step={screen.step}>
         {screen.step === 1 ? (
           <>
             <StepLabel>{o.stepOf(1, 5)}</StepLabel>
@@ -180,7 +241,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
                     onClick={() => screen.chooseLevel(option.id as LevelId)}
                     aria-pressed={selected}
                     className={cn(
-                      "flex items-center gap-2.5 rounded-[16px] border px-3.5 py-3.5 text-left transition",
+                      "hmat-chip flex items-center gap-2.5 rounded-[16px] border px-3.5 py-3.5 text-left",
                       selected
                         ? "border-accent bg-[#FFF4EE]"
                         : "border-[#E8E2DC] bg-[#F5F2EE]",
@@ -352,6 +413,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
             </button>
           </>
         ) : null}
+        </StepSwap>
       </div>
     </div>
   );

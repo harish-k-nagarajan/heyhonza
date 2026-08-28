@@ -1,7 +1,8 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
+import { useSlidingPill } from "@/hooks/useSlidingPill";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 
@@ -64,6 +65,8 @@ export function HmatSettingsToggle({
   disabled?: boolean;
   ariaLabel: string;
 }) {
+  const [init, setInit] = useState(false);
+
   return (
     <button
       type="button"
@@ -71,18 +74,18 @@ export function HmatSettingsToggle({
       aria-checked={on}
       aria-label={ariaLabel}
       disabled={disabled}
-      onClick={() => onChange(!on)}
+      data-on={on ? "true" : "false"}
+      onClick={() => {
+        setInit(true);
+        onChange(!on);
+      }}
       className={cn(
-        "relative h-7 w-12 shrink-0 rounded-full p-1 transition-colors disabled:opacity-50",
+        "hmat-toggle relative h-7 w-12 shrink-0 rounded-full p-1 disabled:opacity-50",
+        init && "is-init",
         on ? "bg-accent" : "bg-[#E8E2DC]",
       )}
     >
-      <span
-        className={cn(
-          "block h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
-          on ? "translate-x-5" : "translate-x-0",
-        )}
-      />
+      <span className="hmat-toggle-thumb block h-5 w-5 rounded-full bg-white shadow-sm" />
     </button>
   );
 }
@@ -107,9 +110,16 @@ export function HmatSettingsStatusBadge({
         : { wrap: "bg-[#FFF0F0]", dot: "bg-[#C46B6B]", text: "text-[#C46B6B]" };
   const label = connected ? connectedLabel : disconnectedLabel;
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1", styles.wrap)}>
+    <span
+      className={cn(
+        "hmat-chip inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
+        styles.wrap,
+      )}
+    >
       <span className={cn("h-1.5 w-1.5 rounded-full", styles.dot)} aria-hidden />
-      <span className={cn("font-display text-[11px] font-bold", styles.text)}>{label}</span>
+      <span className={cn("hmat-text-swap font-display text-[11px] font-bold", styles.text)}>
+        {label}
+      </span>
     </span>
   );
 }
@@ -125,25 +135,35 @@ export function HmatSettingsSegment<T extends string>({
   onChange: (value: T) => void;
   ariaLabel: string;
 }) {
+  const activeIndex = Math.max(
+    options.findIndex((option) => option.value === value),
+    0,
+  );
+  const { barRef, pillRef, setItemRef } = useSlidingPill(
+    activeIndex,
+    options.map((o) => o.label).join("|"),
+  );
+
   return (
     <div
-      className="flex gap-1 rounded-[14px] bg-[#F5EDE7] p-1"
+      ref={barRef}
+      className="hmat-tabs flex gap-1 rounded-[14px] bg-[#F5EDE7] p-1"
       role="group"
       aria-label={ariaLabel}
     >
-      {options.map((option) => {
+      <span ref={pillRef} className="hmat-tabs-pill" aria-hidden />
+      {options.map((option, i) => {
         const active = value === option.value;
         return (
           <button
             key={option.value}
+            ref={setItemRef(i)}
             type="button"
             aria-pressed={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              "flex h-10 flex-1 items-center justify-center rounded-xl font-display text-sm font-bold transition",
-              active
-                ? "bg-white text-[#243D2C] shadow-[0_2px_6px_rgba(120,90,70,0.1)]"
-                : "bg-transparent text-[#9c9089]",
+              "hmat-tab-btn flex h-10 flex-1 items-center justify-center rounded-xl bg-transparent font-display text-sm font-bold",
+              active ? "text-[#243D2C]" : "text-[#9c9089]",
             )}
           >
             {option.label}
@@ -169,7 +189,7 @@ export function HmatSettingsPill({
       onClick={onClick}
       aria-pressed={on}
       className={cn(
-        "rounded-full border px-3.5 py-2 font-sans text-[13px] font-semibold transition",
+        "hmat-chip rounded-full border px-3.5 py-2 font-sans text-[13px] font-semibold",
         on
           ? "border-accent bg-accent text-white"
           : "border-[#E8E2DC] bg-white text-[#2A2420]",
@@ -195,7 +215,7 @@ export function HmatSettingsTopicChip({
       onClick={onClick}
       aria-pressed={on}
       className={cn(
-        "flex flex-1 items-center justify-center rounded-full border px-3 py-2.5 text-center font-sans text-xs transition",
+        "hmat-chip flex flex-1 items-center justify-center rounded-full border px-3 py-2.5 text-center font-sans text-xs",
         on
           ? "border-accent/30 bg-[#FFE5DC] font-bold text-accent"
           : "border-black/10 bg-white font-normal text-[#243D2C]",
@@ -223,7 +243,7 @@ export function HmatSettingsLevelTile({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "flex flex-1 flex-col items-center rounded-[14px] px-2.5 py-3 transition",
+        "hmat-chip flex flex-1 flex-col items-center rounded-[14px] px-2.5 py-3",
         selected
           ? "bg-[#FFE5DC] outline outline-1 outline-accent/30"
           : "bg-white outline outline-1 outline-black/10",
@@ -273,9 +293,9 @@ export function HmatSettingsDangerButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex h-12 w-full items-center justify-center gap-2 rounded-2xl border bg-white font-display text-sm font-bold transition active:scale-[0.99]",
+        "hmat-press flex h-12 w-full items-center justify-center gap-2 rounded-2xl border bg-white font-display text-sm font-bold",
         variant === "danger"
-          ? "border-[#C46B6B55] text-[#C46B6B]"
+          ? "hmat-press--danger border-[#C46B6B55] text-[#C46B6B]"
           : "border-black/10 text-[#243D2C]",
       )}
     >
@@ -331,7 +351,7 @@ export function HmatSettingsSecondaryButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex h-10 w-full items-center justify-center rounded-xl bg-[#F5EDE7] font-display text-[13px] font-bold text-[#243D2C] disabled:opacity-50"
+      className="hmat-press flex h-10 w-full items-center justify-center rounded-xl bg-[#F5EDE7] font-display text-[13px] font-bold text-[#243D2C] disabled:opacity-50"
     >
       {children}
     </button>
@@ -352,7 +372,7 @@ export function HmatSettingsPrimaryButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex h-10 items-center justify-center rounded-xl bg-accent px-3.5 font-display text-[13px] font-bold text-white disabled:opacity-50"
+      className="hmat-press flex h-10 items-center justify-center rounded-xl bg-accent px-3.5 font-display text-[13px] font-bold text-white disabled:opacity-50"
     >
       {children}
     </button>
@@ -427,6 +447,7 @@ export function HmatSettingsInlineField({
 }
 
 export function HmatSettingsConfirm({
+  open = true,
   title,
   body,
   confirmLabel,
@@ -434,6 +455,7 @@ export function HmatSettingsConfirm({
   onConfirm,
   onCancel,
 }: {
+  open?: boolean;
   title: string;
   body: string;
   confirmLabel: string;
@@ -442,7 +464,14 @@ export function HmatSettingsConfirm({
   onCancel: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#2A2420]/35 p-4 sm:items-center">
+    <div
+      className={cn(
+        "hmat-confirm-overlay fixed inset-0 z-50 flex items-end justify-center bg-[#2A2420]/35 p-4 sm:items-center",
+        open ? "is-open" : "is-closing",
+      )}
+      aria-hidden={!open}
+      inert={!open}
+    >
       <div
         role="dialog"
         aria-modal="true"
@@ -457,14 +486,14 @@ export function HmatSettingsConfirm({
           <button
             type="button"
             onClick={onCancel}
-            className="flex h-11 flex-1 items-center justify-center rounded-xl border border-black/10 bg-white font-display text-[13px] text-[#243D2C]"
+            className="hmat-press flex h-11 flex-1 items-center justify-center rounded-xl border border-black/10 bg-white font-display text-[13px] text-[#243D2C]"
           >
             {cancelLabel}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="flex h-11 flex-1 items-center justify-center rounded-xl bg-[#C46B6B] font-display text-[13px] text-white"
+            className="hmat-press hmat-press--danger flex h-11 flex-1 items-center justify-center rounded-xl bg-[#C46B6B] font-display text-[13px] text-white"
           >
             {confirmLabel}
           </button>

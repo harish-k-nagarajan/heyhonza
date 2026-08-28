@@ -147,11 +147,13 @@ export function HmatModelPicker({
         </span>
       </button>
 
-      {open ? (
-        <div
+      <div
           id={listId}
           role="listbox"
           aria-label={ariaLabel}
+          data-origin="top-left"
+          data-open={open ? "true" : "false"}
+          inert={!open}
           className="hmat-model-menu absolute left-0 right-0 z-30 mt-1.5 overflow-hidden rounded-[16px]"
         >
           <div className="flex items-center gap-2 border-b border-black/[0.06] px-3 py-2">
@@ -208,7 +210,7 @@ export function HmatModelPicker({
                       onMouseEnter={() => setActive(i)}
                       onClick={() => choose(m.id)}
                       className={cn(
-                        "flex w-full flex-col items-start px-3.5 py-2.5 text-left transition-colors",
+                        "flex w-full flex-col items-start px-3.5 py-2.5 text-left",
                         hi ? "bg-[#FFE5DC]/70" : "bg-transparent",
                       )}
                     >
@@ -232,7 +234,6 @@ export function HmatModelPicker({
             )}
           </ul>
         </div>
-      ) : null}
     </div>
   );
 }
