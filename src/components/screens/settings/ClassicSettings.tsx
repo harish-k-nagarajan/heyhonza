@@ -104,16 +104,10 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
         >
           {MODEL_OPTIONS.map((m) => (
             <option key={m.id} value={m.id}>
-              {m.label}
+              {m.label} — {s.modelBlurb[m.id]}
+              {m.free ? ` · ${s.modelFree}` : ""}
             </option>
           ))}
-          {screen.models
-            .filter((m) => !MODEL_OPTIONS.some((o) => o.id === m.id))
-            .map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.label}
-              </option>
-            ))}
         </select>
       </Card>
 
@@ -210,7 +204,15 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
 
       <Card className="space-y-3">
         <SectionLabel>{s.sections.deviceData}</SectionLabel>
-        <Button type="button" variant="secondary" onClick={screen.resetData}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => {
+            if (window.confirm(`${s.resetDataConfirmTitle}\n\n${s.resetDataConfirmBody}`)) {
+              screen.resetData();
+            }
+          }}
+        >
           {s.resetData}
         </Button>
       </Card>

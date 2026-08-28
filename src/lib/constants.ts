@@ -26,12 +26,16 @@ export const TOPIC_OPTIONS = [
 ] as const;
 
 /**
- * Client display; server enforces the same allowlist. IDs are OpenRouter
- * model slugs (Phase 3 switched the gateway to OpenRouter).
+ * Curated OpenRouter slugs for the settings picker — a short mix of free
+ * and paid models for daily Czech chat. Do not dump the live catalog here.
  */
 export const MODEL_OPTIONS = [
-  { id: "openai/gpt-4o-mini", label: "GPT-4o mini" },
-  { id: "openai/gpt-4o", label: "GPT-4o" },
+  { id: "openai/gpt-4o-mini", label: "GPT-4o mini", free: false },
+  { id: "moonshotai/kimi-k2", label: "Kimi K2", free: false },
+  { id: "minimax/minimax-m3:free", label: "MiniMax M3", free: true },
+  { id: "z-ai/glm-5.2:free", label: "GLM 5.2", free: true },
+  { id: "google/gemini-3.7-flash", label: "Gemini 3.7 Flash", free: false },
+  { id: "openai/gpt-5.4-mini", label: "GPT-5.4 Mini", free: false },
 ] as const;
 
 /** CEFR proficiency levels — drive how Honza scales vocabulary + corrections. */
@@ -42,11 +46,19 @@ export const LEVEL_OPTIONS = [
   { id: "B2", label: "B2 · Upper-int." },
 ] as const;
 
-export const DEFAULT_MODEL_ID = MODEL_OPTIONS[0].id;
+export const DEFAULT_MODEL_ID = "openai/gpt-4o-mini";
+
+/** Map leftover pre-OpenRouter / old picker slugs onto the curated list. */
+export function canonicalizeModelId(id: string): string {
+  if (MODEL_OPTIONS.some((m) => m.id === id)) return id;
+  if (id === "gpt-4o-mini" || id === "gpt-4o") return DEFAULT_MODEL_ID;
+  return id;
+}
 export const DEFAULT_LEVEL_ID = "A2";
 
 export type TopicId = (typeof TOPIC_OPTIONS)[number]["id"];
-/** OpenRouter model slug — curated paid IDs plus live `:free` catalog. */
+export type ModelOptionId = (typeof MODEL_OPTIONS)[number]["id"];
+/** OpenRouter model slug — curated picker IDs, plus any previously persisted slug. */
 export type ModelId = string;
 export type LevelId = (typeof LEVEL_OPTIONS)[number]["id"];
 export type FormalityMode = "ty" | "vy";

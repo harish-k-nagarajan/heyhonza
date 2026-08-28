@@ -5,17 +5,16 @@ import { useRef, useState } from "react";
 
 import {
   HmatSettingsCard,
-  HmatSettingsDangerButton,
-  HmatSettingsField,
+  HmatSettingsConfirm,
+  HmatSettingsGlyphButton,
   HmatSettingsHint,
   HmatSettingsIconWrap,
+  HmatSettingsInlineField,
   HmatSettingsLevelTile,
   HmatSettingsMicroLabel,
   HmatSettingsPill,
-  HmatSettingsPrimaryButton,
   HmatSettingsRowSubtitle,
   HmatSettingsRowTitle,
-  HmatSettingsSecondaryButton,
   HmatSettingsSection,
   HmatSettingsSegment,
   HmatSettingsStatusBadge,
@@ -23,10 +22,13 @@ import {
   HmatSettingsToggle,
   HmatSettingsTopicChip,
 } from "@/components/screens/settings/HmatSettingsUi";
+import {
+  curatedPickerModels,
+  HmatModelPicker,
+} from "@/components/screens/settings/HmatModelPicker";
 import { HmatSettingsHeader } from "@/components/screens/hmat/HmatUi";
 import {
   DAILY_MESSAGE_COUNTS,
-  MODEL_OPTIONS,
   ROUTES,
   type LevelId,
   type TopicId,
@@ -119,16 +121,6 @@ function UploadIcon() {
   );
 }
 
-function DatabaseIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <ellipse cx="12" cy="5" rx="9" ry="3" stroke="#9c9089" strokeWidth="2" />
-      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" stroke="#9c9089" strokeWidth="2" />
-      <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" stroke="#9c9089" strokeWidth="2" />
-    </svg>
-  );
-}
-
 function SettingsFileDrop({
   hint,
   fileName,
@@ -173,6 +165,60 @@ function providerBadge(
   return { connected: false, label: s.addApiKey, tone: "warn" as const };
 }
 
+function SaveIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M20 6 9 17l-5-5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function UnlinkIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M9 15 6.5 17.5a3.5 3.5 0 0 1-5-5L4 10"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="m15 9 2.5-2.5a3.5 3.5 0 0 1 5 5L20 14"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path d="M8 12h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="m4 4 16 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ConnectIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0-7.07-7.07L10 5.93"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M14 11a5 5 0 0 0-7.07 0L5.5 12.43a5 5 0 0 0 7.07 7.07L14 18.07"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function ProviderKeyEditor({
   status,
   busy,
@@ -194,44 +240,66 @@ function ProviderKeyEditor({
   const [error, setError] = useState<string | null>(null);
   const hasUserKey = status?.source === "user";
 
+  const save = () => {
+    void (async () => {
+      setError(null);
+      const reason = await onSave(key.trim());
+      if (reason) setError(reason);
+      else setKey("");
+    })();
+  };
+
   if (hasUserKey) {
     return (
-      <HmatSettingsDangerButton
-        variant="danger"
-        onClick={() => {
-          if (busy) return;
-          void onDisconnect();
-        }}
-      >
-        {disconnectLabel}
-      </HmatSettingsDangerButton>
+      <HmatSettingsInlineField
+        readOnly
+        value=""
+        placeholder="••••••••••••"
+        aria-label={pasteLabel}
+        actionVisible
+        action={
+          <HmatSettingsGlyphButton
+            ariaLabel={disconnectLabel}
+            tone="danger"
+            onClick={() => {
+              if (busy) return;
+              void onDisconnect();
+            }}
+          >
+            <UnlinkIcon />
+          </HmatSettingsGlyphButton>
+        }
+      />
     );
   }
 
   return (
     <div className="space-y-2">
-      <HmatSettingsField
+      <HmatSettingsInlineField
         type="password"
         autoComplete="off"
         value={key}
         onChange={(e) => setKey(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && key.trim() && !busy) {
+            e.preventDefault();
+            save();
+          }
+        }}
         placeholder={pasteLabel}
         aria-label={pasteLabel}
+        actionVisible={Boolean(key.trim())}
+        action={
+          <HmatSettingsGlyphButton
+            ariaLabel={saveLabel}
+            disabled={busy || !key.trim()}
+            onClick={save}
+          >
+            <SaveIcon />
+          </HmatSettingsGlyphButton>
+        }
       />
       {error ? <p className={cn(TYPE.helper, "text-accent")}>{error}</p> : null}
-      <HmatSettingsPrimaryButton
-        disabled={busy || !key.trim()}
-        onClick={() => {
-          void (async () => {
-            setError(null);
-            const reason = await onSave(key.trim());
-            if (reason) setError(reason);
-            else setKey("");
-          })();
-        }}
-      >
-        {saveLabel}
-      </HmatSettingsPrimaryButton>
     </div>
   );
 }
@@ -240,6 +308,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
   const { expression, contextChunks, lastSynced } = screen;
   const { locale, setLocale, t } = useLocale();
   const s = t.settings;
+  const [resetOpen, setResetOpen] = useState(false);
 
   if (!screen.ready) {
     return (
@@ -279,13 +348,14 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
 
   const llmBadge = providerBadge(screen.llm, s);
   const ttsBadge = providerBadge(screen.tts, s);
-  const modelOptions = [
-    ...(screen.models.length > 0
-      ? screen.models
-      : MODEL_OPTIONS.map((m) => ({ id: m.id, label: m.label, free: false }))),
-  ];
-  if (!modelOptions.some((m) => m.id === screen.model)) {
-    modelOptions.unshift({ id: screen.model, label: screen.model, free: false });
+  const pickerModels = curatedPickerModels(s.modelBlurb);
+  if (!pickerModels.some((m) => m.id === screen.model)) {
+    pickerModels.unshift({
+      id: screen.model,
+      label: screen.model,
+      free: false,
+      blurb: "",
+    });
   }
 
   return (
@@ -425,23 +495,15 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
           />
           <div className="space-y-2">
             <HmatSettingsMicroLabel>{s.modelLabel}</HmatSettingsMicroLabel>
-            <div className="relative">
-              <select
-                aria-label={s.modelLabel}
-                className="h-12 w-full appearance-none rounded-[14px] border border-black/10 bg-white px-3.5 font-sans text-sm text-[#243D2C] outline-none"
-                value={screen.model}
-                onChange={(e) => screen.chooseModel(e.target.value)}
-              >
-                {modelOptions.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.free ? `${m.label} · free` : m.label}
-                  </option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9c9089]">
-                ▾
-              </span>
-            </div>
+            <HmatModelPicker
+              value={screen.model}
+              onChange={screen.chooseModel}
+              options={pickerModels}
+              searchLabel={s.modelSearch}
+              emptyLabel={s.modelSearchEmpty}
+              freeLabel={s.modelFree}
+              ariaLabel={s.modelLabel}
+            />
           </div>
         </HmatSettingsCard>
       </HmatSettingsSection>
@@ -553,59 +615,80 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
                 />
               ) : null}
             </div>
-            <HmatSettingsTextarea
-              value={screen.paste}
-              onChange={(e) => screen.setPaste(e.target.value)}
-              placeholder={s.pastePlaceholder}
-              aria-label={s.pastedTextAria}
-            />
-            <HmatSettingsSecondaryButton onClick={screen.savePaste} disabled={!screen.paste.trim() && !screen.pasteLoaded}>
-              {screen.pasteLoaded ? s.updateText : s.addText}
-            </HmatSettingsSecondaryButton>
+            <div className="hmat-frost-field relative">
+              <HmatSettingsTextarea
+                embedded
+                value={screen.paste}
+                onChange={(e) => screen.setPaste(e.target.value)}
+                placeholder={s.pastePlaceholder}
+                aria-label={s.pastedTextAria}
+                className="min-h-[88px] pb-12"
+              />
+              <div
+                className={cn(
+                  "absolute bottom-2 right-2 hmat-inline-action",
+                  screen.paste.trim() || screen.pasteLoaded
+                    ? "hmat-inline-action--in"
+                    : "hmat-inline-action--out",
+                )}
+              >
+                <button
+                  type="button"
+                  onClick={screen.savePaste}
+                  disabled={!screen.paste.trim() && !screen.pasteLoaded}
+                  className="hmat-glyph-lite rounded-[8px] border border-black/15 bg-white px-2.5 py-1.5 font-display text-[11px] tracking-[0.08em] text-accent disabled:opacity-40"
+                >
+                  {screen.pasteLoaded ? s.updateText : s.addText}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">
             <HmatSettingsMicroLabel>{s.googleDocLabel}</HmatSettingsMicroLabel>
-            <HmatSettingsField
+            <HmatSettingsInlineField
               value={screen.docUrl}
               onChange={(e) => screen.setDocUrl(e.target.value)}
               placeholder={s.googleDocPlaceholder}
               aria-label={s.googleDocAria}
+              actionVisible={screen.docConnected || Boolean(screen.docUrl.trim())}
+              action={
+                screen.docConnected ? (
+                  <HmatSettingsGlyphButton
+                    ariaLabel={s.remove}
+                    tone="danger"
+                    onClick={screen.disconnectGoogleDoc}
+                  >
+                    <UnlinkIcon />
+                  </HmatSettingsGlyphButton>
+                ) : (
+                  <HmatSettingsGlyphButton
+                    ariaLabel={screen.docLoading ? s.fetching : s.connectGoogleDoc}
+                    disabled={screen.docLoading || !screen.docUrl.trim()}
+                    onClick={screen.importGoogleDoc}
+                  >
+                    <ConnectIcon />
+                  </HmatSettingsGlyphButton>
+                )
+              }
             />
             {screen.docError ? (
               <p className={cn(TYPE.helper, "text-accent")}>{screen.docError}</p>
             ) : null}
-            <div className="flex flex-wrap items-center gap-2">
-              <HmatSettingsPrimaryButton
-                onClick={screen.importGoogleDoc}
-                disabled={screen.docLoading || !screen.docUrl.trim()}
-              >
-                {screen.docLoading ? s.fetching : s.connectGoogleDoc}
-              </HmatSettingsPrimaryButton>
-              {screen.docError ? (
-                <HmatSettingsStatusBadge
-                  connected={false}
-                  connectedLabel={s.googleDocConnected}
-                  disconnectedLabel={s.googleDocFailed}
-                  tone="warn"
-                />
-              ) : screen.docConnected ? (
-                <HmatSettingsStatusBadge
-                  connected
-                  connectedLabel={s.googleDocConnected}
-                  disconnectedLabel={s.disconnected}
-                />
-              ) : null}
-              {screen.docConnected ? (
-                <button
-                  type="button"
-                  className="font-sans text-[11px] font-bold text-accent"
-                  onClick={screen.disconnectGoogleDoc}
-                >
-                  {s.disconnect}
-                </button>
-              ) : null}
-            </div>
+            {screen.docError ? (
+              <HmatSettingsStatusBadge
+                connected={false}
+                connectedLabel={s.googleDocConnected}
+                disconnectedLabel={s.googleDocFailed}
+                tone="warn"
+              />
+            ) : screen.docConnected ? (
+              <HmatSettingsStatusBadge
+                connected
+                connectedLabel={s.googleDocConnected}
+                disconnectedLabel={s.disconnected}
+              />
+            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -664,9 +747,6 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
 
       <HmatSettingsSection label={s.sections.deviceData}>
         <div className="space-y-2.5">
-          <HmatSettingsDangerButton onClick={screen.resetData} icon={<DatabaseIcon />}>
-            {s.resetData}
-          </HmatSettingsDangerButton>
           <form action="/auth/signout" method="post" className="w-full">
             <button
               type="submit"
@@ -675,8 +755,29 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
               {s.signOut}
             </button>
           </form>
+          <button
+            type="button"
+            onClick={() => setResetOpen(true)}
+            className="flex h-12 w-full items-center justify-center rounded-2xl border-2 border-[#C46B6B] bg-[#FFF0F0] font-display text-sm font-bold text-[#C46B6B] transition active:scale-[0.99]"
+          >
+            {s.resetData}
+          </button>
         </div>
       </HmatSettingsSection>
+
+      {resetOpen ? (
+        <HmatSettingsConfirm
+          title={s.resetDataConfirmTitle}
+          body={s.resetDataConfirmBody}
+          confirmLabel={s.resetDataConfirmAction}
+          cancelLabel={s.resetDataCancel}
+          onCancel={() => setResetOpen(false)}
+          onConfirm={() => {
+            setResetOpen(false);
+            screen.resetData();
+          }}
+        />
+      ) : null}
     </div>
   );
 }
