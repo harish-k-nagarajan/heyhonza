@@ -10,6 +10,25 @@ import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { tapLight } from "@/lib/interaction/haptic";
 
+function recessHeroModifier(mood: HonzaOrbState): string {
+  switch (mood) {
+    case "idle":
+      return "hmat-recess-hero--idle";
+    case "thinking":
+      return "hmat-recess-hero--thinking";
+    case "speaking":
+      return "hmat-recess-hero--speaking";
+    case "oops":
+      return "hmat-recess-hero--oops";
+    case "excited":
+      return "hmat-recess-hero--excited";
+    default: {
+      const _exhaustive: never = mood;
+      return _exhaustive;
+    }
+  }
+}
+
 /** Recess mood label shown under the lit channel. */
 export function recessMoodLabel(
   mood: HonzaOrbState,
@@ -22,7 +41,8 @@ export function recessMoodLabel(
 
 export function HmatPresenceRecess({
   orbState,
-  size = 172,
+  /** Face size inside liquid-glass slab (120 face; rim ~22 around it). */
+  size = 120,
   stackClassName,
   loading,
   channelPulse,
@@ -62,12 +82,13 @@ export function HmatPresenceRecess({
     stackClassName === "react-pop",
   );
   const bezelActive = loading || orbState === "thinking";
+  const recessMood: HonzaOrbState = loading || orbState === "thinking" ? "thinking" : orbState;
 
   return (
     <div
       className={cn(
-        "hmat-recess-hero mat-recess flex flex-col items-center px-4 pb-3.5 pt-[18px]",
-        orbState === "oops" && "hmat-recess-hero-oops",
+        "hmat-recess-hero",
+        recessHeroModifier(recessMood),
         className,
       )}
     >
@@ -87,23 +108,24 @@ export function HmatPresenceRecess({
               tapLight();
               onOrbTap?.();
             }}
-            className="hmat-display-screen relative rounded-[14px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="hmat-display-screen relative rounded-[18px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             aria-label={t.common.honza}
           >
             <HmatOrb state={orbState} size={size} breathe={breathe} stackClassName={stackClassName} />
           </button>
         </div>
       </div>
-        <div
-          className={cn(
-            "mat-channel mt-2.5 w-[200px] motion-reduce:animate-none",
-            channelPulse && "motion-safe:animate-channel-pulse",
-          )}
-          aria-hidden
-        />
-        <p className={cn("mt-2.5", TYPE.kicker, "font-display tracking-[0.2em] text-accent")}>
-          {moodLabel}
-        </p>
+      <div
+        className={cn(
+          "mat-channel w-[200px] motion-reduce:animate-none",
+          channelPulse && "motion-safe:animate-channel-pulse",
+        )}
+        aria-hidden
+      />
+      {/* honza.pen Bir3A mood label: Doto 13 / 700 / letterSpacing 2 */}
+      <p className="font-display text-[13px] font-bold tracking-[2px] text-accent">
+        {moodLabel}
+      </p>
     </div>
   );
 }

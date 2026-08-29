@@ -234,16 +234,16 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
   const skeleton = (
     <div className="t-skel-skeleton is-pulsing hmat-chat-skel-layer" aria-hidden>
-      <div className="hmat-recess-hero mat-recess flex flex-col items-center px-4 pb-3.5 pt-[18px]">
+      <div className="hmat-recess-hero hmat-recess-hero--idle">
         <div className="hmat-display-module hmat-presence-shared">
           <div className="hmat-display-bezel">
-            <div className="hmat-display-screen relative rounded-[14px]">
-              <div className="rounded-[14px] bg-muted/35" style={{ width: 172, height: 172 }} />
+            <div className="hmat-display-screen relative rounded-[18px]">
+              <div className="rounded-[14px] bg-muted/35" style={{ width: 120, height: 120 }} />
             </div>
           </div>
         </div>
-        <div className="mat-channel mt-2.5 w-[200px]" />
-        <div className="mt-2.5 h-3 w-24 rounded-full bg-muted/40" />
+        <div className="mat-channel w-[200px]" />
+        <div className="h-3.5 w-16 rounded-sm bg-muted/40" />
       </div>
       <div className="flex flex-col items-center gap-2">
         <div className="hmat-chat-skel-title" />

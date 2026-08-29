@@ -1,14 +1,17 @@
 # Honza — design system
 
-> **Shipped look (2026-08):** **Hmat Metal** surface · **Doto** (short labels /
-> buttons) · **Space Grotesk** (Czech body). Design Lab and live font switching
-> were removed after finalization — see
-> [`design update/SHIPPED_DESIGN.md`](./design%20update/SHIPPED_DESIGN.md).
-> Constants: `SHIPPED_*` in `src/lib/design/registry.ts`. Type roles:
+> **Visual source of truth:** the Pencil file **`honza.pen`** (Handoff frames:
+> Design Tokens, Components / Fern Mist O4, screens). Product chrome follows
+> that file. This markdown file is an **index** (identity, type roles, Classic
+> archive, implementation pointers). **When pixels disagree, the pen wins.**
+>
+> **Shipped type:** **Doto** (short labels / buttons) · **Space Grotesk** (Czech
+> body). See [`design update/SHIPPED_DESIGN.md`](./design%20update/SHIPPED_DESIGN.md)
+> and `SHIPPED_*` in `src/lib/design/registry.ts`. Type roles:
 > `src/lib/design/typography.ts` (`TYPE`).
 >
 > Sections below that still describe cream cards / Share Tech Mono document the
-> **Classic** baseline kept in-repo for comparison; product chrome is Hmat Metal.
+> **Classic** baseline kept in-repo for comparison.
 
 ## Identity
 
@@ -18,8 +21,10 @@ The app is **Honza**. The character **is** the app: Nothing OS dot matrix meets 
 
 ## Background
 
-**Shipped (Hmat Metal):** brushed cream-metal canvas with visible grain; mood
-tints via the expression engine (`--bg`, `--accent`, `--energy`). See § Hmat.
+**Shipped (Fern Mist O4, `honza.pen`):** warm cream canvas with mood-tinted
+surfaces via the expression engine (`--bg`, `--accent`, `--energy`). Recess,
+frost dock, and frost fields are specified in the pen — not the old Hmat Metal
+inset-well mock.
 
 **Classic baseline:** warm cream / off-white `#F5F2EE`. Cards and bubbles sit on
 this base. Per emotional state, the whole screen shifts mood using a tinted
@@ -131,7 +136,7 @@ All motion respects **`prefers-reduced-motion`**: prefer static or near-static p
 
 ## Cards and layout
 
-- **Hmat:** `mat` / `mat-metal` cards, `mat-recess` for the character well, floating `fdock`. Max width ~**430px** phone stage (`max-w-landing` on `/welcome`).
+- **Product (O4):** orb **recess** (`.hmat-recess-hero`, spec in `honza.pen`), frost cards/fields, frost-dock. Max width ~**430px** phone stage (`max-w-landing` on `/welcome`). `mat-recess` remains only on a few non-orb wells (auth, onboarding, loading).
 - **Classic baseline:** white cards on cream; **`border-radius: 16px`**; border **`1px solid rgba(0, 0, 0, 0.07)`**.
 - **Bottom navigation (Hmat):** floating dock — Chat · Hovor · Nastavení; active tab accent-tinted with a sliding pill.
 
@@ -184,19 +189,16 @@ Shared API: `src/components/ui/Button.tsx` + `src/lib/design/button.ts`.
 
 ## On-disk references
 
-Design screenshots and exports:
-
-`/Users/harishnagarajan/Documents/Cursor/Honza/Design Reference`
-
-Elevation plan: [`design update/DESIGN_ELEVATION_PLAN.md`](./design%20update/DESIGN_ELEVATION_PLAN.md).
+- **Pixels / screens / components:** `honza.pen` (Pencil).
+- Elevation / font lock notes: [`design update/SHIPPED_DESIGN.md`](./design%20update/SHIPPED_DESIGN.md).
+- `design-lab/round4-hmat.html` is an **archive** of the Metal inset-well exploration. Do not restyle product chrome from it.
 
 ---
 
-# Hmat Metal (shipped surface)
+# Product chrome (Fern Mist O4)
 
-Source of truth for material: `design-lab/round4-hmat.html`. CSS lives in
-`globals.css` (the `.mat*` / `.fdock` / `.hmat-orb` utilities). Ceramic was an
-exploration variant; **only Metal ships**.
+Source of truth: **`honza.pen`**. CSS lives in `globals.css` (`.hmat-recess-hero`,
+frost dock/fields, `.hmat-orb`). Hmat Metal / ceramic Lab variants do not ship.
 
 ## Token contract + theme runtime
 
@@ -208,16 +210,24 @@ exploration variant; **only Metal ships**.
 - Registry: `src/lib/design/registry.ts` (`SHIPPED_DESIGN`, `SHIPPED_DISPLAY_FONT`,
   `SHIPPED_BODY_FONT`).
 
-## Hmat — the tactile-material spec
+## Recess, dock, and material (from `honza.pen`)
 
-- **Recess (`mat-recess`)** — the character leads every screen from inside an
-  inset well (inner top shadow + bottom highlight).
-- **Cards** — `mat` (outset) and `mat-metal` (brushed-gradient).
-- **Deep keys (`mat-key`)** — 6px mechanical travel via `Button surface="mat-key"` (not raw `className` on `<button>`). Send / call controls are keys.
-- **Lit channel (`mat-channel`)** — recessed channel whose inner glow is the mood
-  accent, brightness × `--energy`.
-- **Floating dock (`fdock`)** — Chat · Hovor · Nastavení; content padded to clear it.
-- **Metal grain** — `--mat-grain-opacity` and warmth mixes on the surface tokens.
+- **Orb recess (`.hmat-recess-hero`)** — raised peach-white (mood-tinted) card
+  the character leads from. Spec: 24px radius; fill 165° `#FFE8DC` → `#FFF8F4`
+  → `#FFFFFF` (idle); **inner** 1.5px `#FFFFFF99` stroke; outer shadows
+  `0 8px 18px` mood glow (`#FF6B4A28` idle) **and** `0 -1px 0 #FFFFFFB3`.
+  Padding `18 / 16 / 14 / 16`, gap 10. Inside: **liquid-glass** orb slab
+  (~196 outer, rim ~22, face **120**) + 200×5 channel + 13/700 mood label.
+  Translucent rim (backdrop blur) — no white stroke, no drop shadow — so a
+  future speaking waveform can glow through the glass. Mood tints the glass.
+- **Cards / fields** — frost cards and `frost-field` (semi-opaque + blur) as in
+  the pen; leftover `.mat` / `.mat-metal` are archive.
+- **Keys** — sage/fern keys in the pen; `Button surface="mat-key"` still exists
+  for mechanical travel on some controls.
+- **Lit channel** — under the orb recess: `200×5` mood-accent gradient
+  (`#accent33` → accent → `#accent33`), opacity × `--energy`. Legacy beige
+  `.mat-channel` trough remains only outside the recess.
+- **Dock** — O4 frost-dock (Chat · Hovor · Nastavení); content padded to clear it.
 
 ## The orb, re-authored (Hmat)
 
@@ -241,9 +251,8 @@ Shared primitives in `src/lib/interaction/haptic.ts` + hooks:
 - **Micro-animations** — `animate-message-in`, `animate-drawer-in`, dock pill
   slide, channel pulse, card tilt on desktop (`.mat-tilt`).
 
-**Chat layout (Hmat):** dual-mode — **hero** recess + `mat-metal` opener card until
-the learner sends their first reply; then **compact** header (48px orb + channel).
-Honza auto-initiates on load (no Start Chat gate).
+**Chat layout:** hero recess (`.hmat-recess-hero`) + thread; Honza auto-initiates
+on load (no Start Chat gate).
 
 **Push (foundation):** Settings toggle + `/api/push/subscribe` + Supabase
 `push_subscriptions` table. Scheduled sends not wired — copy stays honest until
