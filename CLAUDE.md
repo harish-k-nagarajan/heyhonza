@@ -7,12 +7,12 @@ Guidance for Claude Code working in this repository. Honza already has a documen
 | File | Owns | Rule |
 |------|------|------|
 | `CONTEXT.md` | What Honza is, who it's for, MVP scope, decided architecture | Single source of truth for product intent. Don't contradict it. |
-| `DESIGN.md` | The visual system (cream / dot-matrix / Share Tech Mono) | Single source of truth for all UI decisions. |
+| `DESIGN.md` | Index of identity, type roles, Classic archive | **Pixels: `honza.pen` (Fern Mist O4).** If DESIGN.md and the pen disagree, the pen wins. |
 | `TASKS.md` | Build order with dependency tags | Pick the lowest phase with an unchecked task; prefer `[independent]` when starting cold. Check items off as you complete them. |
 | `BUILD_SPEC_STATUS.md` | Live per-phase status of `BUILD_SPEC.md` + the evidence behind each ✅ | **The fastest read for "where is this project actually at."** Trust this table and `TASKS.md`'s checkboxes over prose anywhere else, including this file. |
 | `MEMORY.md` | What works, what broke, decisions not to revisit | **Update after every meaningful change or debugging session.** |
 | `README.md` | Public-facing summary | Keep in sync when scope or stack changes. |
-| `BUILD_SPEC.md` | Full v1 build spec (phased plan, primitives, integration doctrine) | **Adopted phase-gated** (Harish, 2026-07-14) — build toward it, but **pause at each phase boundary for his OK**, since several phases need accounts or secrets only he can provision. Where it conflicts with `DESIGN.md`, DESIGN.md wins (e.g. BUILD_SPEC's `happy` state is really `excited`). Live status lives in `BUILD_SPEC_STATUS.md`, not here. |
+| `BUILD_SPEC.md` | Full v1 build spec (phased plan, primitives, integration doctrine) | **Adopted phase-gated** (Harish, 2026-07-14) — build toward it, but **pause at each phase boundary for his OK**, since several phases need accounts or secrets only he can provision. Visuals: `honza.pen` over DESIGN.md over BUILD_SPEC (e.g. BUILD_SPEC's `happy` is really `excited`). Live status lives in `BUILD_SPEC_STATUS.md`, not here. |
 
 ## Project Overview
 
@@ -55,7 +55,7 @@ No test framework is configured. Verification is lint + build + manual check on 
 2. **All model calls go through Route Handlers** — `/api/chat` for the LLM, `/api/tts` for voice (Phase 8, shipped 2026-07-15). No LLM or TTS provider is ever called from the browser, and no provider key is ever exposed to it. Verified against the production bundle for both keys.
 3. **Google Doc ingestion uses public URLs, no OAuth** (`/api/context/google-doc` fetches server-side).
 4. **Mobile-first installable PWA** is the product; design desktop as a centered ~430px phone stage.
-5. **The design system is the cream / dot-matrix system in `DESIGN.md`** (Share Tech Mono, `#F5F2EE` canvas, state-tinted backgrounds, HonzaOrb square dot-matrix face). This **superseded** the original "dark mode only" decision on 2026-05-12. If you find dark tokens or Inter font in product chrome, they are legacy — migrate them per DESIGN.md, don't extend them.
+5. **The design system is Fern Mist O4 in `honza.pen`** (cream canvas, Doto + Space Grotesk, square dot-matrix Honza). `DESIGN.md` indexes that; it is not an independent pixel spec. This **superseded** the original "dark mode only" decision on 2026-05-12 and the Hmat Metal inset-well mock. If you find dark tokens, Inter, or Metal inset-well chrome on product surfaces, migrate toward the pen — don't extend them.
 6. **Still out of scope:** calendar and social features. **Daily check-ins + Web Push are in.** **Voice is IN and now BUILT** — BUILD_SPEC Phase 8 shipped 2026-07-15 once Harish supplied an ElevenLabs key *and* the go-ahead (the old double gate is cleared; this rule previously said "don't start it"). `/call` + `/api/tts` + `kind:'call'` transcripts exist. Row 8 is still **🟡** only because mic/audio can't be verified headlessly — see `DEPLOY.md` §5. **TTS calls go through `/api/tts` only**; `ELEVENLABS_API_KEY` is server-only.
 7. **The character is the app.** Honza is never a small decorative icon on primary surfaces; every screen leads with the character (see DESIGN.md).
 
@@ -74,7 +74,7 @@ Before calling any task finished:
 
 1. `npm run lint` and `npm run build` both pass.
 2. Checked on a mobile-width viewport; layout holds inside the ~430px phone stage.
-3. New UI matches DESIGN.md (Share Tech Mono, `//` section labels with correct letter-spacing, state colors, 16px card radius) — not the legacy dark tokens.
+3. New UI matches `honza.pen` / DESIGN.md (Doto + Space Grotesk, O4 recess/dock/fields, state colors) — not legacy dark tokens, Share Tech Mono product chrome, or the Metal inset well.
 4. No secrets in client code; any new AI behavior goes through a Route Handler.
 5. **Gates are verified in the running app, not reasoned about.** "Should work" isn't done. If a gate can't be walked, say so and leave it 🟡 with honest gap text.
 6. The completed task is checked off in `TASKS.md`, `BUILD_SPEC_STATUS.md` reflects any phase change, and `MEMORY.md` is updated (what works / what broke / decisions).

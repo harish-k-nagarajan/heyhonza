@@ -4,7 +4,40 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-28 (settings picker + denser keys)
+## Current entry — 2026-08-29 (liquid-glass orb slab)
+
+### What changed
+- Orb chassis is a **liquid-glass slab**: thicker translucent rim (~22px), backdrop blur, soft specular — **no white stroke rings**. Outer size ~196 so face stays 120.
+- Screen plate is also translucent (`overflow: hidden`) so a future speaking waveform can glow through the glass.
+- Recess card lost its 2px white inset ring (soft top catch only).
+
+### Decision
+Glass depth comes from material (blur + translucent rim), not from stroked borders or drop shadows.
+
+---
+
+## Previous — 2026-08-29 (orb recess glass slab)
+
+### What changed
+- Removed directional drop shadows from recess + chassis; rim via inset highlights.
+
+### Decision
+Prefer glass-slab read over literal pen outer-shadow values.
+
+---
+
+## Previous — 2026-08-29 (orb recess = honza.pen Bir3A)
+
+### What changed
+- `.hmat-recess-hero` matches Chat handoff recesses: 165° mood fill, inner stroke, mood variants. Display stack = Fern Orb chassis + face 120. Recess channel 200×5; mood label 13/700.
+- Thinking tokens `#D6E4FF` / `#F0F4FF` / glow `#6B8CFF28`.
+
+### Decision
+Do not restyle product chrome from DESIGN.md prose or `round4-hmat.html` when the pen disagrees.
+
+---
+
+## 2026-08-28 (settings picker + denser keys)
 
 ### What changed
 - Settings model list is a **curated 6** (2 free / 4 paid), not the live OpenRouter free dump. Default stays `openai/gpt-4o-mini`.

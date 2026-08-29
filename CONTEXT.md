@@ -25,7 +25,7 @@ The product goal is habitual practice driven by Honza’s presence, not passive 
 | **OpenRouter is the model gateway** (2026-07-14) | One key, swappable models behind a single config value. Supersedes the original OpenAI-direct decision. |
 | **Google Doc ingestion uses public URLs; no OAuth** | Simpler: fetch published/export-style content server-side when given a URL; no Google account linking. |
 | **Real accounts, on Supabase** (2026-07-15) | Email+password with email confirmation, Postgres with own-row RLS. Honza's value is continuity — history and context that persist and follow the learner — which anonymous browser storage can't give. Rejected Clerk (auth-only; the DB stays Supabase either way) and Google SSO (no new vendors before the core product is tested). |
-| **The cream / dot-matrix design system** (2026-05-12) | See `DESIGN.md`. **Supersedes the original "dark mode only" decision** — that call is dead; dark tokens or Inter in product chrome are legacy to migrate, not extend. |
+| **Fern Mist O4 in `honza.pen`** (2026-08) | Product chrome. `DESIGN.md` indexes it; the pen wins on pixels. Cream / dot-matrix identity still holds. Dark tokens, Inter, and the Hmat Metal inset well are legacy — don't extend them. |
 | **Mobile first, installable PWA** | Primary use case is on-the-go practice; `next-pwa`, manifest, and install affordances support that. |
 | **`BUILD_SPEC.md` adopted, phase-gated** (2026-07-14) | Build toward its 9 phases, pausing at each boundary for Harish's OK. This is what moved real voice from out-of-scope into v1. Live status: `BUILD_SPEC_STATUS.md`. |
 
