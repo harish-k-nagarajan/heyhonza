@@ -35,7 +35,7 @@ export function HmatScreenFrame({ children }: { children: ReactNode }) {
       document
         .querySelector(".hmat-screen-frame--enter")
         ?.classList.remove("hmat-screen-frame--enter");
-    }, 500);
+    }, 350);
     return () => window.clearTimeout(id);
   }, [pathname, motionOk]);
 

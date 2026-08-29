@@ -27,6 +27,8 @@ export function HmatPresenceRecess({
   loading,
   channelPulse,
   onOrbTap,
+  className,
+  breathe = true,
 }: {
   orbState: HonzaOrbState;
   size?: number;
@@ -34,6 +36,8 @@ export function HmatPresenceRecess({
   loading?: boolean;
   channelPulse?: boolean;
   onOrbTap?: () => void;
+  className?: string;
+  breathe?: boolean;
 }) {
   const { t } = useLocale();
   const moodLabel = recessMoodLabel(orbState, loading, t);
@@ -64,6 +68,7 @@ export function HmatPresenceRecess({
       className={cn(
         "hmat-recess-hero mat-recess flex flex-col items-center px-4 pb-3.5 pt-[18px]",
         orbState === "oops" && "hmat-recess-hero-oops",
+        className,
       )}
     >
       <div className="hmat-display-module hmat-presence-shared">
@@ -85,7 +90,7 @@ export function HmatPresenceRecess({
             className="hmat-display-screen relative rounded-[14px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             aria-label={t.common.honza}
           >
-            <HmatOrb state={orbState} size={size} breathe stackClassName={stackClassName} />
+            <HmatOrb state={orbState} size={size} breathe={breathe} stackClassName={stackClassName} />
           </button>
         </div>
       </div>
@@ -103,12 +108,83 @@ export function HmatPresenceRecess({
   );
 }
 
-export function HmatStatusChip({ label }: { label: string }) {
+function cssMs(name: string, fallback: number): number {
+  const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+  return Number.isFinite(v) ? v : fallback;
+}
+
+const THINK_TEXT_CLASS = `${TYPE.bodySm} font-display font-bold tracking-wide`;
+
+export function HmatStatusChip({
+  label,
+  sizerLabel,
+  shimmer,
+}: {
+  label: string;
+  sizerLabel?: string;
+  shimmer?: boolean;
+}) {
+  const [layers, setLayers] = useState([{ id: 0, text: label, phase: "live" as "in" | "live" | "out" }]);
+  const liveText = useRef(label);
+  const nextId = useRef(0);
+  const boxRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (label === liveText.current) return;
+    liveText.current = label;
+    nextId.current += 1;
+    const incomingId = nextId.current;
+    setLayers((cur) => {
+      const live = cur.find((l) => l.phase === "live" || l.phase === "in");
+      const outgoing = live ? [{ ...live, phase: "out" as const }] : [];
+      return [...outgoing, { id: incomingId, text: label, phase: "in" as const }];
+    });
+    const gap = cssMs("--think-gap", 50);
+    const swap = cssMs("--think-swap", 150);
+    const release = window.setTimeout(() => {
+      setLayers((cur) =>
+        cur.map((l) => (l.id === incomingId ? { ...l, phase: "live" as const } : l)),
+      );
+    }, gap);
+    const cleanup = window.setTimeout(() => {
+      setLayers((cur) => cur.filter((l) => l.id === incomingId));
+    }, swap + gap);
+    return () => {
+      window.clearTimeout(release);
+      window.clearTimeout(cleanup);
+    };
+  }, [label]);
+
+  useLayoutEffect(() => {
+    const el = boxRef.current?.querySelector(".is-enter-start");
+    if (el instanceof HTMLElement) void el.offsetWidth;
+  }, [layers]);
+
   return (
     <span className="hmat-chip inline-flex items-center gap-2 rounded-xl px-3.5 py-2">
       <span className="h-2 w-2 shrink-0 rounded-[2px] bg-accent" aria-hidden />
-      <span className={cn(TYPE.bodySm, "font-display font-bold tracking-wide text-accent")}>
-        {label}
+      <span
+        ref={boxRef}
+        className={cn("t-think", shimmer && "is-shimmering")}
+        role="status"
+      >
+        <span className={cn("t-think-sizer", THINK_TEXT_CLASS)} aria-hidden>
+          {sizerLabel ?? label}
+        </span>
+        {layers.map((layer) => (
+          <span
+            key={layer.id}
+            className={cn(
+              "t-think-text",
+              THINK_TEXT_CLASS,
+              layer.phase === "out" && "is-exit",
+              layer.phase === "in" && "is-enter-start",
+            )}
+            data-text={layer.text}
+          >
+            {layer.text}
+          </span>
+        ))}
       </span>
     </span>
   );

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { HonzaTypingBubble } from "@/components/chat/HonzaTypingBubble";
-import { HmatOrb } from "@/components/honza/HmatOrb";
 import {
   HmatChatComposerRow,
   HmatChatThread,
@@ -31,6 +30,30 @@ function chipLabel(screen: ChatScreen, t: ReturnType<typeof useLocale>["t"]): st
   return t.chat.chipPresent;
 }
 
+function longestLabel(...labels: string[]): string {
+  return labels.reduce((a, b) => (a.length >= b.length ? a : b));
+}
+
+function HmatEmptyHint({ text }: { text: string }) {
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => setShown(true));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+
+  return (
+    <div className={cn("t-stagger", shown && "is-shown")}>
+      <p className={cn("t-stagger-line t-stagger-line--1", TYPE.bodySm, "text-center text-[#6E8A74]")}>
+        {text}
+      </p>
+    </div>
+  );
+}
+
+/** Survives dock remounts in this JS context; resets on full reload. */
+let chatBootCeremonyDone = false;
+
 export function HmatChat({ screen }: { screen: ChatScreen }) {
   const { t } = useLocale();
   const {
@@ -48,6 +71,10 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   const composerDisabled = loading || showTyping;
   const threadRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
+  const [mounted, setMounted] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const [presenceShown, setPresenceShown] = useState(false);
+  const [copyShown, setCopyShown] = useState(false);
   const [draft, setDraft] = useState("");
 
   useMoodReactions(triggerPop);
@@ -58,8 +85,41 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [threadMessages.length, showTyping]);
 
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => setMounted(true));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || !screen.ready) return;
+    const skipCeremony = chatBootCeremonyDone;
+    chatBootCeremonyDone = true;
+    const id = window.requestAnimationFrame(() => {
+      setRevealed(true);
+      if (skipCeremony) {
+        setPresenceShown(true);
+        setCopyShown(true);
+        return;
+      }
+      window.requestAnimationFrame(() => {
+        setPresenceShown(true);
+        setCopyShown(true);
+      });
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [mounted, screen.ready]);
+
   const composerMode = heroMode ? "idle" : "ongoing";
   const localizedError = localizeClientError(lastError, t.errors);
+  const statusLabel = chipLabel(screen, t);
+  const sizerLabel = longestLabel(
+    t.chat.chipProblem,
+    t.chat.chipThinking,
+    t.chat.chipInChat,
+    t.chat.chipPresent,
+  );
+  const actionMode = showStartGate ? "gate" : composerMode;
+  const orbState = loading ? "thinking" : expression.mood;
 
   const send = useCallback(() => {
     const text = draft.trim();
@@ -69,69 +129,72 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     triggerPop();
   }, [draft, composerDisabled, screen, triggerPop]);
 
-  if (!screen.ready) {
-    return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12">
-        <HmatOrb state="idle" size={72} breathe={false} />
-        <div className="mat h-4 w-32 animate-pulse rounded-full opacity-60" aria-hidden />
-        <p className={TYPE.label + " text-muted-foreground"}>{t.common.loading}</p>
-      </div>
-    );
-  }
+  const chatBody = (
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+      <div className="flex shrink-0 flex-col gap-3">
+        <HmatPresenceRecess
+          className={cn("hmat-orb-presence", presenceShown && "is-shown")}
+          orbState={orbState}
+          loading={loading}
+          channelPulse={typingPhaseActive}
+          stackClassName={stackClassName}
+          onOrbTap={triggerPop}
+          breathe={presenceShown}
+        />
 
-  const orbState = loading ? "thinking" : expression.mood;
-
-  return (
-    <>
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
-        <div className="flex shrink-0 flex-col gap-3">
-          <HmatPresenceRecess
-            orbState={orbState}
-            loading={loading}
-            channelPulse={typingPhaseActive}
-            stackClassName={stackClassName}
-            onOrbTap={triggerPop}
-          />
-
-          <div className="flex flex-col items-center gap-2">
-            <HmatScreenTitle>{t.chat.titlePresent}</HmatScreenTitle>
-            <HmatStatusChip label={chipLabel(screen, t)} />
-          </div>
+        <div className={cn("t-stagger flex flex-col items-center gap-2", copyShown && "is-shown")}>
+          <HmatScreenTitle>
+            <span className="t-stagger-line t-stagger-line--1">{t.chat.titlePresent}</span>
+          </HmatScreenTitle>
+          <span className="t-stagger-line t-stagger-line--2">
+            <HmatStatusChip
+              label={statusLabel}
+              sizerLabel={sizerLabel}
+              shimmer={loading}
+            />
+          </span>
         </div>
+      </div>
 
-        <HmatChatThread
-          ref={threadRef}
-          watchKey={`${threadMessages.length}-${showTyping}-${heroMode}`}
+      <HmatChatThread
+        ref={threadRef}
+        watchKey={`${threadMessages.length}-${showTyping}-${heroMode}`}
+      >
+        {localizedError ? (
+          <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
+            {localizedError}
+          </p>
+        ) : null}
+
+        {showEmptyState ? <HmatEmptyHint text={t.chat.emptyHint} /> : null}
+
+        {!heroMode
+          ? threadMessages.map((m: ChatMessage, i) =>
+              m.role === "user" ? (
+                <HmatUserBubble key={m.id} index={i}>
+                  {m.content}
+                </HmatUserBubble>
+              ) : (
+                <HmatHonzaBubble key={m.id} index={i}>
+                  {m.content}
+                </HmatHonzaBubble>
+              ),
+            )
+          : null}
+
+        {showTyping ? <HonzaTypingBubble variant="hmat" /> : null}
+      </HmatChatThread>
+
+      <div className="shrink-0">
+        <div
+          className="t-resize hmat-chat-action-slot"
+          data-mode={actionMode}
         >
-          {localizedError ? (
-            <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
-              {localizedError}
-            </p>
-          ) : null}
-
-          {showEmptyState ? (
-            <p className={cn(TYPE.bodySm, "text-center text-[#6E8A74]")}>{t.chat.emptyHint}</p>
-          ) : null}
-
-          {!heroMode
-            ? threadMessages.map((m: ChatMessage, i) =>
-                m.role === "user" ? (
-                  <HmatUserBubble key={m.id} index={i}>
-                    {m.content}
-                  </HmatUserBubble>
-                ) : (
-                  <HmatHonzaBubble key={m.id} index={i}>
-                    {m.content}
-                  </HmatHonzaBubble>
-                ),
-              )
-            : null}
-
-          {showTyping ? <HonzaTypingBubble variant="hmat" /> : null}
-        </HmatChatThread>
-
-        <div className="shrink-0">
-          {showStartGate ? (
+          <div
+            className={cn("hmat-chat-action-face", showStartGate && "is-front")}
+            inert={!showStartGate || undefined}
+            aria-hidden={!showStartGate}
+          >
             <button
               type="button"
               onClick={() => {
@@ -144,7 +207,12 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
                 {t.chat.startChat}
               </span>
             </button>
-          ) : (
+          </div>
+          <div
+            className={cn("hmat-chat-action-face", !showStartGate && "is-front")}
+            inert={showStartGate || undefined}
+            aria-hidden={showStartGate}
+          >
             <HmatChatComposerRow
               mode={composerMode}
               value={draft}
@@ -158,9 +226,40 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
               sendLabel={t.chat.send}
               endLabel={t.chat.endChat}
             />
-          )}
+          </div>
         </div>
       </div>
-    </>
+    </div>
+  );
+
+  const skeleton = (
+    <div className="t-skel-skeleton is-pulsing hmat-chat-skel-layer" aria-hidden>
+      <div className="hmat-recess-hero mat-recess flex flex-col items-center px-4 pb-3.5 pt-[18px]">
+        <div className="hmat-display-module hmat-presence-shared">
+          <div className="hmat-display-bezel">
+            <div className="hmat-display-screen relative rounded-[14px]">
+              <div className="rounded-[14px] bg-muted/35" style={{ width: 172, height: 172 }} />
+            </div>
+          </div>
+        </div>
+        <div className="mat-channel mt-2.5 w-[200px]" />
+        <div className="mt-2.5 h-3 w-24 rounded-full bg-muted/40" />
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="hmat-chat-skel-title" />
+        <div className="hmat-chat-skel-chip" />
+      </div>
+      <div className="min-h-0 flex-1" />
+      <div className="hmat-chat-skel-cta" />
+    </div>
+  );
+
+  return (
+    <div className={cn("t-skel hmat-chat-skel", revealed && "is-revealed")}>
+      {skeleton}
+      <div className="t-skel-content hmat-chat-skel-layer" aria-hidden={!revealed}>
+        {mounted ? chatBody : null}
+      </div>
+    </div>
   );
 }
