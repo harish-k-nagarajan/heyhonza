@@ -57,20 +57,76 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
+  /* transitions.dev motion tokens (shared scale). Do not overwrite --ease-out /
+     --ease-in-out above — those are Honza's authored curves. */
+  --duration-stagger: 40ms;
+  --duration-micro: 80ms;
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --duration-medium: 350ms;
+  --duration-slow: 400ms;
+  --duration-very-slow: 500ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-linear: linear;
+  --ease-bounce: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ease-bounce-strong: cubic-bezier(0.34, 3.85, 0.64, 1);
+  --distance-micro: 4px;
+  --distance-small: 6px;
+  --distance-base: 8px;
+  --distance-medium: 12px;
+  --distance-large: 30px;
+  --scale-large: 0.96;
+  --scale-medium: 0.97;
+  --scale-small: 0.98;
+  --scale-tiny: 0.99;
+  --blur-small: 2px;
+  --blur-medium: 3px;
+  --blur-large: 8px;
+
   /* Durations */
   --duration-press: 160ms;
   --duration-ui: 200ms;
-  --duration-bubble-in: 240ms;
+  --duration-bubble-in: var(--duration-fast);
   /* Authored presence beat — speak dust + Honza bubble share this */
   --duration-presence-beat: 680ms;
   --duration-presence-wave: 120ms;
-  --duration-screen-in: 380ms;
+  --duration-screen-in: var(--duration-fast);
   --duration-screen-out: 260ms;
   --duration-drawer-in: 280ms;
   --duration-drawer-out: 200ms;
   --duration-orb-pop: 280ms;
   --duration-typing-min: 400ms;
   --duration-typing-max: 1200ms;
+
+  /* Card resize */
+  --resize-dur: 300ms;
+  --resize-ease: var(--ease-smooth-out);
+  /* Skeleton loader and reveal */
+  --pulse-dur: 1000ms;
+  --pulse-count: infinite;
+  --pulse-min: 0.5;
+  --reveal-dur: var(--duration-slow);
+  --reveal-blur: var(--blur-small);
+  --reveal-ease: var(--ease-in-out);
+  /* Texts reveal */
+  --stagger-dur: var(--duration-very-slow);
+  --stagger-distance: var(--distance-medium);
+  --stagger-stagger: var(--duration-stagger);
+  --stagger-blur: var(--blur-medium);
+  --stagger-ease: var(--ease-smooth-out);
+  /* Tabs sliding */
+  --tabs-dur: var(--duration-fast);
+  --tabs-ease: var(--ease-smooth-out);
+  /* Thinking states */
+  --think-hold: 2000ms;
+  --think-swap: var(--duration-quick);
+  --think-gap: 50ms;
+  --think-distance: var(--distance-base);
+  --think-blur: var(--blur-small);
+  --think-shimmer: 2000ms;
+  --think-base: #7c7c7c;
+  --think-highlight: #0d0d0d;
+  --think-ease: var(--ease-in-out);
 }
 
 /*
@@ -347,8 +403,8 @@ body {
   border-radius: 22px;
   background: #4a433c18;
   transition:
-    left var(--duration-ui) var(--ease-out),
-    width var(--duration-ui) var(--ease-out);
+    left var(--tabs-dur) var(--tabs-ease),
+    width var(--tabs-dur) var(--tabs-ease);
   pointer-events: none;
   z-index: 0;
 }
@@ -364,9 +420,13 @@ body {
   padding: 12px 18px;
   color: #4a433c;
   transition:
-    color 0.15s ease,
-    background-color 0.15s ease;
+    color var(--duration-quick) var(--ease-smooth-out),
+    background-color var(--duration-quick) var(--ease-smooth-out),
+    transform var(--duration-press) var(--ease-smooth-out);
   border-radius: 22px;
+}
+.hmat-tab:active {
+  transform: scale(var(--scale-medium));
 }
 .hmat-tab:hover:not(.on) {
   background: rgba(255, 255, 255, 0.45);
@@ -562,12 +622,12 @@ body {
     opacity: 1;
     transform: translateY(0);
     transition:
-      opacity var(--duration-bubble-in) var(--ease-out),
-      transform var(--duration-bubble-in) var(--ease-out);
+      opacity var(--duration-bubble-in) var(--ease-in-out),
+      transform var(--duration-bubble-in) var(--ease-in-out);
 
     @starting-style {
       opacity: 0;
-      transform: translateY(4px);
+      transform: translateY(var(--distance-micro));
     }
   }
 
@@ -1234,15 +1294,15 @@ body {
    animation cannot freeze the live tree at opacity 0. */
 @media (prefers-reduced-motion: no-preference) {
   .hmat-screen-frame--enter {
-    animation: hmat-screen-enter var(--duration-screen-in) var(--ease-out) forwards;
+    animation: hmat-screen-enter var(--duration-screen-in) var(--ease-smooth-out) forwards;
   }
 }
 
 @keyframes hmat-screen-enter {
   from {
     opacity: 0;
-    transform: translateY(12px);
-    filter: blur(2px);
+    transform: translateY(var(--distance-base));
+    filter: blur(var(--blur-medium));
   }
   to {
     opacity: 1;
@@ -1256,6 +1316,12 @@ body {
   .hmat-screen-frame--enter {
     animation: none !important;
     filter: none;
+  }
+  .fdock-pill {
+    transition: none !important;
+  }
+  .hmat-tab:active {
+    transform: none;
   }
 }
 
@@ -1346,4 +1412,245 @@ body {
     animation: none;
   }
 }
+
+/* ===== transitions.dev snippets (skeleton, texts reveal, card resize, thinking) ===== */
+
+.t-skel { position: relative; }
+.t-skel-skeleton,
+.t-skel-content {
+  position: absolute;
+  inset: 0;
+}
+
+.t-skel-skeleton {
+  z-index: 1;
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    opacity var(--reveal-dur) var(--reveal-ease),
+    filter  var(--reveal-dur) var(--reveal-ease);
+}
+.t-skel-content {
+  z-index: 2;
+  opacity: 0;
+  filter: blur(var(--reveal-blur));
+  transition:
+    opacity var(--reveal-dur) var(--reveal-ease),
+    filter  var(--reveal-dur) var(--reveal-ease);
+}
+.t-skel.is-revealed .t-skel-skeleton {
+  opacity: 0;
+  filter: blur(var(--reveal-blur));
+  pointer-events: none;
+}
+.t-skel.is-revealed .t-skel-content {
+  opacity: 1;
+  filter: blur(0);
+}
+.t-skel.is-resetting .t-skel-skeleton,
+.t-skel.is-resetting .t-skel-content {
+  transition: none !important;
+}
+
+.t-skel-skeleton.is-pulsing > * {
+  animation: t-skel-pulse var(--pulse-dur) var(--ease-in-out) var(--pulse-count);
+}
+@keyframes t-skel-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: var(--pulse-min); }
+}
+
+.t-stagger-line {
+  display: block;
+  opacity: 0;
+  transform: translateY(var(--stagger-distance));
+  filter: blur(var(--stagger-blur));
+  transition:
+    opacity   var(--stagger-dur) var(--stagger-ease),
+    transform var(--stagger-dur) var(--stagger-ease),
+    filter    var(--stagger-dur) var(--stagger-ease);
+  will-change: transform, opacity, filter;
+}
+.t-stagger-line--2 { transition-delay: var(--stagger-stagger); }
+
+.t-stagger.is-shown .t-stagger-line {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+.t-stagger.is-hiding .t-stagger-line {
+  opacity: 0;
+  transform: translateY(0);
+  filter: blur(0);
+  transition:
+    opacity 200ms ease,
+    transform 0s linear,
+    filter 0s linear;
+  transition-delay: 0s;
+}
+
+.t-resize {
+  transition:
+    width  var(--resize-dur) var(--resize-ease),
+    height var(--resize-dur) var(--resize-ease);
+  will-change: width, height;
+}
+
+.t-think { position: relative; display: inline-block; text-align: center; }
+.t-think-sizer { display: block; visibility: hidden; white-space: nowrap; }
+.t-think-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: block;
+  color: var(--think-base);
+  white-space: nowrap;
+  transform: translateY(0);
+  filter: blur(0);
+  opacity: 1;
+  transition:
+    transform var(--think-swap) var(--think-ease),
+    filter var(--think-swap) var(--think-ease),
+    opacity var(--think-swap) var(--think-ease);
+  will-change: transform, filter, opacity;
+}
+.t-think-text::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(90deg,
+    transparent 0%, transparent 40%,
+    var(--think-highlight) 50%,
+    transparent 60%, transparent 100%);
+  background-size: 400% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: t-think-shimmer var(--think-shimmer) var(--ease-linear) infinite;
+}
+@keyframes t-think-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: 0% 0; }
+}
+.t-think-text.is-exit {
+  transform: translateY(calc(var(--think-distance) * -1));
+  filter: blur(var(--think-blur));
+  opacity: 0;
+}
+.t-think-text.is-enter-start {
+  transition: none;
+  transform: translateY(var(--think-distance));
+  filter: blur(var(--think-blur));
+  opacity: 0;
+}
+.t-think:not(.is-shimmering) .t-think-text::before {
+  display: none !important;
+}
+
+.hmat-chip .t-think {
+  --think-base: var(--accent);
+  --think-highlight: #ffffff;
+}
+
+.hmat-chat-skel,
+.hmat-chat-skel-layer {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.hmat-orb-presence {
+  transform: scale(var(--scale-large));
+  filter: blur(var(--blur-medium));
+  transition:
+    transform var(--duration-very-slow) var(--ease-smooth-out),
+    filter var(--duration-very-slow) var(--ease-smooth-out);
+}
+.hmat-orb-presence.is-shown {
+  transform: scale(1);
+  filter: blur(0);
+}
+
+.hmat-chat-action-slot {
+  position: relative;
+  overflow: hidden;
+  height: 52px;
+  transition:
+    height var(--duration-fast) var(--ease-smooth-out);
+}
+.hmat-chat-action-slot[data-mode="gate"] {
+  height: 52px;
+  transition-duration: var(--duration-quick);
+}
+.hmat-chat-action-slot[data-mode="idle"] {
+  height: 52px;
+}
+.hmat-chat-action-slot[data-mode="ongoing"] {
+  height: 114px;
+}
+.hmat-chat-action-face {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-in-out);
+}
+.hmat-chat-action-slot[data-mode="gate"] .hmat-chat-action-face {
+  transition-duration: var(--duration-quick);
+}
+.hmat-chat-action-face.is-front {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hmat-chat-skel-title {
+  height: 1.6rem;
+  width: 10.5rem;
+  border-radius: 999px;
+  background: rgba(36, 61, 44, 0.08);
+}
+.hmat-chat-skel-chip {
+  height: 2.25rem;
+  width: 6.5rem;
+  border-radius: 0.75rem;
+  background: rgba(36, 61, 44, 0.08);
+}
+.hmat-chat-skel-cta {
+  height: 52px;
+  width: 100%;
+  border-radius: 1rem;
+  background: rgba(36, 61, 44, 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-skel-skeleton, .t-skel-content {
+    transition: none !important;
+  }
+  .t-skel-skeleton.is-pulsing > * { animation: none !important; }
+  .t-stagger-line { transition: none !important; }
+  .t-resize { transition: none !important; }
+  .t-think-text { transition: none !important; transform: none !important; filter: none !important; }
+  .t-think-text::before { display: none !important; }
+  .hmat-orb-presence {
+    transform: none;
+    filter: none;
+    transition: none !important;
+  }
+  .hmat-chat-action-slot,
+  .hmat-chat-action-face {
+    transition: none !important;
+  }
+}
+
+.t-skel:not(.is-revealed) .t-skel-content {
+  pointer-events: none;
+}
+
 
