@@ -43,10 +43,10 @@ export function ClassicSettings({ screen }: { screen: SettingsScreen }) {
         <HonzaOrb state={expression.mood} size="avatar" className="shrink-0" />
         <div className="space-y-1">
           <SectionLabel as="p">{s.kicker}</SectionLabel>
-          <h1 className="font-sans text-lg leading-tight tracking-[0.12em]">{s.title}</h1>
+          <h1 className="font-sans text-lg leading-tight tracking-tight">{s.title}</h1>
         </div>
       </header>
-      <p className="-mt-3 font-sans text-xs leading-relaxed tracking-[0.08em] text-muted-foreground">
+      <p className="-mt-3 font-sans text-xs leading-relaxed tracking-normal text-muted-foreground">
         {s.subtitle}
       </p>
 

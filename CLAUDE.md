@@ -55,7 +55,7 @@ No test framework is configured. Verification is lint + build + manual check on 
 2. **All model calls go through Route Handlers** — `/api/chat` for the LLM, `/api/tts` for voice (Phase 8, shipped 2026-07-15). No LLM or TTS provider is ever called from the browser, and no provider key is ever exposed to it. Verified against the production bundle for both keys.
 3. **Google Doc ingestion uses public URLs, no OAuth** (`/api/context/google-doc` fetches server-side).
 4. **Mobile-first installable PWA** is the product; design desktop as a centered ~430px phone stage.
-5. **The design system is Fern Mist O4 in `honza.pen`** (cream canvas, Doto + Space Grotesk, square dot-matrix Honza). `DESIGN.md` indexes that; it is not an independent pixel spec. This **superseded** the original "dark mode only" decision on 2026-05-12 and the Hmat Metal inset-well mock. If you find dark tokens, Inter, or Metal inset-well chrome on product surfaces, migrate toward the pen — don't extend them.
+5. **The design system is Fern Mist O4 in `honza.pen`** (cream canvas, Doto + **Inter** body, square dot-matrix Honza). `DESIGN.md` indexes that; it is not an independent pixel spec. This **superseded** Space Grotesk as the body face (2026-08-30). If you find dark tokens, Space Grotesk, or Metal inset-well chrome on product surfaces, migrate toward the pen + Inter body — don't extend them. Do **not** replace Doto (`font-display`).
 6. **Still out of scope:** calendar and social features. **Daily check-ins + Web Push are in.** **Voice is IN and now BUILT** — BUILD_SPEC Phase 8 shipped 2026-07-15 once Harish supplied an ElevenLabs key *and* the go-ahead (the old double gate is cleared; this rule previously said "don't start it"). `/call` + `/api/tts` + `kind:'call'` transcripts exist. Row 8 is still **🟡** only because mic/audio can't be verified headlessly — see `DEPLOY.md` §5. **TTS calls go through `/api/tts` only**; `ELEVENLABS_API_KEY` is server-only.
 7. **The character is the app.** Honza is never a small decorative icon on primary surfaces; every screen leads with the character (see DESIGN.md).
 
@@ -74,7 +74,7 @@ Before calling any task finished:
 
 1. `npm run lint` and `npm run build` both pass.
 2. Checked on a mobile-width viewport; layout holds inside the ~430px phone stage.
-3. New UI matches `honza.pen` / DESIGN.md (Doto + Space Grotesk, O4 recess/dock/fields, state colors) — not legacy dark tokens, Share Tech Mono product chrome, or the Metal inset well.
+3. New UI matches `honza.pen` / DESIGN.md (Doto + Inter, O4 recess/dock/fields, state colors) — not legacy dark tokens, Share Tech Mono product chrome, or the Metal inset well.
 4. No secrets in client code; any new AI behavior goes through a Route Handler.
 5. **Gates are verified in the running app, not reasoned about.** "Should work" isn't done. If a gate can't be walked, say so and leave it 🟡 with honest gap text.
 6. The completed task is checked off in `TASKS.md`, `BUILD_SPEC_STATUS.md` reflects any phase change, and `MEMORY.md` is updated (what works / what broke / decisions).

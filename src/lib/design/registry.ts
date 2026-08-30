@@ -1,16 +1,16 @@
 /**
- * Shipped design tokens — Hmat Metal + Doto labels + Space Grotesk body.
+ * Shipped design tokens — Hmat Metal + Doto labels + Inter body.
  * The Design Lab picker was removed once this pairing was finalized (2026-08).
  */
 
 export type DesignId = "hmat-metal";
 export type DesignFamily = "hmat";
 
-export type FontId = "doto" | "space-grotesk";
+export type FontId = "doto" | "inter";
 
 export const SHIPPED_DESIGN = "hmat-metal" as const satisfies DesignId;
 export const SHIPPED_DISPLAY_FONT = "doto" as const satisfies FontId;
-export const SHIPPED_BODY_FONT = "space-grotesk" as const satisfies FontId;
+export const SHIPPED_BODY_FONT = "inter" as const satisfies FontId;
 
 /** @deprecated Use SHIPPED_DESIGN — single shipped design. */
 export const DEFAULT_DESIGN = SHIPPED_DESIGN;
@@ -31,10 +31,10 @@ export const FONTS: Record<FontId, FontMeta> = {
     displayWeight: 500,
     displayWeightUi: 700,
   },
-  "space-grotesk": {
-    id: "space-grotesk",
-    label: "Space Grotesk",
-    cssVar: "--f-space-grotesk",
+  inter: {
+    id: "inter",
+    label: "Inter",
+    cssVar: "--f-inter",
   },
 };
 

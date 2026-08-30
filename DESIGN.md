@@ -5,7 +5,7 @@
 > that file. This markdown file is an **index** (identity, type roles, Classic
 > archive, implementation pointers). **When pixels disagree, the pen wins.**
 >
-> **Shipped type:** **Doto** (short labels / buttons) · **Space Grotesk** (Czech
+> **Shipped type:** **Doto** (short labels / buttons) · **Inter** (Czech
 > body). See [`design update/SHIPPED_DESIGN.md`](./design%20update/SHIPPED_DESIGN.md)
 > and `SHIPPED_*` in `src/lib/design/registry.ts`. Type roles:
 > `src/lib/design/typography.ts` (`TYPE`).
@@ -39,7 +39,7 @@ surface plus accent (see Colors).
 | Role | Face | Notes |
 |------|------|--------|
 | Short labels, kickers, buttons, section chrome | **Doto** (`font-display`) | Labels weight **500** (`--font-display-weight`). Buttons / mat-keys weight **700** (`--font-display-weight-ui` via `display-ui-weight`). Hierarchy via **size + tracking**, not Tailwind weight utilities. |
-| Long Czech text (bubbles, captions, body) | **Space Grotesk** (`font-sans`) | Full diacritics (`ě š č ř ž ů ď ť ň`). `font-medium` / `font-semibold` allowed where hierarchy needs weight. |
+| Long Czech text (bubbles, captions, body) | **Inter** (`font-sans`) | Full diacritics (`ě š č ř ž ů ď ť ň`). `font-medium` / `font-semibold` allowed where hierarchy needs weight. Body uses `tracking-normal`; sans headings / large titles use `tracking-tight`. |
 
 **Type scale** — use `TYPE` roles from `src/lib/design/typography.ts`. Do not
 scatter ad-hoc `text-[11px] tracking-[…]` classes on primary screens.
@@ -50,7 +50,8 @@ scatter ad-hoc `text-[11px] tracking-[…]` classes on primary screens.
 | `label` | Section / chrome labels (`// Nastavení`) |
 | `meta` | Numerals, status chips, loading |
 | `title` | Screen / card title (Doto) |
-| `subtitle` | Supporting line under a title (Space Grotesk, muted) |
+| `subtitle` | Supporting line under a title (Inter, muted, `tracking-normal`) |
+| `heading` | Sans heading / large title (Inter, `tracking-tight`) — not Doto |
 | `display` / `displayLg` | Hero / brand (in-app vs landing) |
 | `body` / `bodySm` | Czech prose |
 | `button` | Mat-keys and CTAs (Doto 700) |
@@ -62,7 +63,7 @@ marketing landing (Czech only in showcase samples). In-app Hmat chrome is Czech.
 
 ### Classic baseline (legacy)
 
-- **Font:** Share Tech Mono (monospace). No Inter for product chrome.
+- **Font:** Share Tech Mono (monospace). Do not extend Classic; new work uses `TYPE` + shipped fonts.
 - Letter-spacing `0.2em` on general labels; section labels `0.25em`.
 - Do not extend Classic; new work uses `TYPE` + shipped fonts.
 
@@ -204,7 +205,7 @@ frost dock/fields, `.hmat-orb`). Hmat Metal / ceramic Lab variants do not ship.
 
 - `data-design="hmat-metal"` on `<html>` selects the Hmat token block.
   Pre-paint script (`DesignScript`) and `DesignRoot` stamp shipped design +
-  fonts (Doto / Space Grotesk) — **no flash**, no user-selectable Lab.
+  fonts (Doto / Inter) — **no flash**, no user-selectable Lab.
 - Tailwind: `font-display → var(--font-display)`, `font-sans → var(--font-body)`,
   `rounded-card → var(--radius-card)`.
 - Registry: `src/lib/design/registry.ts` (`SHIPPED_DESIGN`, `SHIPPED_DISPLAY_FONT`,

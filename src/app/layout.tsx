@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Doto, Space_Grotesk } from "next/font/google";
+import { Doto, Inter } from "next/font/google";
 
 import { DesignRoot } from "@/components/design/DesignRoot";
 import { DesignScript } from "@/components/design/DesignScript";
@@ -14,13 +14,13 @@ const doto = Doto({
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const inter = Inter({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-space-grotesk",
+  variable: "--font-inter",
   display: "swap",
 });
 
-const FONT_VARS = [doto.variable, spaceGrotesk.variable].join(" ");
+const FONT_VARS = [doto.variable, inter.variable].join(" ");
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
