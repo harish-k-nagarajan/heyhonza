@@ -773,6 +773,7 @@ body {
  */
 .hmat-display-module {
   position: relative;
+  z-index: 1;
   width: fit-content;
   padding: 16px;
   margin: -8px -8px 0;
@@ -1778,6 +1779,220 @@ body {
 
 .t-skel:not(.is-revealed) .t-skel-content {
   pointer-events: none;
+}
+
+/* Recess card light — cream-locked canvas; frost-clear pane; blots on the whole card. */
+.hmat-recess-well {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: 24px;
+}
+
+.hmat-recess-hero > .mat-channel,
+.hmat-recess-hero > p {
+  position: relative;
+  z-index: 1;
+}
+
+.hmat-recess-light,
+.hmat-recess-pane {
+  position: absolute;
+  inset: 0;
+}
+
+.hmat-recess-pane {
+  z-index: 1;
+}
+
+.hmat-recess-pane--clear {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px) saturate(1.05);
+  -webkit-backdrop-filter: blur(8px) saturate(1.05);
+}
+
+.hmat-recess-blot {
+  position: absolute;
+  border-radius: 50%;
+  width: 130%;
+  height: 130%;
+  opacity: 0.35;
+  will-change: transform, opacity;
+}
+
+.hmat-recess-blot--a {
+  left: -40%;
+  top: -35%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--recess-g0) 80%, transparent) 0%,
+    transparent 68%
+  );
+}
+
+.hmat-recess-blot--b {
+  right: -45%;
+  top: -10%;
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--recess-g1) 70%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+.hmat-recess-blot--c {
+  left: 10%;
+  bottom: -50%;
+  width: 110%;
+  height: 110%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--accent) 18%, transparent) 0%,
+    transparent 72%
+  );
+}
+
+.hmat-recess-light--bloom::after {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  z-index: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--recess-g0) 70%, white) 0%,
+    transparent 68%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hmat-recess-light--idle.hmat-recess-light--blots {
+  opacity: 0.22;
+}
+
+.hmat-recess-light--oops {
+  opacity: 0.55;
+}
+
+.hmat-recess-light--oops .hmat-recess-blot--c {
+  opacity: 0.22;
+}
+
+.hmat-recess-light--excited .hmat-recess-blot--a,
+.hmat-recess-light--excited .hmat-recess-blot--b {
+  opacity: 0.42;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hmat-recess-light--idle.hmat-recess-light--blots {
+    animation: hmat-recess-idle-breathe 5.2s var(--ease-in-out) infinite;
+  }
+
+  .hmat-recess-light--thinking .hmat-recess-blot--a {
+    animation: hmat-recess-blot-drift-a 9.5s var(--ease-in-out) infinite;
+  }
+
+  .hmat-recess-light--thinking .hmat-recess-blot--b {
+    animation: hmat-recess-blot-drift-b 11s var(--ease-in-out) infinite;
+  }
+
+  .hmat-recess-light--thinking .hmat-recess-blot--c {
+    animation: hmat-recess-blot-breathe 4.2s var(--ease-in-out) infinite;
+  }
+
+  .hmat-recess-light--speaking {
+    opacity: 0.95;
+  }
+
+  .hmat-recess-light--speaking .hmat-recess-blot--a,
+  .hmat-recess-light--speaking .hmat-recess-blot--b,
+  .hmat-recess-light--speaking .hmat-recess-blot--c {
+    animation: hmat-recess-blot-breathe 2.8s var(--ease-in-out) infinite;
+  }
+
+  .hmat-recess-light--oops .hmat-recess-blot--a {
+    animation: hmat-recess-blot-drift-a 16s var(--ease-in-out) infinite;
+  }
+
+  .hmat-recess-light--excited .hmat-recess-blot--a {
+    animation: hmat-recess-blot-drift-a 8s var(--ease-in-out) infinite;
+  }
+
+  .hmat-recess-light--excited .hmat-recess-blot--b {
+    animation: hmat-recess-blot-drift-b 9.5s var(--ease-in-out) infinite;
+  }
+
+  .hmat-recess-light--bloom::after {
+    animation: hmat-recess-bloom 680ms var(--ease-out) 1 forwards;
+  }
+}
+
+@keyframes hmat-recess-idle-breathe {
+  0%,
+  100% {
+    opacity: 0.16;
+  }
+  50% {
+    opacity: 0.26;
+  }
+}
+
+@keyframes hmat-recess-blot-drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(7%, 5%) scale(1.05);
+  }
+}
+
+@keyframes hmat-recess-blot-drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-6%, 4%) scale(1.04);
+  }
+}
+
+@keyframes hmat-recess-blot-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.32;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.48;
+  }
+}
+
+@keyframes hmat-recess-bloom {
+  0% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hmat-recess-blot,
+  .hmat-recess-light--idle.hmat-recess-light--blots,
+  .hmat-recess-light--bloom::after {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .hmat-recess-light--blots {
+    opacity: 0.28;
+  }
 }
 
 

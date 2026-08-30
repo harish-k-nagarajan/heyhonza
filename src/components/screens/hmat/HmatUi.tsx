@@ -3,6 +3,7 @@
 import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 import { HmatOrb } from "@/components/honza/HmatOrb";
+import { RecessCardLight } from "@/components/honza/RecessCardLight";
 import { RecessReverb, recessMotion } from "@/components/honza/RecessReverb";
 import type { HonzaOrbState } from "@/components/honza/theme";
 import { cn } from "@/lib/cn";
@@ -92,6 +93,7 @@ export function HmatPresenceRecess({
         className,
       )}
     >
+      <RecessCardLight mood={recessMood} speakFlash={speakFlash} />
       <div className="hmat-display-module hmat-presence-shared">
         <RecessReverb motion={reverbMotion} />
         <div
