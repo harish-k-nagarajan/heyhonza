@@ -272,11 +272,11 @@ export function HmatOpenerCard({ children }: { children: ReactNode }) {
   );
 }
 
-/** Scrollable chat thread with a frosted top edge when content scrolls under. */
-export const HmatChatThread = forwardRef<
+/** Scroll region with a frosted top edge when content scrolls under. */
+export const HmatFrostedScroll = forwardRef<
   HTMLDivElement,
-  { children: ReactNode; watchKey?: string | number }
->(function HmatChatThread({ children, watchKey }, forwardedRef) {
+  { children: ReactNode; watchKey?: string | number; className?: string }
+>(function HmatFrostedScroll({ children, watchKey, className }, forwardedRef) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [fadeTop, setFadeTop] = useState(false);
 
@@ -317,7 +317,7 @@ export const HmatChatThread = forwardRef<
     <div className="hmat-chat-thread relative min-h-0 w-full flex-1 overflow-hidden">
       <div
         ref={setScrollRef}
-        className="hmat-chat-thread-scroll flex flex-col gap-2.5 overflow-y-auto px-0.5"
+        className={cn("hmat-chat-thread-scroll", className)}
       >
         {children}
       </div>
@@ -326,6 +326,22 @@ export const HmatChatThread = forwardRef<
         aria-hidden
       />
     </div>
+  );
+});
+
+/** Scrollable chat thread with a frosted top edge when content scrolls under. */
+export const HmatChatThread = forwardRef<
+  HTMLDivElement,
+  { children: ReactNode; watchKey?: string | number }
+>(function HmatChatThread({ children, watchKey }, forwardedRef) {
+  return (
+    <HmatFrostedScroll
+      ref={forwardedRef}
+      watchKey={watchKey}
+      className="flex flex-col gap-2.5 overflow-y-auto px-0.5"
+    >
+      {children}
+    </HmatFrostedScroll>
   );
 });
 
@@ -351,24 +367,28 @@ export function HmatCaptionPanel({
   kicker,
   children,
   muted,
+  live,
 }: {
   kicker: string;
   children: ReactNode;
   muted?: boolean;
+  live?: boolean;
 }) {
   return (
     <div className="hmat-caption-panel rounded-2xl px-3.5 py-3.5">
-      <p className={cn(TYPE.kicker, "mb-1.5 font-display tracking-[0.15em] text-[#6E8A74]")}>
+      <p className={cn(TYPE.kicker, "mb-1.5 shrink-0 font-display tracking-[0.15em] text-[#6E8A74]")}>
         {kicker}
       </p>
-      <p
+      <div
         className={cn(
+          "hmat-caption-body",
           TYPE.bodySm,
+          live && "hmat-caption-body--live",
           muted ? "text-[#243D2C]/40" : "text-[#243D2C]",
         )}
       >
         {children}
-      </p>
+      </div>
     </div>
   );
 }

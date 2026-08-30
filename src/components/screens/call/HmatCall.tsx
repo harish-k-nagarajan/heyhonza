@@ -21,16 +21,6 @@ import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { tapMedium } from "@/lib/interaction/haptic";
 
-function captionKicker(
-  phase: CallScreen["phase"],
-  inCall: boolean,
-  c: ReturnType<typeof useLocale>["t"]["call"],
-): string {
-  if (!inCall) return c.captionKicker;
-  if (phase === "connecting") return c.captionStatus;
-  return c.captionKicker;
-}
-
 function captionPlaceholder(
   phase: CallScreen["phase"],
   inCall: boolean,
@@ -50,7 +40,6 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
     orbState,
     orbLoading,
     caption,
-    captionWho,
     error,
     listening,
     supported,
@@ -95,14 +84,13 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
         <HmatStatusChip label={callChip(phase, listening, c)} />
       </div>
 
-      <HmatCaptionPanel kicker={captionKicker(phase, inCall, c)} muted={!showLiveCaption}>
+      <HmatCaptionPanel
+        kicker={c.captionKicker}
+        muted={!showLiveCaption}
+        live={Boolean(showLiveCaption)}
+      >
         {showLiveCaption ? (
-          <>
-            <span className={cn(TYPE.kicker, "mb-1 block text-[#6E8A74]")}>
-              {captionWho === "honza" ? t.common.honza : t.common.you}
-            </span>
-            <CaptionTextReveal key={`${captionWho}-${caption}`} text={caption!} />
-          </>
+          <CaptionTextReveal key={caption} className="absolute inset-0" text={caption!} />
         ) : (
           captionPlaceholder(phase, inCall, c)
         )}

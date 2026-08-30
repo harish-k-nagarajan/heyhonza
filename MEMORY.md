@@ -4,7 +4,29 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-30 (chat start/end motion)
+## Current entry — 2026-08-30 (settings top frost)
+
+### What changed
+- Settings (and account) use the same **frosted top edge** as the chat thread: fade appears once content scrolls under the top of the page.
+
+### Decision
+Keep chat and settings on the shared `HmatFrostedScroll` overlay — same mask/blur, no second frost recipe.
+
+---
+
+## Previous — 2026-08-30 (call caption roll)
+
+### What changed
+- Caption panel is a **fixed 100px** box. Honza's words stream in and the viewport pins to the newest line so older text **rolls up** instead of growing the card.
+- Speaker name under CAPTIONS is gone — kicker stays **CAPTIONS** only.
+- Learner speech is **not** captioned; the last Honza line stays until he speaks again.
+
+### Decision
+Call captions are Honza-only. Do not expand the caption card with transcript length.
+
+---
+
+## Previous — 2026-08-30 (chat start/end motion)
 
 ### What changed
 - Start chatting → composer uses **card resize** on the action slot; idle → End chat / Send grows the same slot and **accordion-expands** the two-button row (icon send width-collapses). No plus-to-menu morph.
