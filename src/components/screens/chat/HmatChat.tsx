@@ -152,7 +152,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
           breathe={presenceShown}
         />
 
-        <div className={cn("t-stagger flex flex-col items-center gap-2", copyShown && "is-shown")}>
+        <div className={cn("t-stagger flex flex-col items-center gap-1.5", copyShown && "is-shown")}>
           <HmatScreenTitle>
             <span className="t-stagger-line t-stagger-line--1">{statusTitle}</span>
           </HmatScreenTitle>
@@ -255,7 +255,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
         <div className="mat-channel w-[200px]" />
         <div className="h-3.5 w-16 rounded-sm bg-muted/40" />
       </div>
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-1.5">
         <div className="hmat-chat-skel-title" />
         <div className="hmat-chat-skel-chip" />
       </div>

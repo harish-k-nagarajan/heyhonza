@@ -137,7 +137,7 @@ function cssMs(name: string, fallback: number): number {
   return Number.isFinite(v) ? v : fallback;
 }
 
-const THINK_TEXT_CLASS = `${TYPE.bodySm} font-display font-bold tracking-wide`;
+const THINK_TEXT_CLASS = "font-display text-[11px] font-bold leading-none tracking-wide";
 
 export function HmatStatusChip({
   label,
@@ -185,8 +185,8 @@ export function HmatStatusChip({
   }, [layers]);
 
   return (
-    <span className="hmat-chip inline-flex items-center gap-2 rounded-xl px-3.5 py-2">
-      <span className="h-2 w-2 shrink-0 rounded-[2px] bg-accent" aria-hidden />
+    <span className="hmat-chip inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1">
+      <span className="h-1.5 w-1.5 shrink-0 rounded-[2px] bg-accent" aria-hidden />
       <span
         ref={boxRef}
         className={cn("t-think", shimmer && "is-shimmering")}
@@ -216,7 +216,7 @@ export function HmatStatusChip({
 
 export function HmatScreenTitle({ children }: { children: ReactNode }) {
   return (
-    <h1 className="text-center font-display text-[26px] font-bold leading-tight text-[#243D2C]">
+    <h1 className="text-center font-display text-[20px] font-bold leading-tight text-[#243D2C]">
       {children}
     </h1>
   );

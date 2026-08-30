@@ -1720,10 +1720,12 @@ body {
   transition-duration: var(--duration-quick);
 }
 .hmat-chat-action-slot[data-mode="idle"] {
-  height: 52px;
+  /* Frost field is ~54px (input + border); 52 clipped the pill radius. */
+  height: 56px;
 }
 .hmat-chat-action-slot[data-mode="ongoing"] {
-  height: 114px;
+  /* Field (~54) + gap (10) + buttons (52) + room for the button shadow. */
+  height: 124px;
 }
 .hmat-chat-action-face {
   position: absolute;
@@ -1741,15 +1743,15 @@ body {
 }
 
 .hmat-chat-skel-title {
-  height: 1.6rem;
-  width: 10.5rem;
+  height: 1.25rem;
+  width: 8.5rem;
   border-radius: 999px;
   background: rgba(36, 61, 44, 0.08);
 }
 .hmat-chat-skel-chip {
-  height: 2.25rem;
-  width: 6.5rem;
-  border-radius: 0.75rem;
+  height: 1.5rem;
+  width: 5.5rem;
+  border-radius: 0.5rem;
   background: rgba(36, 61, 44, 0.08);
 }
 .hmat-chat-skel-cta {

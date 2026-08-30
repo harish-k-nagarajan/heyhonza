@@ -90,7 +90,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
         onOrbTap={triggerPop}
       />
 
-      <div className="flex shrink-0 flex-col items-center gap-2">
+      <div className="flex shrink-0 flex-col items-center gap-1.5">
         <HmatScreenTitle>{callTitle(phase, c)}</HmatScreenTitle>
         <HmatStatusChip label={callChip(phase, listening, c)} />
       </div>

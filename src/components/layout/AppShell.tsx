@@ -74,7 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               paddingTop: isWelcome
                 ? "env(safe-area-inset-top)"
                 : "max(20px, env(safe-area-inset-top))",
-              paddingBottom: hideNav ? welcomeBottomPad : "calc(88px + env(safe-area-inset-bottom))",
+              paddingBottom: hideNav ? welcomeBottomPad : "calc(96px + env(safe-area-inset-bottom))",
             }}
           >
             {hideNav || isWelcome ? children : <HmatScreenFrame>{children}</HmatScreenFrame>}
