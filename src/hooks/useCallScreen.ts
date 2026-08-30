@@ -177,8 +177,6 @@ export function useCallScreen(): CallScreen {
   const handleTranscript = useCallback(
     (text: string) => {
       if (!activeRef.current) return;
-      setCaption(text);
-      setCaptionWho("you");
       setPhase("thinking");
       void (async () => {
         const reply = await sendUserTurn(text, "call");

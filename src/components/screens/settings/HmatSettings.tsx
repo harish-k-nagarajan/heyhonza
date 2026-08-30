@@ -26,7 +26,7 @@ import {
   curatedPickerModels,
   HmatModelPicker,
 } from "@/components/screens/settings/HmatModelPicker";
-import { HmatSettingsHeader } from "@/components/screens/hmat/HmatUi";
+import { HmatFrostedScroll, HmatSettingsHeader } from "@/components/screens/hmat/HmatUi";
 import {
   DAILY_MESSAGE_COUNTS,
   ROUTES,
@@ -359,7 +359,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
   }
 
   return (
-    <div className="hmat-scroll flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-2 [-webkit-overflow-scrolling:touch]">
+    <HmatFrostedScroll className="flex flex-col gap-5 overflow-y-auto pb-2">
       <HmatSettingsHeader orbState={expression.mood} kicker={s.kicker} title={s.title} />
 
       {screen.authConfigured ? (
@@ -778,6 +778,6 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
           }}
         />
       ) : null}
-    </div>
+    </HmatFrostedScroll>
   );
 }

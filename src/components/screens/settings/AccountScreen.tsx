@@ -12,7 +12,7 @@ import {
   HmatSettingsPrimaryButton,
   HmatSettingsSection,
 } from "@/components/screens/settings/HmatSettingsUi";
-import { HmatSettingsHeader } from "@/components/screens/hmat/HmatUi";
+import { HmatFrostedScroll, HmatSettingsHeader } from "@/components/screens/hmat/HmatUi";
 import { persistProfile } from "@/lib/client/context-actions";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
@@ -131,7 +131,7 @@ export function AccountScreen() {
   };
 
   return (
-    <div className="hmat-scroll flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-2">
+    <HmatFrostedScroll className="flex flex-col gap-5 overflow-y-auto pb-2">
       <HmatSettingsHeader
         orbState={expression.mood}
         kicker={s.accountPageKicker}
@@ -204,6 +204,6 @@ export function AccountScreen() {
 
       {note ? <p className={cn(TYPE.helper, "text-[#2F8F4E]")}>{note}</p> : null}
       {error ? <p className={cn(TYPE.helper, "text-accent")}>{error}</p> : null}
-    </div>
+    </HmatFrostedScroll>
   );
 }
