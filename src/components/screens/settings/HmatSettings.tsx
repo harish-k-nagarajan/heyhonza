@@ -359,7 +359,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-2 [-webkit-overflow-scrolling:touch]">
+    <div className="hmat-scroll flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-2 [-webkit-overflow-scrolling:touch]">
       <HmatSettingsHeader orbState={expression.mood} kicker={s.kicker} title={s.title} />
 
       {screen.authConfigured ? (

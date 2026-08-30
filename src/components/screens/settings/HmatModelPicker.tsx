@@ -194,7 +194,7 @@ export function HmatModelPicker({
               className="min-w-0 flex-1 bg-transparent font-sans text-sm text-[#243D2C] outline-none placeholder:text-[#9c9089]"
             />
           </div>
-          <ul className="max-h-[260px] overflow-y-auto py-1">
+          <ul className="hmat-scroll max-h-[260px] overflow-y-auto py-1">
             {filtered.length === 0 ? (
               <li className={cn(TYPE.helper, "px-3.5 py-3")}>{emptyLabel}</li>
             ) : (

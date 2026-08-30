@@ -16,6 +16,12 @@ import type { ChatScreen } from "@/hooks/useChatScreen";
 import { useMoodReactions } from "@/hooks/useMoodReactions";
 import { useReactPop } from "@/hooks/useReactPop";
 import { localizeClientError } from "@/lib/i18n/extended";
+import {
+  chatChip,
+  chatTitle,
+  resolveChatStatus,
+  type ChatCopy,
+} from "@/lib/i18n/locales";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import type { ChatMessage } from "@/types";
@@ -23,15 +29,16 @@ import { cn } from "@/lib/cn";
 import { tapLight } from "@/lib/interaction/haptic";
 import { useChatStore } from "@/stores/useChatStore";
 
-function chipLabel(screen: ChatScreen, t: ReturnType<typeof useLocale>["t"]): string {
-  if (screen.lastError) return t.chat.chipProblem;
-  if (screen.loading) return t.chat.chipThinking;
-  if (!screen.heroMode) return t.chat.chipInChat;
-  return t.chat.chipPresent;
-}
-
-function longestLabel(...labels: string[]): string {
-  return labels.reduce((a, b) => (a.length >= b.length ? a : b));
+function longestChipLabel(c: ChatCopy): string {
+  return [
+    c.chipReady,
+    c.chipWaiting,
+    c.chipOnline,
+    c.chipThinking,
+    c.chipReplying,
+    c.chipFixing,
+    c.chipThrilled,
+  ].reduce((a, b) => (a.length >= b.length ? a : b));
 }
 
 function HmatEmptyHint({ text }: { text: string }) {
@@ -111,13 +118,16 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
   const composerMode = heroMode ? "idle" : "ongoing";
   const localizedError = localizeClientError(lastError, t.errors);
-  const statusLabel = chipLabel(screen, t);
-  const sizerLabel = longestLabel(
-    t.chat.chipProblem,
-    t.chat.chipThinking,
-    t.chat.chipInChat,
-    t.chat.chipPresent,
-  );
+  const statusPhase = resolveChatStatus({
+    lastError,
+    loading,
+    showStartGate,
+    heroMode,
+    mood: expression.mood,
+  });
+  const statusLabel = chatChip(statusPhase, t.chat);
+  const statusTitle = chatTitle(statusPhase, t.chat);
+  const sizerLabel = longestChipLabel(t.chat);
   const actionMode = showStartGate ? "gate" : composerMode;
   const orbState = loading ? "thinking" : expression.mood;
 
@@ -144,7 +154,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
         <div className={cn("t-stagger flex flex-col items-center gap-2", copyShown && "is-shown")}>
           <HmatScreenTitle>
-            <span className="t-stagger-line t-stagger-line--1">{t.chat.titlePresent}</span>
+            <span className="t-stagger-line t-stagger-line--1">{statusTitle}</span>
           </HmatScreenTitle>
           <span className="t-stagger-line t-stagger-line--2">
             <HmatStatusChip

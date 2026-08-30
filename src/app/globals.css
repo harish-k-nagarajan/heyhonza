@@ -1326,7 +1326,7 @@ body {
   isolation: isolate;
 }
 
-/* Chat thread — frosted scroll edge fades */
+/* Chat thread — frosted top edge only (last message stays clear) */
 .hmat-chat-thread {
   position: relative;
   flex: 1 1 0%;
@@ -1371,27 +1371,37 @@ body {
   mask-image: linear-gradient(180deg, #000 0%, #000 62%, transparent 100%);
   -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 62%, transparent 100%);
 }
-.hmat-chat-thread-fade-bottom {
-  bottom: 0;
-  background: linear-gradient(
-    0deg,
-    color-mix(in srgb, var(--bg, #f5f2ee) 18%, rgba(255, 255, 255, 0.88)) 0%,
-    color-mix(in srgb, var(--bg, #f5f2ee) 8%, rgba(255, 255, 255, 0.52)) 42%,
-    rgba(255, 255, 255, 0.12) 72%,
-    transparent 100%
-  );
-  backdrop-filter: blur(22px) saturate(1.9) brightness(1.04);
-  -webkit-backdrop-filter: blur(22px) saturate(1.9) brightness(1.04);
-  box-shadow:
-    inset 0 -1px 0 rgba(255, 255, 255, 0.92),
-    inset 0 -10px 18px -10px rgba(255, 255, 255, 0.55);
-  mask-image: linear-gradient(0deg, #000 0%, #000 62%, transparent 100%);
-  -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 62%, transparent 100%);
-}
 @media (prefers-reduced-motion: reduce) {
   .hmat-chat-thread-fade {
     transition: none;
   }
+}
+
+/* Hmat vertical scroller — hardware pin, not the OS chrome bar */
+.hmat-scroll,
+.hmat-chat-thread-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(74, 67, 60, 0.42) transparent;
+}
+.hmat-scroll::-webkit-scrollbar,
+.hmat-chat-thread-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.hmat-scroll::-webkit-scrollbar-track,
+.hmat-chat-thread-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 10px;
+}
+.hmat-scroll::-webkit-scrollbar-thumb,
+.hmat-chat-thread-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(74, 67, 60, 0.28), rgba(74, 67, 60, 0.55));
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.hmat-scroll::-webkit-scrollbar-thumb:hover,
+.hmat-chat-thread-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(74, 67, 60, 0.4), rgba(74, 67, 60, 0.7));
 }
 
 /* ===== Hmat screen continuity — Chat / Call / Settings ===== */

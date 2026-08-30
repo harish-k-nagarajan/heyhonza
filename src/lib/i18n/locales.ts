@@ -1,3 +1,4 @@
+import type { HonzaOrbState } from "@/components/honza/theme";
 import type { ModelOptionId } from "@/lib/constants";
 import type { ExtendedCopy } from "@/lib/i18n/extended";
 import { EXTENDED } from "@/lib/i18n/extended";
@@ -79,13 +80,110 @@ export type ChatCopy = {
   replyInCzech: string;
   placeholderIdle: string;
   placeholderOngoing: string;
-  titlePresent: string;
-  chipProblem: string;
+  /** Start gate — before the session begins. */
+  titleReady: string;
+  /** Active session, waiting for the learner's first message. */
+  titleWaiting: string;
+  /** Ongoing conversation (idle mood). */
+  titleInChat: string;
+  titleThinking: string;
+  titleReplying: string;
+  titleFixing: string;
+  titleThrilled: string;
+  chipReady: string;
+  chipWaiting: string;
+  chipOnline: string;
   chipThinking: string;
-  chipInChat: string;
-  chipPresent: string;
+  chipReplying: string;
+  chipFixing: string;
+  chipThrilled: string;
   openerKicker: string;
 };
+
+/** Chat header status — mirrors Call's phase-driven title/chip. */
+export type ChatStatusPhase =
+  | "ready"
+  | "waiting"
+  | "inChat"
+  | "thinking"
+  | "replying"
+  | "fixing"
+  | "thrilled";
+
+export function resolveChatStatus(input: {
+  lastError: string | null;
+  loading: boolean;
+  showStartGate: boolean;
+  heroMode: boolean;
+  mood: HonzaOrbState;
+}): ChatStatusPhase {
+  if (input.lastError) return "fixing";
+  if (input.loading) return "thinking";
+  if (input.showStartGate) return "ready";
+  if (input.heroMode) return "waiting";
+  switch (input.mood) {
+    case "thinking":
+      return "thinking";
+    case "speaking":
+      return "replying";
+    case "oops":
+      return "fixing";
+    case "excited":
+      return "thrilled";
+    case "idle":
+      return "inChat";
+    default: {
+      const _exhaustive: never = input.mood;
+      return _exhaustive;
+    }
+  }
+}
+
+export function chatTitle(phase: ChatStatusPhase, c: ChatCopy): string {
+  switch (phase) {
+    case "ready":
+      return c.titleReady;
+    case "waiting":
+      return c.titleWaiting;
+    case "inChat":
+      return c.titleInChat;
+    case "thinking":
+      return c.titleThinking;
+    case "replying":
+      return c.titleReplying;
+    case "fixing":
+      return c.titleFixing;
+    case "thrilled":
+      return c.titleThrilled;
+    default: {
+      const _exhaustive: never = phase;
+      return _exhaustive;
+    }
+  }
+}
+
+export function chatChip(phase: ChatStatusPhase, c: ChatCopy): string {
+  switch (phase) {
+    case "ready":
+      return c.chipReady;
+    case "waiting":
+      return c.chipWaiting;
+    case "inChat":
+      return c.chipOnline;
+    case "thinking":
+      return c.chipThinking;
+    case "replying":
+      return c.chipReplying;
+    case "fixing":
+      return c.chipFixing;
+    case "thrilled":
+      return c.chipThrilled;
+    default: {
+      const _exhaustive: never = phase;
+      return _exhaustive;
+    }
+  }
+}
 
 export type LevelHintCopy = {
   A1: string;
@@ -292,11 +390,20 @@ const en: LocaleStrings = {
     replyInCzech: "Reply in Czech",
     placeholderIdle: "Write to Honza…",
     placeholderOngoing: "Write a message…",
-    titlePresent: "Honza is here",
-    chipProblem: "problem",
+    titleReady: "Chat with Honza",
+    titleWaiting: "Honza is waiting",
+    titleInChat: "In chat",
+    titleThinking: "Honza is thinking",
+    titleReplying: "Honza is replying",
+    titleFixing: "Honza is fixing",
+    titleThrilled: "Honza is thrilled",
+    chipReady: "ready",
+    chipWaiting: "waiting",
+    chipOnline: "live",
     chipThinking: "thinking",
-    chipInChat: "in chat",
-    chipPresent: "present",
+    chipReplying: "reply",
+    chipFixing: "fix",
+    chipThrilled: "yay",
     openerKicker: "// HONZA WROTE",
   },
   settings: {
@@ -507,11 +614,20 @@ const cs: LocaleStrings = {
     replyInCzech: "Odpověz česky",
     placeholderIdle: "Napiš Honzovi…",
     placeholderOngoing: "Napiš zprávu…",
-    titlePresent: "Honza je tu",
-    chipProblem: "problém",
+    titleReady: "Chat s Honzou",
+    titleWaiting: "Honza čeká",
+    titleInChat: "V chatu",
+    titleThinking: "Honza přemýšlí",
+    titleReplying: "Honza odpovídá",
+    titleFixing: "Honza opravuje",
+    titleThrilled: "Honza jásá",
+    chipReady: "připraven",
+    chipWaiting: "čeká",
+    chipOnline: "online",
     chipThinking: "přemýšlí",
-    chipInChat: "v chatu",
-    chipPresent: "přítomný",
+    chipReplying: "odpovídá",
+    chipFixing: "opravuje",
+    chipThrilled: "jupí",
     openerKicker: "// HONZA NAPSAL",
   },
   settings: {
