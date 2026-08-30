@@ -270,14 +270,13 @@ export function HmatOpenerCard({ children }: { children: ReactNode }) {
   );
 }
 
-/** Scrollable chat thread with frosted top/bottom edge fades when content overflows. */
+/** Scrollable chat thread with a frosted top edge when content scrolls under. */
 export const HmatChatThread = forwardRef<
   HTMLDivElement,
   { children: ReactNode; watchKey?: string | number }
 >(function HmatChatThread({ children, watchKey }, forwardedRef) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [fadeTop, setFadeTop] = useState(false);
-  const [fadeBottom, setFadeBottom] = useState(false);
 
   const setScrollRef = useCallback(
     (el: HTMLDivElement | null) => {
@@ -294,7 +293,6 @@ export const HmatChatThread = forwardRef<
     if (!el) return;
     const canScroll = el.scrollHeight > el.clientHeight + 1;
     setFadeTop(canScroll && el.scrollTop > 4);
-    setFadeBottom(canScroll && el.scrollTop + el.clientHeight < el.scrollHeight - 4);
   }, []);
 
   useEffect(() => {
@@ -323,13 +321,6 @@ export const HmatChatThread = forwardRef<
       </div>
       <div
         className={cn("hmat-chat-thread-fade hmat-chat-thread-fade-top", fadeTop && "visible")}
-        aria-hidden
-      />
-      <div
-        className={cn(
-          "hmat-chat-thread-fade hmat-chat-thread-fade-bottom",
-          fadeBottom && "visible",
-        )}
         aria-hidden
       />
     </div>

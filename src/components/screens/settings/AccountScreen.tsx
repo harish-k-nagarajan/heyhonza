@@ -131,7 +131,7 @@ export function AccountScreen() {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-2">
+    <div className="hmat-scroll flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-2">
       <HmatSettingsHeader
         orbState={expression.mood}
         kicker={s.accountPageKicker}

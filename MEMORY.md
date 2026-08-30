@@ -4,7 +4,30 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-29 (liquid-glass orb slab)
+## Current entry — 2026-08-30 (revert liquid-glass thread)
+
+### What changed
+- Removed SVG displacement liquid-glass (`LiquidGlass`, `useLiquidGlass`, `liquid-glass.ts`). Chat composer + call captions are back to the original frost fields.
+- Thread keeps **frost only at the top** when content scrolls under; **no bottom fade**.
+- Chat / settings vertical scroll uses a Hmat pin scrollbar (warm charcoal bead), not OS chrome.
+
+### Decision
+Do not use the deepika-builds liquid-glass refraction on product surfaces.
+
+---
+
+## Previous — 2026-08-30 (chat status copy)
+
+### What changed
+- Chat header no longer freezes on “Honza je tu” / “přítomný”. Title + chip follow call-style phases: ready → waiting → in chat / thinking / replying / fixing / thrilled.
+- `honza.pen` Chat handoff frames + `HmatChat` + `ChatCopy` (`locales.ts`) updated together. Helpers: `resolveChatStatus` / `chatTitle` / `chatChip`.
+
+### Decision
+Chat status copy describes **what’s happening**, not presence. Idle gate = “Chat s Honzou” / “připraven”; mood-driven states mirror Call.
+
+---
+
+## Previous — 2026-08-29 (liquid-glass orb slab)
 
 ### What changed
 - Orb chassis is a **liquid-glass slab**: thicker translucent rim (~22px), backdrop blur, soft specular — **no white stroke rings**. Outer size ~196 so face stays 120.
