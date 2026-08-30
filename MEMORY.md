@@ -4,7 +4,19 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-30 (settings top frost)
+## Current entry — 2026-08-30 (Inter body)
+
+### What changed
+- Body face is **Inter** (`font-sans` / `--font-body`), loaded via `next/font/google` with `latin-ext`. Replaces Space Grotesk everywhere that used the body axis.
+- **Doto** (`font-display`) is unchanged — labels, kickers, buttons, in-app titles, landing heroes.
+- Sans headings / large titles: `tracking-tight`. Body, subtitle, helper: `tracking-normal`.
+
+### Decision
+Do not put Inter on Doto chrome. Do not bring Space Grotesk back as the body face.
+
+---
+
+## Previous — 2026-08-30 (settings top frost)
 
 ### What changed
 - Settings (and account) use the same **frosted top edge** as the chat thread: fade appears once content scrolls under the top of the page.

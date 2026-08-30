@@ -17,12 +17,12 @@ export function ClassicWelcome() {
 
       <div className="space-y-3">
         <SectionLabel as="p">AHOJ, JSEM HONZA</SectionLabel>
-        <h1 className="font-sans text-[26px] leading-tight tracking-[0.08em] text-foreground">
+        <h1 className="font-sans text-[26px] leading-tight tracking-tight text-foreground">
           Learn Czech by
           <br />
           texting a friend
         </h1>
-        <p className="mx-auto max-w-[min(320px,100%)] font-sans text-xs leading-relaxed tracking-[0.08em] text-muted-foreground">
+        <p className="mx-auto max-w-[min(320px,100%)] font-sans text-xs leading-relaxed tracking-normal text-muted-foreground">
           Not a streak. Not a leaderboard. Just Honza, writing to you in Czech
           every day — and waiting for you to write back.
         </p>
@@ -50,7 +50,7 @@ export function ClassicWelcome() {
                 {s.n}
               </span>
               <div className="space-y-1">
-                <p className="font-sans text-[13px] tracking-[0.08em] text-foreground">
+                <p className="font-sans text-[13px] tracking-tight text-foreground">
                   {s.title}
                 </p>
                 <p className="font-sans text-xs leading-relaxed text-muted-foreground">
@@ -104,7 +104,7 @@ export function ClassicWelcome() {
         >
           Get started
         </Link>
-        <p className="mx-auto max-w-[min(300px,100%)] font-sans text-[10px] leading-relaxed tracking-[0.1em] text-muted-foreground">
+        <p className="mx-auto max-w-[min(300px,100%)] font-sans text-[10px] leading-relaxed tracking-normal text-muted-foreground">
           Add Honza to your home screen and he lives on your phone like any
           other app.
         </p>

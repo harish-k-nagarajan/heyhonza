@@ -4,7 +4,7 @@
 |-------|--------|
 | Surface | **Hmat Metal** |
 | Short labels / buttons | **Doto** (weight 500 labels, 700 buttons) |
-| Long Czech text | **Space Grotesk** |
+| Long Czech text | **Inter** |
 
 Design Lab removed from Settings — fonts and surface are no longer user-selectable.
 

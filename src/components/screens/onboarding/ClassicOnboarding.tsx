@@ -65,7 +65,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
               {o.stepOf(1, 5)}
             </p>
             <HonzaOrb state="idle" size="hero" className="shrink-0" />
-            <h1 className="font-sans text-lg tracking-[0.12em]">{o.step1Title}</h1>
+            <h1 className="font-sans text-lg tracking-tight">{o.step1Title}</h1>
             <p className="mx-auto max-w-[min(320px,100%)] font-sans text-sm leading-relaxed text-muted-foreground">
               {o.step1Body}
             </p>
@@ -82,7 +82,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               {o.stepOf(2, 5)}
             </p>
-            <h1 className="font-sans text-lg tracking-[0.12em]">{o.step2Title}</h1>
+            <h1 className="font-sans text-lg tracking-tight">{o.step2Title}</h1>
             <p className="text-sm text-muted-foreground">{o.step2Body}</p>
           </div>
           <div className="flex flex-col gap-2">
@@ -122,7 +122,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               {o.stepOf(3, 5)}
             </p>
-            <h1 className="font-sans text-lg tracking-[0.12em]">{o.step3Title}</h1>
+            <h1 className="font-sans text-lg tracking-tight">{o.step3Title}</h1>
             <p className="text-sm text-muted-foreground">{o.step3Body}</p>
           </div>
           <div className="flex flex-col gap-2">
@@ -161,7 +161,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               {o.stepOf(4, 5)}
             </p>
-            <h1 className="font-sans text-lg tracking-[0.12em]">{o.step4Title}</h1>
+            <h1 className="font-sans text-lg tracking-tight">{o.step4Title}</h1>
             <p className="text-sm text-muted-foreground">{o.step4Body}</p>
           </div>
 
@@ -243,7 +243,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               {o.stepOptional}
             </p>
-            <h1 className="font-sans text-lg tracking-[0.12em]">{o.step5Title}</h1>
+            <h1 className="font-sans text-lg tracking-tight">{o.step5Title}</h1>
             <p className="text-sm text-muted-foreground">{o.step5Body}</p>
           </div>
 

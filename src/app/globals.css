@@ -3,11 +3,11 @@
 @tailwind utilities;
 
 /*
- * Shipped fonts: Doto (labels/buttons) + Space Grotesk (Czech body).
+ * Shipped fonts: Doto (labels/buttons) + Inter (Czech body).
  */
 :root {
   --f-doto: var(--font-doto), ui-monospace, monospace;
-  --f-space-grotesk: var(--font-space-grotesk), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-inter: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 /*
@@ -20,6 +20,13 @@
 }
 
 @layer base {
+  /* Inter headings — tight tracking. Doto (`font-display`) is unchanged. */
+  h1.font-sans,
+  h2.font-sans,
+  h3.font-sans {
+    @apply tracking-tight;
+  }
+
   .font-display {
     font-weight: var(--font-display-weight, 400);
   }
@@ -37,7 +44,7 @@
  */
 :root {
   --font-display: var(--f-doto);
-  --font-body: var(--f-space-grotesk);
+  --font-body: var(--f-inter);
   --radius-card: 16px;
 
   --background: #f5f2ee;
@@ -152,7 +159,7 @@
 [data-design="hmat-metal"],
 [data-design="hmat-ceramic"] {
   --font-display: var(--f-doto);
-  --font-body: var(--f-space-grotesk);
+  --font-body: var(--f-inter);
   --radius-card: 18px;
 
   /* Shared Hmat ink/scale on the cream base. */
