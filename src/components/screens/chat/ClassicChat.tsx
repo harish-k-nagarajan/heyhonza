@@ -35,7 +35,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
   } = screen;
   const typingPreview = useChatStore((s) => s.typingPreview);
   const typingPhaseActive = typingPreview !== null;
-  const showTyping = typingPhaseActive;
+  const showTyping = loading || typingPhaseActive;
   const composerDisabled = loading || showTyping;
   const localizedError = localizeClientError(lastError, t.errors);
   const bottomRef = useRef<HTMLDivElement>(null);

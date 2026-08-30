@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-30 (ship recess recipe)
+## Current entry — 2026-08-30 (chat glyph loader)
+
+### What changed
+- Installed the Dot Matrix shadcn registry (`@dotmatrix/all`) — 90 loaders plus shared core/hooks/CSS.
+- Chat typing wait now uses **three small Glyph Pulses** in a row (staggered 0 / ⅓ / ⅔; middle reversed) so it reads like three typing dots with progressive / opposite motifs, not one large blob.
+- Color is live `--accent` (idle coral, thinking `#3A7BD5`, …). Square dots to match Honza’s pixel face. Do not use the library mint/neon presets — `:root --color-dot-on` would freeze on idle red.
+- Call still uses the existing thinking overlay; pick a second loader later.
+
+### Decision
+Chat wait = Glyph Pulse. Do not use gradient color presets on product chrome.
+
+---
+
+## Previous — 2026-08-30 (ship recess recipe)
 
 ### What changed
 - Shipped recess recipe **cream-locked · frost-clear · blots · whole-card**. Recess Lab (chip, sheet, store, recipe axes, `NEXT_PUBLIC_HONZA_DEV_TOOLS`) is gone.

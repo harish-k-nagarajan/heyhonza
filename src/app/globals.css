@@ -49,6 +49,8 @@
   --border: rgba(0, 0, 0, 0.07);
   --accent: #e8432d;
   --accent-foreground: #ffffff;
+  /* Dot Matrix loaders — theme preset tracks mood accent (idle red, thinking blue, …). */
+  --color-dot-on: var(--accent);
 }
 
 :root {

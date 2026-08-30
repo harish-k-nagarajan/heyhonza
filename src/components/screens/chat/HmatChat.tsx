@@ -74,7 +74,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   } = screen;
   const typingPreview = useChatStore((s) => s.typingPreview);
   const typingPhaseActive = typingPreview !== null;
-  const showTyping = typingPhaseActive;
+  const showTyping = loading || typingPhaseActive;
   const composerDisabled = loading || showTyping;
   const threadRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
