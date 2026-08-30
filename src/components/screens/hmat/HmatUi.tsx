@@ -434,11 +434,12 @@ export function HmatChatComposerRow({
   endLabel?: string;
 }) {
   const empty = value.trim().length === 0;
+  const ongoing = mode === "ongoing";
 
-  if (mode === "idle") {
-    return (
-      <div className="flex shrink-0 items-center gap-2.5">
-        <div className="hmat-frost-field relative flex-1">
+  return (
+    <div className="flex h-full min-h-0 shrink-0 flex-col">
+      <div className="flex min-h-[54px] items-center">
+        <div className="hmat-frost-field relative min-w-0 flex-1">
           <input
             value={value}
             onChange={(e) => onChange(e.target.value)}
@@ -467,76 +468,62 @@ export function HmatChatComposerRow({
             </span>
           ) : null}
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            if (!disabled && !empty) onSend();
-          }}
-          disabled={disabled || empty}
-          aria-label={sendLabel}
-          className="hmat-fern-send flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] text-white disabled:opacity-40"
+        <div
+          className="t-resize hmat-composer-icon-slot"
+          data-open={ongoing ? "false" : "true"}
+          inert={ongoing || undefined}
+          aria-hidden={ongoing}
         >
-          <SendArrowIcon />
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex shrink-0 flex-col gap-2.5">
-      <div className="hmat-frost-field relative">
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
+          <button
+            type="button"
+            onClick={() => {
               if (!disabled && !empty) onSend();
-            }
-          }}
-          disabled={disabled}
-          aria-label={sendLabel}
-          className={cn(
-            "w-full bg-transparent px-[18px] py-3.5 text-[#243D2C] outline-none disabled:opacity-50",
-            TYPE.body,
-          )}
-        />
-        {empty ? (
-          <span
-            className={cn(
-              "pointer-events-none absolute inset-y-0 left-[18px] flex items-center text-[#6E8A74]",
-              TYPE.body,
-            )}
-            aria-hidden
+            }}
+            disabled={disabled || empty || ongoing}
+            aria-label={sendLabel}
+            tabIndex={ongoing ? -1 : undefined}
+            className="hmat-fern-send flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] text-white disabled:opacity-40"
           >
-            {placeholder}
-          </span>
-        ) : null}
+            <SendArrowIcon />
+          </button>
+        </div>
       </div>
-      <div className="flex gap-2.5">
-        <button
-          type="button"
-          onClick={() => {
-            tapLight();
-            onEndChat();
-          }}
-          disabled={disabled}
-          className="hmat-frost-action flex h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl text-[#243D2C] disabled:opacity-50"
-        >
-          <CloseIcon />
-          <span className={cn(TYPE.bodySm, "font-display font-semibold")}>{endLabel}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (!disabled && !empty) onSend();
-          }}
-          disabled={disabled || empty}
-          className="hmat-ink-action flex h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl text-white disabled:opacity-40"
-        >
-          <SendArrowIcon />
-          <span className={cn(TYPE.bodySm, "font-display font-semibold")}>{sendLabel}</span>
-        </button>
+      <div
+        className="t-acc hmat-composer-split"
+        data-open={ongoing ? "true" : "false"}
+        inert={!ongoing || undefined}
+      >
+        <div className="t-acc-panel">
+          <div className="t-acc-panel-inner">
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  tapLight();
+                  onEndChat();
+                }}
+                disabled={disabled || !ongoing}
+                tabIndex={ongoing ? undefined : -1}
+                className="hmat-frost-action flex h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl text-[#243D2C] disabled:opacity-50"
+              >
+                <CloseIcon />
+                <span className={cn(TYPE.bodySm, "font-display font-semibold")}>{endLabel}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!disabled && !empty) onSend();
+                }}
+                disabled={disabled || empty || !ongoing}
+                tabIndex={ongoing ? undefined : -1}
+                className="hmat-ink-action flex h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl text-white disabled:opacity-40"
+              >
+                <SendArrowIcon />
+                <span className={cn(TYPE.bodySm, "font-display font-semibold")}>{sendLabel}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

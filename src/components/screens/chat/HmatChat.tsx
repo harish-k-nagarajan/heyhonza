@@ -29,6 +29,16 @@ import { cn } from "@/lib/cn";
 import { tapLight } from "@/lib/interaction/haptic";
 import { useChatStore } from "@/stores/useChatStore";
 
+function readDurationMs(el: HTMLElement | null, prop: string, fallback: number): number {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return 0;
+  if (!el) return fallback;
+  const raw = getComputedStyle(el).getPropertyValue(prop).trim();
+  if (!raw) return fallback;
+  const n = parseFloat(raw);
+  if (Number.isNaN(n)) return fallback;
+  return raw.endsWith("s") && !raw.endsWith("ms") ? n * 1000 : n;
+}
+
 function longestChipLabel(c: ChatCopy): string {
   return [
     c.chipReady,
@@ -77,14 +87,53 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   const showTyping = loading || typingPhaseActive;
   const composerDisabled = loading || showTyping;
   const threadRef = useRef<HTMLDivElement>(null);
+  const threadAccRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
   const [mounted, setMounted] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [presenceShown, setPresenceShown] = useState(false);
   const [copyShown, setCopyShown] = useState(false);
   const [draft, setDraft] = useState("");
+  const [isExiting, setIsExiting] = useState(false);
+  const [stashedMessages, setStashedMessages] = useState<ChatMessage[]>([]);
+  const [exitingMessages, setExitingMessages] = useState<ChatMessage[]>([]);
+  const [prevWantThreadOpen, setPrevWantThreadOpen] = useState(!showStartGate);
 
   useMoodReactions(triggerPop);
+
+  const wantThreadOpen = !showStartGate;
+
+  if (!heroMode && threadMessages.length > 0 && stashedMessages !== threadMessages) {
+    setStashedMessages(threadMessages);
+  }
+
+  if (prevWantThreadOpen !== wantThreadOpen) {
+    setPrevWantThreadOpen(wantThreadOpen);
+    if (!wantThreadOpen) {
+      setIsExiting(true);
+      setExitingMessages(stashedMessages);
+    } else {
+      setIsExiting(false);
+      setExitingMessages([]);
+    }
+  }
+
+  const threadOpen = wantThreadOpen || isExiting;
+
+  useEffect(() => {
+    if (!isExiting) return;
+    const el = threadAccRef.current;
+    const wait = Math.max(
+      readDurationMs(el, "--acc-collapse", 350),
+      readDurationMs(el, "--panel-close-dur", 350),
+    );
+    const id = window.setTimeout(() => {
+      setIsExiting(false);
+      setExitingMessages([]);
+      setStashedMessages([]);
+    }, wait);
+    return () => window.clearTimeout(id);
+  }, [isExiting]);
 
   useEffect(() => {
     const el = threadRef.current;
@@ -130,6 +179,9 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   const sizerLabel = longestChipLabel(t.chat);
   const actionMode = showStartGate ? "gate" : composerMode;
   const orbState = loading ? "thinking" : expression.mood;
+  const visibleMessages =
+    !heroMode && threadMessages.length > 0 ? threadMessages : exitingMessages;
+  const showThreadMessages = visibleMessages.length > 0;
 
   const send = useCallback(() => {
     const text = draft.trim();
@@ -166,34 +218,46 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
         </div>
       </div>
 
-      <HmatChatThread
-        ref={threadRef}
-        watchKey={`${threadMessages.length}-${showTyping}-${heroMode}`}
+      <div
+        ref={threadAccRef}
+        className="t-acc hmat-chat-thread-acc"
+        data-open={threadOpen ? "true" : "false"}
       >
-        {localizedError ? (
-          <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
-            {localizedError}
-          </p>
-        ) : null}
+        <div className="t-acc-panel">
+          <div className="t-acc-panel-inner">
+            <div className="t-panel-slide" data-open={threadOpen ? "true" : "false"}>
+              <HmatChatThread
+                ref={threadRef}
+                watchKey={`${visibleMessages.length}-${showTyping}-${heroMode}-${threadOpen}`}
+              >
+                {localizedError ? (
+                  <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
+                    {localizedError}
+                  </p>
+                ) : null}
 
-        {showEmptyState ? <HmatEmptyHint text={t.chat.emptyHint} /> : null}
+                {showEmptyState ? <HmatEmptyHint text={t.chat.emptyHint} /> : null}
 
-        {!heroMode
-          ? threadMessages.map((m: ChatMessage, i) =>
-              m.role === "user" ? (
-                <HmatUserBubble key={m.id} index={i}>
-                  {m.content}
-                </HmatUserBubble>
-              ) : (
-                <HmatHonzaBubble key={m.id} index={i}>
-                  {m.content}
-                </HmatHonzaBubble>
-              ),
-            )
-          : null}
+                {showThreadMessages
+                  ? visibleMessages.map((m: ChatMessage, i) =>
+                      m.role === "user" ? (
+                        <HmatUserBubble key={m.id} index={i}>
+                          {m.content}
+                        </HmatUserBubble>
+                      ) : (
+                        <HmatHonzaBubble key={m.id} index={i}>
+                          {m.content}
+                        </HmatHonzaBubble>
+                      ),
+                    )
+                  : null}
 
-        {showTyping ? <HonzaTypingBubble variant="hmat" /> : null}
-      </HmatChatThread>
+                {showTyping && threadOpen ? <HonzaTypingBubble variant="hmat" /> : null}
+              </HmatChatThread>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="shrink-0">
         <div

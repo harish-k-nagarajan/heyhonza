@@ -4,7 +4,19 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-30 (chat title density + composer clearance)
+## Current entry — 2026-08-30 (chat start/end motion)
+
+### What changed
+- Start chatting → composer uses **card resize** on the action slot; idle → End chat / Send grows the same slot and **accordion-expands** the two-button row (icon send width-collapses). No plus-to-menu morph.
+- Thread uses **accordion + panel reveal** (12px travel, no extra blur) so the bubble window opens on Start and closes on End. Messages are held until `--acc-collapse` / `--panel-close-dur` so the list can exit instead of vanishing.
+- Open is `--duration-slow`, close is `--duration-medium`. `prefers-reduced-motion` still zeroes the snippets.
+
+### Decision
+Do not restagger every bubble on session close. Keep `message-enter` for new turns during a live chat.
+
+---
+
+## Previous — 2026-08-30 (chat title density + composer clearance)
 
 ### What changed
 - Chat/Call screen title is **20px** (was 26px); status chip is **11px** with tighter padding. Thread starts higher so the composer isn’t jammed against the messages.
