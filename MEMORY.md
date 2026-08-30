@@ -4,7 +4,38 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-30 (revert liquid-glass thread)
+## Current entry — 2026-08-30 (ship recess recipe)
+
+### What changed
+- Shipped recess recipe **cream-locked · frost-clear · blots · whole-card**. Recess Lab (chip, sheet, store, recipe axes, `NEXT_PUBLIC_HONZA_DEV_TOOLS`) is gone.
+- AppShell page fill + `--bg` stay `#F5F2EE`. `--accent` / `--energy` still follow mood. Recess card still uses `--recess-g*` mood fills.
+- `RecessCardLight` in `HmatPresenceRecess`: 3 pre-blurred gradient blots + static frost-clear pane, clipped to the whole `.hmat-recess-hero` card, behind the orb. RecessReverb stays on. `prefers-reduced-motion` freezes blots to a static tint.
+- No liquid glass / displacement. No drift-wave.
+
+### Decision
+This is the product look. Do not restore Recess Lab or app-wide mood retints of the beige canvas.
+
+---
+
+## Previous — 2026-08-30 (Recess Lab)
+
+### What changed
+- Dev-only **Recess Lab** on live Hmat Chat and Call (`HmatPresenceRecess`), gated by `NEXT_PUBLIC_HONZA_DEV_TOOLS=1` (same flag as the old MoodCycler). Flag off → no chip, no extra recess layers, no mood hold. Restart `next dev` after toggling.
+- Mount: `RecessLab` chip/sheet on `HmatChat` + `HmatCall` only. Classic family is a no-op (not mounted). Layers live in `RecessLabFx` inside the real recess, behind the orb.
+- Recipe id (copyable): `canvas · pane · light`, plus `reverb-off` and `whole-card` when those are not default. Examples: `app-tint · current · none` (shipped look), `cream-locked · frost-milk · blots`.
+- Axes: canvas `app-tint` | `cream-locked`; pane `current` | `frost-milk` | `frost-clear`; light `none` | `blots` | `drift-wave`; reverb `on` | `off`; light scope `display` (inner square, default) | `card` (whole recess card). Mood force: `live` (product) or idle/thinking/speaking/oops/excited.
+- Persist: `sessionStorage` key `honza.recess-lab.v1` (recipe + forced mood, not sheet open).
+- **cream-locked** overrides AppShell `backgroundColor` + `--bg` to `#F5F2EE` for the whole shell (Chat → Settings stays cream). `--accent` / `--energy` still follow mood. Recess mood fills still follow `--recess-g*`.
+- Mood force writes `useMoodStore` while Recess Lab is mounted on Chat/Call. Leaving Chat/Call still resets idle (existing `useChatScreen` / call cleanup). In-flight `loading` still paints the recess as thinking.
+- Lights are CSS opacity/transform of pre-blurred gradients only. No `feDisplacementMap`, no waveform libs. `prefers-reduced-motion` freezes light to a static tint.
+- Default product appearance is unchanged until a recipe is chosen. Do not bake a recipe into production defaults.
+
+### Decision
+Do not ship a new recess look from this lab. Harish will name a recipe later. Do not restore liquid-glass refraction.
+
+---
+
+## Previous — 2026-08-30 (revert liquid-glass thread)
 
 ### What changed
 - Removed SVG displacement liquid-glass (`LiquidGlass`, `useLiquidGlass`, `liquid-glass.ts`). Chat composer + call captions are back to the original frost fields.

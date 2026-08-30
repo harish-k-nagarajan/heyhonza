@@ -1,7 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 
+import { CREAM_CANVAS } from "@/components/honza/theme";
 import { useDesignHydrated } from "@/hooks/useDesignHydrated";
 import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { ROUTES } from "@/lib/constants";
@@ -17,7 +19,7 @@ import { ServerSync } from "./ServerSync";
 /** Hmat landing runs at excited-level energy so the channel and orb feel alive. */
 const LANDING_ENERGY = 0.85;
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const expression = useMoodExpression();
   const design = useDesignStore((s) => s.design);
@@ -36,15 +38,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname.startsWith(ROUTES.signin) ||
     isWelcome;
 
-  // The app-wide mood expression drives the surface tint, the `--accent` custom
-  // property, the `--energy` scalar, and `--bg` (the mood background as a var,
-  // which the Hmat material system tints off). ~400ms so swaps read as one
-  // coherent change; reduced-motion neutralises it via globals.css.
+  // Cream canvas stays put. Mood travels on --accent / --energy (face, WAITING,
+  // channel, dock pill, composer). Recess mood fills use --recess-g*.
   const rootStyle = {
-    backgroundColor: expression.background,
+    backgroundColor: CREAM_CANVAS,
     ["--accent" as string]: expression.accent,
     ["--energy" as string]: isWelcome && isHmat ? LANDING_ENERGY : expression.energy,
-    ["--bg" as string]: expression.background,
+    ["--bg" as string]: CREAM_CANVAS,
   };
 
   if (isHmat) {
