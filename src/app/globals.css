@@ -129,6 +129,17 @@
   --think-base: #7c7c7c;
   --think-highlight: #0d0d0d;
   --think-ease: var(--ease-in-out);
+  /* Panel reveal */
+  --panel-open-dur: var(--duration-slow);
+  --panel-close-dur: var(--duration-medium);
+  --panel-translate-y: 16px;
+  --panel-blur: var(--blur-small);
+  --panel-ease: var(--ease-smooth-out);
+  /* Accordion expand — open a beat slower than close */
+  --acc-expand: var(--duration-slow);
+  --acc-collapse: var(--duration-medium);
+  --acc-chevron: var(--duration-fast);
+  --acc-ease: var(--ease-smooth-out);
 }
 
 /*
@@ -1626,6 +1637,72 @@ body {
   will-change: width, height;
 }
 
+.t-panel-slide {
+  transform: translateY(var(--panel-translate-y));
+  opacity: 0;
+  filter: blur(var(--panel-blur));
+  pointer-events: none;
+  transition:
+    transform var(--panel-close-dur) var(--panel-ease),
+    opacity   var(--panel-close-dur) var(--panel-ease),
+    filter    var(--panel-close-dur) var(--panel-ease);
+  will-change: transform, opacity, filter;
+}
+.t-panel-slide[data-open="true"] {
+  transform: translateY(0);
+  opacity: 1;
+  filter: blur(0);
+  pointer-events: auto;
+  transition:
+    transform var(--panel-open-dur) var(--panel-ease),
+    opacity   var(--panel-open-dur) var(--panel-ease),
+    filter    var(--panel-open-dur) var(--panel-ease);
+}
+
+/* grid-template-rows 0fr → 1fr gives a clean height animation
+   with no JS measurement; the inner element clips overflow. */
+.t-acc-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--acc-collapse) var(--acc-ease);
+}
+.t-acc[data-open="true"] .t-acc-panel {
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--acc-expand) var(--acc-ease);
+}
+.t-acc-panel-inner {
+  overflow: hidden;
+  opacity: 0;
+  filter: blur(2px);
+  transition:
+    opacity var(--acc-collapse) var(--acc-ease),
+    filter var(--acc-collapse) var(--acc-ease);
+}
+.t-acc[data-open="true"] .t-acc-panel-inner {
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    opacity var(--acc-expand) var(--acc-ease),
+    filter var(--acc-expand) var(--acc-ease);
+}
+/* Flip the chevron vertically to turn the "v" into a "^".
+   scaleY(-1) about the centre passes through a flat line at
+   the midpoint (same look as a `d:` path morph) but animates
+   in every browser, unlike CSS `d:` morphing (Chromium only).
+   The chevron path is symmetric about the 16x16 viewBox
+   centre, so the flip lands exactly on the "^"; non-scaling
+   -stroke keeps the stroke width constant through the flip. */
+.t-acc-chevron {
+  display: inline-flex;
+  transform: scaleY(1);
+  transform-origin: center;
+  transition: transform var(--acc-chevron) var(--acc-ease);
+}
+.t-acc-chevron path { vector-effect: non-scaling-stroke; }
+.t-acc[data-open="true"] .t-acc-chevron {
+  transform: scaleY(-1);
+}
+
 .t-think { position: relative; display: inline-block; text-align: center; }
 .t-think-sizer { display: block; visibility: hidden; white-space: nowrap; }
 .t-think-text {
@@ -1713,19 +1790,70 @@ body {
   overflow: hidden;
   height: 52px;
   transition:
-    height var(--duration-fast) var(--ease-smooth-out);
+    height var(--resize-dur) var(--resize-ease);
 }
 .hmat-chat-action-slot[data-mode="gate"] {
   height: 52px;
-  transition-duration: var(--duration-quick);
+  transition-duration: var(--acc-collapse);
 }
 .hmat-chat-action-slot[data-mode="idle"] {
   /* Frost field is ~54px (input + border); 52 clipped the pill radius. */
   height: 56px;
+  transition-duration: var(--duration-fast);
 }
 .hmat-chat-action-slot[data-mode="ongoing"] {
   /* Field (~54) + gap (10) + buttons (52) + room for the button shadow. */
   height: 124px;
+  transition-duration: var(--acc-expand);
+}
+
+.hmat-composer-icon-slot {
+  overflow: hidden;
+  width: 48px;
+  height: 48px;
+  margin-left: 10px;
+  opacity: 1;
+  flex-shrink: 0;
+  transition:
+    width var(--resize-dur) var(--resize-ease),
+    height var(--resize-dur) var(--resize-ease),
+    margin-left var(--resize-dur) var(--resize-ease),
+    opacity var(--duration-quick) var(--ease-in-out);
+}
+.hmat-composer-icon-slot[data-open="false"] {
+  width: 0;
+  margin-left: 0;
+  opacity: 0;
+}
+
+.hmat-composer-split .t-acc-panel-inner {
+  padding-top: 10px;
+}
+
+.hmat-chat-thread-acc {
+  --panel-translate-y: 12px;
+  --panel-blur: 0px;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
+  overflow: hidden;
+}
+.hmat-chat-thread-acc > .t-acc-panel {
+  min-height: 0;
+  flex: 1 1 0%;
+}
+.hmat-chat-thread-acc .t-acc-panel-inner {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+.hmat-chat-thread-acc .t-panel-slide {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
 }
 .hmat-chat-action-face {
   position: absolute;
@@ -1768,6 +1896,10 @@ body {
   .t-skel-skeleton.is-pulsing > * { animation: none !important; }
   .t-stagger-line { transition: none !important; }
   .t-resize { transition: none !important; }
+  .t-panel-slide { transition: none !important; }
+  .t-acc-panel, .t-acc-panel-inner, .t-acc-chevron {
+    transition: none !important;
+  }
   .t-think-text { transition: none !important; transform: none !important; filter: none !important; }
   .t-think-text::before { display: none !important; }
   .hmat-orb-presence {
@@ -1776,7 +1908,8 @@ body {
     transition: none !important;
   }
   .hmat-chat-action-slot,
-  .hmat-chat-action-face {
+  .hmat-chat-action-face,
+  .hmat-composer-icon-slot {
     transition: none !important;
   }
 }
