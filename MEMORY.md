@@ -4,7 +4,19 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-30 (chat glyph loader)
+## Current entry — 2026-08-30 (chat title density + composer clearance)
+
+### What changed
+- Chat/Call screen title is **20px** (was 26px); status chip is **11px** with tighter padding. Thread starts higher so the composer isn’t jammed against the messages.
+- Ongoing composer slot was **114px with overflow:hidden** while the real row is ~116px — that shaved the End chat / Send corner radii. Slot is **124px** (idle **56px**) so the curves and shadows stay intact.
+- AppShell dock clearance is **96px** (was 88px). The dock itself has no extra top padding; the clip was the slot, not the dock glass.
+
+### Decision
+Keep the shared `HmatScreenTitle` / chip scale on Chat and Call. Do not grow the title back to 26px to “match the orb.”
+
+---
+
+## Previous — 2026-08-30 (chat glyph loader)
 
 ### What changed
 - Installed the Dot Matrix shadcn registry (`@dotmatrix/all`) — 90 loaders plus shared core/hooks/CSS.
