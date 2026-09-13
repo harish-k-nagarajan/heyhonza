@@ -4,7 +4,21 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-13 (landing hero recess)
+## Current entry — 2026-09-13 (landing scroll choreography — Lenis + GSAP)
+
+### What changed
+- **`/welcome` only:** `LandingSmoothScroll` wraps `HmatLanding` — Lenis (`autoRaf: false`) + GSAP ticker sync + `ScrollTrigger.update` on Lenis scroll. **`prefers-reduced-motion`** bypasses Lenis and pinned scenes (native scroll, content visible).
+- **Chat act (md+):** `useLandingChatScrollScene` — ScrollTrigger **pin** on `landing-bubble-bridge` (~240vh runway), scrub **translate-only** morph between `data-landing-hero-bubble` and `data-landing-chat-bubble` (measured chrome, not full-width slots). Ghosts use the same `LandingChatBubble` as hero; in-flow phone rows stay `visibility:hidden` until progress ≥ 0.98 (no ghost + in-flow double vision). Pairs remeasure on `onRefresh` + one rAF after pin setup.
+- **Call act:** `useLandingCallScrollScene` — scrub inside call frame: **texts-reveal** (`t-stagger`) on Honza prompt, **streaming-text** (`t-stream`) on transcript, orb pulse + hang-up scale. Motion tokens + snippet CSS in `globals.css` (`--stream-*`, `.t-stream-w`).
+- Hero + chat still share `LANDING_DEMO_CONVERSATION`; float pauses during morph (`landing-float-paused`).
+- **Landing bubble width:** `LANDING_BUBBLE_MAX_BY_INDEX` on `LandingChatBubble` (one `max-w-[min(…)]` per message index); hero wrappers are position-only — no double max-width with chat/morph ghosts.
+
+### Decision
+Landing scroll choreography uses **Lenis + GSAP ScrollTrigger** (not `motion` scroll morph). Keep **Motion** elsewhere in the app. Pin + morph **desktop md+ only**; mobile static marketing layout.
+
+---
+
+## Previous — 2026-09-13 (landing hero recess)
 
 ### What changed
 - Welcome hero orb now uses the in-app **rectangular recess + glass bezel** (`HmatPresenceRecess` `variant="display"`), centered, instead of a bare 148px face.

@@ -4,6 +4,7 @@ import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 
+import { LandingBubbleMorphProvider } from "./LandingBubbleMorphContext";
 import { LandingCallFold } from "./LandingCallFold";
 import { LandingChatFold } from "./LandingChatFold";
 import { LandingFooter } from "./LandingFooter";
@@ -37,8 +38,10 @@ export function HmatLanding() {
     <>
       <div className="landing-page -mx-5 w-[calc(100%+2.5rem)] overflow-x-clip bg-[#fff8f5] md:-mx-0 md:w-full">
         <LandingNav />
-        <LandingHero visitor={visitor} />
-        <LandingChatFold />
+        <LandingBubbleMorphProvider>
+          <LandingHero visitor={visitor} />
+          <LandingChatFold />
+        </LandingBubbleMorphProvider>
         <LandingCallFold />
 
         <div className="landing-supporting flex flex-col gap-12 py-14 md:gap-14 md:py-16">

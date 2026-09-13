@@ -15,7 +15,12 @@ export function LandingChatFold() {
   const w = t.welcome;
 
   return (
-    <section className="landing-fold landing-fold-chat flex flex-col items-center gap-8 px-6 py-12 md:px-10 md:py-14">
+    <section
+      className={cn(
+        "landing-fold landing-fold-chat relative flex flex-col items-center gap-8 px-6 py-12 md:px-10 md:py-14",
+        "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:hidden before:h-24 before:bg-gradient-to-b before:from-[#fff4ee] before:via-white/80 before:to-transparent md:before:block",
+      )}
+    >
       <LandingFoldHeader
         num="01"
         kicker={w.sectionChatKicker}
@@ -23,9 +28,11 @@ export function LandingChatFold() {
       />
 
       <div
+        data-landing-phone
         className={cn(
           "landing-phone-frame w-full max-w-[390px] rounded-[28px] border border-border",
           "bg-white/80 p-5 shadow-[0_12px_32px_rgba(120,90,70,0.09)] backdrop-blur-[16px]",
+          "md:sticky md:top-[10vh] md:z-[5]",
         )}
       >
         <div className="mb-3 flex items-center justify-between">
@@ -34,15 +41,22 @@ export function LandingChatFold() {
         </div>
 
         <div className="flex flex-col gap-2.5 py-2">
-          {LANDING_PHONE_CHAT.map((message) => (
+          {LANDING_PHONE_CHAT.map((message, index) => (
             <div
               key={message.text}
+              data-landing-chat-slot={index}
               className={cn(
                 "flex w-full",
                 message.role === "user" ? "justify-end" : "justify-start",
               )}
             >
-              <LandingChatBubble role={message.role}>{message.text}</LandingChatBubble>
+              <LandingChatBubble
+                role={message.role}
+                messageIndex={index}
+                morphAnchor="chat"
+              >
+                {message.text}
+              </LandingChatBubble>
             </div>
           ))}
         </div>
