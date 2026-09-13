@@ -50,6 +50,8 @@ export function HmatPresenceRecess({
   onOrbTap,
   className,
   breathe = true,
+  /** `display` = compact rectangular recess + orb for the landing hero. */
+  variant = "presence",
 }: {
   orbState: HonzaOrbState;
   size?: number;
@@ -59,6 +61,7 @@ export function HmatPresenceRecess({
   onOrbTap?: () => void;
   className?: string;
   breathe?: boolean;
+  variant?: "presence" | "display";
 }) {
   const { t } = useLocale();
   const moodLabel = recessMoodLabel(orbState, loading, t);
@@ -84,18 +87,25 @@ export function HmatPresenceRecess({
   );
   const bezelActive = loading || orbState === "thinking";
   const recessMood: HonzaOrbState = loading || orbState === "thinking" ? "thinking" : orbState;
+  const isDisplay = variant === "display";
+  const orb = (
+    <HmatOrb state={orbState} size={size} breathe={breathe} stackClassName={stackClassName} />
+  );
 
   return (
     <div
       className={cn(
         "hmat-recess-hero",
         recessHeroModifier(recessMood),
+        isDisplay && "hmat-recess-hero--display",
         className,
       )}
     >
-      <RecessCardLight mood={recessMood} speakFlash={speakFlash} />
+      {isDisplay ? null : (
+        <RecessCardLight mood={recessMood} speakFlash={speakFlash} />
+      )}
       <div className="hmat-display-module hmat-presence-shared">
-        <RecessReverb motion={reverbMotion} />
+        {isDisplay ? null : <RecessReverb motion={reverbMotion} />}
         <div
           className={cn(
             "hmat-display-bezel",
@@ -104,30 +114,38 @@ export function HmatPresenceRecess({
             stackClassName === "react-pop" && "hmat-display-bezel--burst",
           )}
         >
-          <button
-            type="button"
-            onClick={() => {
-              tapLight();
-              onOrbTap?.();
-            }}
-            className="hmat-display-screen relative rounded-[18px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            aria-label={t.common.honza}
-          >
-            <HmatOrb state={orbState} size={size} breathe={breathe} stackClassName={stackClassName} />
-          </button>
+          {isDisplay ? (
+            <div className="hmat-display-screen relative rounded-[18px]">{orb}</div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                tapLight();
+                onOrbTap?.();
+              }}
+              className="hmat-display-screen relative rounded-[18px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              aria-label={t.common.honza}
+            >
+              {orb}
+            </button>
+          )}
         </div>
       </div>
-      <div
-        className={cn(
-          "mat-channel w-[200px] motion-reduce:animate-none",
-          channelPulse && "motion-safe:animate-channel-pulse",
-        )}
-        aria-hidden
-      />
-      {/* honza.pen Bir3A mood label: Doto 13 / 700 / letterSpacing 2 */}
-      <p className="font-display text-[13px] font-bold tracking-[2px] text-accent">
-        {moodLabel}
-      </p>
+      {isDisplay ? null : (
+        <>
+          <div
+            className={cn(
+              "mat-channel w-[200px] motion-reduce:animate-none",
+              channelPulse && "motion-safe:animate-channel-pulse",
+            )}
+            aria-hidden
+          />
+          {/* honza.pen Bir3A mood label: Doto 13 / 700 / letterSpacing 2 */}
+          <p className="font-display text-[13px] font-bold tracking-[2px] text-accent">
+            {moodLabel}
+          </p>
+        </>
+      )}
     </div>
   );
 }

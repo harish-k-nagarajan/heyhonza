@@ -73,7 +73,7 @@ export const LANDING_PWA_HINT =
   "Add Honza to your home screen and he lives on your phone like any other app. A message is waiting when you open it — not a push notification.";
 
 export const LANDING_HERO_FIRST = {
-  headline: "Learn Czech by texting a friend.",
+  headline: "Learn Czech by texting a friend",
   subcopy:
     "Not a streak. Not a leaderboard. Open the app. Honza is already writing to you in Czech.",
   cta: "Say hi to Honza",

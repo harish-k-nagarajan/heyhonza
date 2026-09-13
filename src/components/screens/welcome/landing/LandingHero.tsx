@@ -1,6 +1,6 @@
 "use client";
 
-import { HmatOrb } from "@/components/honza/HmatOrb";
+import { HmatPresenceRecess } from "@/components/screens/hmat/HmatUi";
 import {
   LANDING_HERO_BUBBLES,
 } from "@/components/screens/welcome/welcome-content";
@@ -28,12 +28,12 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
   return (
     <section className="landing-fold landing-fold-hero relative flex min-h-[min(820px,100dvh)] flex-col">
       <div className="relative mx-auto w-full max-w-[880px] flex-1 px-6 md:px-10">
-        <div className="relative mx-auto h-[min(420px,52vw)] max-h-[480px] w-full">
+        <div className="relative mx-auto h-[min(420px,max(280px,52vw))] max-h-[480px] w-full">
           {LANDING_HERO_BUBBLES.map((bubble) => (
             <div
               key={bubble.text}
               className={cn(
-                "landing-float-bubble absolute hidden max-w-[220px] md:block",
+                "landing-float-bubble absolute z-[2] hidden max-w-[220px] md:block",
                 bubble.className,
               )}
             >
@@ -41,8 +41,8 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
             </div>
           ))}
 
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <HmatOrb state="idle" size={148} />
+          <div className="absolute left-1/2 top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2">
+            <HmatPresenceRecess orbState="idle" variant="display" />
           </div>
         </div>
 
