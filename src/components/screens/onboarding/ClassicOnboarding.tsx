@@ -11,6 +11,7 @@ import {
   type LevelId,
   type TopicId,
 } from "@/lib/constants";
+import { OnboardingProviderFields } from "@/components/screens/onboarding/OnboardingProviderFields";
 import type { OnboardingScreen } from "@/hooks/useOnboardingScreen";
 import { useLocale } from "@/lib/i18n/useLocale";
 
@@ -19,10 +20,10 @@ const TOPIC_ROWS: TopicId[][] = [
   ["work", "grammar", "smalltalk"],
 ];
 
-function ProgressDots({ step }: { step: number }) {
+function ProgressDots({ step, total }: { step: number; total: number }) {
   return (
     <div className="flex justify-center gap-1.5">
-      {[1, 2, 3, 4, 5].map((dot) => (
+      {Array.from({ length: total }, (_, i) => i + 1).map((dot) => (
         <span
           key={dot}
           className={`h-2 w-2 rounded-full ${dot === step ? "bg-accent" : "bg-border"}`}
@@ -39,10 +40,12 @@ function formatDisplayTime(value: string): string {
   return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
 }
 
-/** Classic onboarding — same 5-step flow with legacy flat chrome. */
+/** Classic onboarding — same 6-step flow with legacy flat chrome. */
 export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
   const { t } = useLocale();
   const o = t.onboarding;
+  const s = t.settings;
+  const total = screen.totalSteps;
 
   if (!screen.ready) {
     return (
@@ -52,17 +55,17 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
     );
   }
 
-  const ctaLabel = screen.step === 5 ? o.startChatting : o.continue;
+  const ctaLabel = screen.step === total ? o.startChatting : o.continue;
 
   return (
     <div className="mx-auto flex max-w-app flex-col gap-5">
-      <ProgressDots step={screen.step} />
+      <ProgressDots step={screen.step} total={total} />
 
       {screen.step === 1 ? (
         <>
           <header className="flex flex-col items-center gap-4 text-center">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              {o.stepOf(1, 5)}
+              {o.stepOf(1, total)}
             </p>
             <HonzaOrb state="idle" size="hero" className="shrink-0" />
             <h1 className="font-sans text-lg tracking-tight">{o.step1Title}</h1>
@@ -80,7 +83,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
         <>
           <div className="space-y-2 text-center">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              {o.stepOf(2, 5)}
+              {o.stepOf(2, total)}
             </p>
             <h1 className="font-sans text-lg tracking-tight">{o.step2Title}</h1>
             <p className="text-sm text-muted-foreground">{o.step2Body}</p>
@@ -120,7 +123,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
         <>
           <div className="space-y-2 text-center">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              {o.stepOf(3, 5)}
+              {o.stepOf(3, total)}
             </p>
             <h1 className="font-sans text-lg tracking-tight">{o.step3Title}</h1>
             <p className="text-sm text-muted-foreground">{o.step3Body}</p>
@@ -159,7 +162,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
         <>
           <div className="space-y-2 text-center">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              {o.stepOf(4, 5)}
+              {o.stepOf(4, total)}
             </p>
             <h1 className="font-sans text-lg tracking-tight">{o.step4Title}</h1>
             <p className="text-sm text-muted-foreground">{o.step4Body}</p>
@@ -234,6 +237,13 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
           <Button type="button" className="w-full" onClick={screen.continue}>
             {ctaLabel}
           </Button>
+          <button
+            type="button"
+            onClick={screen.skipScheduleSetup}
+            className="w-full py-3 text-center text-[15px] font-semibold text-foreground underline"
+          >
+            {o.setupLater}
+          </button>
         </>
       ) : null}
 
@@ -241,10 +251,49 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
         <>
           <div className="space-y-2 text-center">
             <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              {o.stepOptional}
+              {o.stepOf(5, total)}
             </p>
             <h1 className="font-sans text-lg tracking-tight">{o.step5Title}</h1>
             <p className="text-sm text-muted-foreground">{o.step5Body}</p>
+          </div>
+          <OnboardingProviderFields
+            llm={screen.llm}
+            tts={screen.tts}
+            busy={screen.providerBusy}
+            onSave={screen.saveProviderKey}
+            onDisconnect={screen.disconnectProvider}
+            variant="classic"
+            labels={{
+              openRouterName: s.openRouterName,
+              openRouterDesc: s.openRouterDesc,
+              elevenLabsName: s.elevenLabsName,
+              elevenLabsDesc: s.elevenLabsDesc,
+              pasteApiKey: s.pasteApiKey,
+              saveKey: s.saveKey,
+              disconnect: s.disconnect,
+            }}
+          />
+          <Button type="button" className="w-full" onClick={screen.continue}>
+            {ctaLabel}
+          </Button>
+          <button
+            type="button"
+            onClick={screen.continue}
+            className="w-full py-3 text-center text-[15px] font-semibold text-foreground underline"
+          >
+            {o.skip}
+          </button>
+        </>
+      ) : null}
+
+      {screen.step === 6 ? (
+        <>
+          <div className="space-y-2 text-center">
+            <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              {o.stepOptional}
+            </p>
+            <h1 className="font-sans text-lg tracking-tight">{o.step6Title}</h1>
+            <p className="text-sm text-muted-foreground">{o.step6Body}</p>
           </div>
 
           <div className="space-y-2">

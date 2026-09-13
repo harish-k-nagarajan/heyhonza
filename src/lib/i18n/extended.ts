@@ -71,6 +71,9 @@ export type OnboardingCopy = {
   step4Body: string;
   step5Title: string;
   step5Body: string;
+  step6Title: string;
+  step6Body: string;
+  setupLater: string;
   howOften: string;
   when: string;
   specificTime: string;
@@ -251,7 +254,7 @@ const enExtended: ExtendedCopy = {
     startChatting: "Start chatting",
     skip: "Skip for now",
     stepOf: (step, total) => `STEP ${step} OF ${total}`,
-    stepOptional: "STEP 5 OF 5 · OPTIONAL",
+    stepOptional: "STEP 6 OF 6 · OPTIONAL",
     step1Title: "Ahoj! I'm Honza.",
     step1Body:
       "I'll write to you in Czech about real things. You reply. I fix your mistakes — kindly.",
@@ -261,8 +264,12 @@ const enExtended: ExtendedCopy = {
     step3Body: "Pick topics you care about — not textbook phrases.",
     step4Title: "When should Honza write?",
     step4Body: "Honza can message you 1–3 times a day. Pick a time or let it feel random.",
-    step5Title: "Teach Honza about you",
-    step5Body: "Add a Google Doc, file, or paste — or skip and add this later in Settings.",
+    step5Title: "Your AI keys",
+    step5Body:
+      "Paste your OpenRouter key for chat and ElevenLabs for voice calls — or skip and add them later in Settings.",
+    step6Title: "Teach Honza about you",
+    step6Body: "Add a Google Doc, file, or paste — or skip and add this later in Settings.",
+    setupLater: "Set up later",
     howOften: "HOW OFTEN",
     when: "WHEN",
     specificTime: "Specific time",
@@ -466,7 +473,7 @@ const csExtended: ExtendedCopy = {
     startChatting: "Začít chatovat",
     skip: "Přeskočit",
     stepOf: (step, total) => `KROK ${step} Z ${total}`,
-    stepOptional: "KROK 5 Z 5 · VOLITELNÉ",
+    stepOptional: "KROK 6 Z 6 · VOLITELNÉ",
     step1Title: "Ahoj! Já jsem Honza.",
     step1Body:
       "Budu ti psát česky o reálných věcech. Ty odpovíš. Chyby opravím — laskavě.",
@@ -476,8 +483,12 @@ const csExtended: ExtendedCopy = {
     step3Body: "Vyber témata, která tě zajímají — ne učebnicové fráze.",
     step4Title: "Kdy má Honza psát?",
     step4Body: "Honza ti může napsat 1–3× denně. Vyber čas, nebo to nech náhodně.",
-    step5Title: "Řekni Honzovi něco o sobě",
-    step5Body: "Přidej Google Doc, soubor nebo text — nebo přeskoč a doplň to v nastavení.",
+    step5Title: "Tvoje AI klíče",
+    step5Body:
+      "Vlož OpenRouter klíč pro chat a ElevenLabs pro hovory — nebo přeskoč a doplň je později v nastavení.",
+    step6Title: "Řekni Honzovi něco o sobě",
+    step6Body: "Přidej Google Doc, soubor nebo text — nebo přeskoč a doplň to v nastavení.",
+    setupLater: "Nastavit později",
     howOften: "JAK ČASTO",
     when: "KDY",
     specificTime: "Konkrétní čas",
