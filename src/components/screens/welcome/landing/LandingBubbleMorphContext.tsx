@@ -45,7 +45,7 @@ export function LandingBubbleMorphProvider({ children }: { children: ReactNode }
         ref={bridgeRef}
         className={cn(
           "landing-bubble-bridge relative",
-          sceneEnabled && "md:min-h-[240vh]",
+          sceneEnabled && "md:min-h-[275vh]",
         )}
       >
         <div data-landing-pin className="relative w-full">

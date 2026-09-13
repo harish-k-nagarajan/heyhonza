@@ -4,7 +4,65 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-13 (landing schedule fold + copy)
+## Current entry — 2026-09-13 (Schedule fold centering + scroll scene)
+
+### What changed
+- **Schedule preview centering:** Stage is `max-w-[520px]` with settings `left-0` + phone `right-0` so the overlap sits centered (was `left-[248px]` in a 640px box → empty right gutter).
+- **Scroll scene:** `useLandingScheduleScrollScene` (GSAP + ScrollTrigger, same stack as Call fold) — settings peel forward mid-scroll, settle behind the phone, then **transitions.dev #22 toast** (`.t-toast.is-open`) for the lock-screen banner. Respects `prefers-reduced-motion` (final state, no scrub).
+
+### Prior same day — Fold 04 C shipped — pen + code
+
+### What changed
+- **Shipped layout:** Fold 04 C overlap (settings card + lock-screen phone, 640×500 preview, `md:-ml-14`-style overlap) is canonical in **`Handoff — Landing Page` (`VG9id/gZ53T`)** and in **`LandingScheduleFold`** + `.landing-fold-schedule` gradient.
+- **Pen cleanup:** Variants **B/C/D/E** and their build notes moved under **`Archive — Design Inspiration` (`ymD2s`)**; standalone **Fold 04 C** frame removed after merging into handoff.
+
+### Prior same day
+- **Fold 04 E** recess lift and other A–D explorations archived (not product).
+- **`scheduleHint`** (EN + CS): PWA-friendly — home screen first, same on iPhone and Android.
+
+---
+
+## Previous — 2026-09-13 (iPhone lock-screen notification mock)
+
+### What changed
+- Replaced the fake gradient iPhone chrome on Daily Check-ins with a real lock-screen device mock: `public/images/iphone-lockscreen.jpg` inside a thin black-titanium frame (Dynamic Island, side buttons, 473:1024 aspect).
+- Honza’s notification is an iOS 16+ lock-screen banner — frosted dark material, SF / system UI (not Doto/Inter), sitting **above the home indicator** and flashlight/camera, not as a top banner.
+
+### Decision
+The in-phone UI is iOS, not Honza product chrome. Do not put Doto or Inter inside the device mock.
+
+---
+
+## Previous — 2026-09-13 (landing handoff pen ↔ code)
+
+### What changed
+- **`Handoff — Landing Page` (`VG9id`)** resynced to `/welcome` code: `$font-body` → **Inter** (was Space Grotesk); hardcoded Space Grotesk text nodes cleared.
+- Added **Fold 04 — Daily Check-ins** after Call (settings schedule mock + iPhone lock-screen notification) matching `LandingScheduleFold`; removed the old Supporting “Push Note” card.
+- Copy/kickers/demo chat (4 turns + diacritics), two-line chat title, levels lead, coral primary CTAs (`auth-cta-primary`) aligned with i18n + `LandingAuthButtons`.
+
+### Decision
+Landing handoff folds order is Hero → Chat → Call → **Daily Check-ins** → Topics/Levels → Footer. Body face in the pen is Inter via `$font-body`.
+
+---
+
+## Previous — 2026-09-13 (pen Save As broke orb faces)
+
+### What broke
+- Moving/saving `honza.pen` into the repo dropped Pencil’s blob-store bind for `assets/hmat-orb-*.png`. Chassis stayed; faces showed checkerboard. No `untitled.honza.pen` found — only this repo `honza.pen`.
+
+### Fix
+- Rebuilt faces as **vector 15×15 dots** inside reusable orb masters (same maps/colors as `HmatOrb.tsx` / `theme.ts`). Pen no longer depends on external PNGs.
+- Sidecar `assets/hmat-orb-*.png` regenerated from `public/paper/*.svg` for future imports.
+
+### Sanity
+- Chat handoff copy still matches code. Live `/chat` orb + status copy OK. Remaining image-face refs in pen: **0**.
+
+### Decision
+Prefer **vector faces in the pen** over relative image fills — Save As / path moves break Pencil asset URLs.
+
+---
+
+## Previous — 2026-09-13 (landing schedule fold + copy)
 
 ### What changed
 - **Daily check-ins** moved from `LandingPushNote` card into **`LandingScheduleFold`** directly under the call fold — phone-frame mock mirrors Settings (toggle, 1×/2×/3×, specific vs random time, sample Honza bubble).
