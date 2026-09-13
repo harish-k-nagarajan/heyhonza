@@ -9,10 +9,15 @@ import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 
 import { LandingAuthButtons, LandingCtaHint } from "./LandingAuthButtons";
+import {
+  LandingHeroHeadlineScanner,
+  useLandingBubbleMorph,
+} from "./LandingBubbleMorphContext";
 import { LandingChatBubble } from "./LandingChatBubble";
 import type { LandingVisitor } from "./useLandingVisitor";
 
 export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
+  const morph = useLandingBubbleMorph();
   const { t } = useLocale();
   const w = t.welcome;
   const copy = visitor.isSignedOut
@@ -28,25 +33,35 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
   return (
     <section className="landing-fold landing-fold-hero relative flex min-h-[min(820px,100dvh)] flex-col">
       <div className="relative mx-auto w-full max-w-[880px] flex-1 px-6 md:px-10">
-        <div className="relative mx-auto h-[min(420px,max(280px,52vw))] max-h-[480px] w-full">
-          {LANDING_HERO_BUBBLES.map((bubble) => (
+        <div
+          ref={morph?.orbitRef}
+          className="relative mx-auto h-[min(420px,max(280px,52vw))] max-h-[480px] w-full"
+        >
+          {LANDING_HERO_BUBBLES.map((bubble, index) => (
             <div
               key={bubble.text}
               className={cn(
-                "landing-float-bubble absolute z-[2] hidden max-w-[220px] md:block",
+                "landing-float-bubble absolute z-[2] hidden md:block",
                 bubble.className,
               )}
+              style={{ animationDelay: `${index * -1.75}s` }}
             >
-              <LandingChatBubble role={bubble.role}>{bubble.text}</LandingChatBubble>
+              <LandingChatBubble
+                role={bubble.role}
+                messageIndex={index}
+                morphAnchor="hero"
+              >
+                {bubble.text}
+              </LandingChatBubble>
             </div>
           ))}
 
-          <div className="absolute left-1/2 top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute left-1/2 top-1/2 z-[10] -translate-x-1/2 -translate-y-1/2">
             <HmatPresenceRecess orbState="idle" variant="display" />
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-center gap-4 pb-10 text-center">
+        <LandingHeroHeadlineScanner className="mt-8 flex flex-col items-center gap-4 pb-10 text-center">
           <h1
             className={cn(
               TYPE.displayLg,
@@ -69,7 +84,7 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
             <LandingAuthButtons visitor={visitor} />
             <LandingCtaHint visitor={visitor} />
           </div>
-        </div>
+        </LandingHeroHeadlineScanner>
       </div>
     </section>
   );

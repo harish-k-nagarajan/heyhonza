@@ -1,5 +1,9 @@
 import type { LevelId, TopicId } from "@/lib/constants";
 import { LEVEL_OPTIONS, TOPIC_OPTIONS } from "@/lib/constants";
+import {
+  LANDING_DEMO_CONVERSATION,
+  LANDING_HERO_BUBBLE_LAYOUT,
+} from "@/components/screens/welcome/landing/landing-demo-conversation";
 
 /**
  * Marketing copy for the Welcome front door.
@@ -108,50 +112,14 @@ export const LANDING_HERO_RETURN = [
   },
 ] as const;
 
-/** Floating bubbles in the hero orbit (Fold 01). */
-export const LANDING_HERO_BUBBLES = [
-  {
-    role: "honza" as const,
-    text: "Ahoj! Dneska bych si chtěl popovídat o jídle.",
-    className: "left-[4%] top-[18%] opacity-85",
-  },
-  {
-    role: "user" as const,
-    text: "Mám rád knedlíky!",
-    className: "right-[4%] top-[14%] opacity-75",
-  },
-  {
-    role: "honza" as const,
-    text: "Skoro! Správně: Mám rád knedlíky s omáčkou.",
-    className: "left-[2%] top-[48%] opacity-55 blur-[2px]",
-  },
-  {
-    role: "user" as const,
-    text: "A jaká omáčka je nejlepší?",
-    className: "right-[2%] top-[56%] opacity-45 blur-[3px]",
-  },
-  {
-    role: "honza" as const,
-    text: "Jak se máš dnes?",
-    className: "right-[8%] top-[38%] opacity-40 blur-[4px]",
-  },
-] as const;
+/** Floating bubbles in the hero orbit (Fold 01) — same thread as the chat fold. */
+export const LANDING_HERO_BUBBLES = LANDING_DEMO_CONVERSATION.map((message, index) => ({
+  ...message,
+  className: LANDING_HERO_BUBBLE_LAYOUT[index] ?? LANDING_HERO_BUBBLE_LAYOUT[0],
+}));
 
 /** Phone chat preview (Fold 02). */
-export const LANDING_PHONE_CHAT = [
-  {
-    role: "honza" as const,
-    text: "Ahoj! Dneska bych si chtěl popovídat o jídle. Co máš rád?",
-  },
-  {
-    role: "user" as const,
-    text: "Mám rád knedlíky s omáčkou.",
-  },
-  {
-    role: "honza" as const,
-    text: "Skoro! Správně: Mám rád knedlíky s omáčkou. — a jaká omáčka je tvoje nejoblíbenější?",
-  },
-] as const;
+export const LANDING_PHONE_CHAT = LANDING_DEMO_CONVERSATION;
 
 /** Call practice preview (Fold 03). */
 export const LANDING_CALL = {

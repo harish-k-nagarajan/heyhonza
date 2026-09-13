@@ -123,6 +123,11 @@
   --stagger-stagger: var(--duration-stagger);
   --stagger-blur: var(--blur-medium);
   --stagger-ease: var(--ease-smooth-out);
+  /* Streaming text — landing call fold (transitions-dev #30) */
+  --stream-gap: 60ms;
+  --stream-fade: 350ms;
+  --stream-blur: 1px;
+  --stream-ease: var(--ease-smooth-out);
   /* Tabs sliding */
   --tabs-dur: var(--duration-fast);
   --tabs-ease: var(--ease-smooth-out);
@@ -549,19 +554,30 @@ body {
   box-shadow: 0 2px 8px rgba(232, 67, 45, 0.24);
 }
 .landing-float-bubble {
-  animation: landing-float 7s ease-in-out infinite;
+  animation: landing-float 9s cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
+  transform-origin: center center;
 }
-.landing-float-bubble:nth-child(2) {
-  animation-delay: -1.4s;
+.landing-float-bubble.landing-float-paused {
+  animation-play-state: paused;
 }
-.landing-float-bubble:nth-child(3) {
-  animation-delay: -2.8s;
+.landing-headline-scanner::after {
+  content: "";
+  position: absolute;
+  inset: -8px -12px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255, 248, 245, 0.55) 42%,
+    rgba(255, 248, 245, 0.92) 50%,
+    rgba(255, 248, 245, 0.55) 58%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
 }
-.landing-float-bubble:nth-child(4) {
-  animation-delay: -4.2s;
-}
-.landing-float-bubble:nth-child(5) {
-  animation-delay: -5.6s;
+.landing-bubble-bridge {
+  isolation: isolate;
 }
 .landing-ticker-row {
   height: 52px;
@@ -580,10 +596,13 @@ body {
 }
 @keyframes landing-float {
   0%, 100% {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
-  50% {
-    transform: translateY(-6px);
+  33% {
+    transform: translate3d(2px, -5px, 0) rotate(0.35deg);
+  }
+  66% {
+    transform: translate3d(-2px, -8px, 0) rotate(-0.25deg);
   }
 }
 @keyframes landing-marquee-left {
@@ -1674,6 +1693,18 @@ body {
   transition-delay: 0s;
 }
 
+.t-stream-w {
+  opacity: 0;
+  filter: blur(var(--stream-blur));
+  transition:
+    opacity var(--stream-fade) var(--stream-ease),
+    filter var(--stream-fade) var(--stream-ease);
+}
+.t-stream-w.is-in {
+  opacity: 1;
+  filter: blur(0);
+}
+
 .t-resize {
   transition:
     width  var(--resize-dur) var(--resize-ease),
@@ -1939,6 +1970,7 @@ body {
   }
   .t-skel-skeleton.is-pulsing > * { animation: none !important; }
   .t-stagger-line { transition: none !important; }
+  .t-stream-w { transition: none !important; filter: none !important; opacity: 1 !important; }
   .t-resize { transition: none !important; }
   .t-panel-slide { transition: none !important; }
   .t-acc-panel, .t-acc-panel-inner, .t-acc-chevron {
