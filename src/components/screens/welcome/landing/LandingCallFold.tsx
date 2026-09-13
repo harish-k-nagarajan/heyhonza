@@ -30,7 +30,6 @@ export function LandingCallFold() {
       className="landing-fold landing-fold-call flex flex-col items-center gap-7 px-6 py-12 md:px-10 md:py-14"
     >
       <LandingFoldHeader
-        num="02"
         kicker={w.sectionCallKicker}
         title={w.sectionCallTitle}
       />
@@ -84,7 +83,7 @@ export function LandingCallFold() {
         </div>
       </div>
 
-      <p className={cn("max-w-[480px] text-center", TYPE.subtitle, "md:text-[14px]")}>
+      <p className={cn("max-w-[480px] text-center text-[#4A443F]", TYPE.subtitle, "md:text-[14px]")}>
         {w.sectionCallLead}
       </p>
     </section>

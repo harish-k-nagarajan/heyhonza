@@ -11,7 +11,7 @@ import { LandingFooter } from "./LandingFooter";
 import { LandingHero } from "./LandingHero";
 import { LandingLevels } from "./LandingLevels";
 import { LandingNav } from "./LandingNav";
-import { LandingPushNote } from "./LandingPushNote";
+import { LandingScheduleFold } from "./LandingScheduleFold";
 import { LandingStickyCta } from "./LandingStickyCta";
 import { LandingTopics } from "./LandingTopics";
 import { useLandingVisitor } from "./useLandingVisitor";
@@ -43,11 +43,11 @@ export function HmatLanding() {
           <LandingChatFold />
         </LandingBubbleMorphProvider>
         <LandingCallFold />
+        <LandingScheduleFold />
 
         <div className="landing-supporting flex flex-col gap-12 py-14 md:gap-14 md:py-16">
           <LandingTopics />
           <LandingLevels />
-          <LandingPushNote />
         </div>
 
         <LandingFooter visitor={visitor} />

@@ -451,7 +451,7 @@ const en: LocaleStrings = {
     scheduleRandom: "Random",
     scheduleFirstMessage: "First message",
     scheduleFirstMessageAria: "First message time",
-    scheduleHint: "Asks for notifications. On iPhone, add Honza to the Home Screen first.",
+    scheduleHint: "Asks for notifications — on iPhone, add Honza to the Home Screen first",
     appLanguageHint: "Which language should the app use?",
     aiTextHint: "Paste an OpenRouter key so Honza can reply in chat.",
     aiVoiceHint: "Paste an ElevenLabs key so Honza can speak on calls.",

@@ -4,7 +4,17 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-13 (landing scroll choreography — Lenis + GSAP)
+## Current entry — 2026-09-13 (landing schedule fold + copy)
+
+### What changed
+- **Daily check-ins** moved from `LandingPushNote` card into **`LandingScheduleFold`** directly under the call fold — phone-frame mock mirrors Settings (toggle, 1×/2×/3×, specific vs random time, sample Honza bubble).
+- **Section numbers** (`01 · …`) removed from all landing fold headers; chat title is two lines without mid-title period.
+- **Readability:** kickers/leads/legend text use darker `#6B625C` / `#4A443F` instead of `text-muted-foreground`.
+- **Copy:** landing section titles/leads and level blurbs drop trailing periods (EN + CS in `extended.ts`).
+
+---
+
+## Previous — 2026-09-13 (landing scroll choreography — Lenis + GSAP)
 
 ### What changed
 - **`/welcome` only:** `LandingSmoothScroll` wraps `HmatLanding` — Lenis (`autoRaf: false`) + GSAP ticker sync + `ScrollTrigger.update` on Lenis scroll. **`prefers-reduced-motion`** bypasses Lenis and pinned scenes (native scroll, content visible).

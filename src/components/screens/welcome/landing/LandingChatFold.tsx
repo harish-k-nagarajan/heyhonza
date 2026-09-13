@@ -22,9 +22,9 @@ export function LandingChatFold() {
       )}
     >
       <LandingFoldHeader
-        num="01"
         kicker={w.sectionChatKicker}
         title={w.sectionChatTitle}
+        titleLine2={w.sectionChatTitleLine2}
       />
 
       <div
@@ -62,7 +62,7 @@ export function LandingChatFold() {
         </div>
       </div>
 
-      <p className={cn("max-w-[480px] text-center", TYPE.subtitle, "md:text-[14px]")}>
+      <p className={cn("max-w-[480px] text-center text-[#4A443F]", TYPE.subtitle, "md:text-[14px]")}>
         {w.sectionChatLead}
       </p>
     </section>

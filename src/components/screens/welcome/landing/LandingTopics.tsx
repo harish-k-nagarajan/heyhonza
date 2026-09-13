@@ -75,7 +75,6 @@ export function LandingTopics() {
   return (
     <section className="flex flex-col gap-5 px-6 md:px-10">
       <LandingFoldHeader
-        num="03"
         kicker={w.sectionTopicsKicker}
         title={w.sectionTopicsTitle}
         lead={w.sectionTopicsLead}
@@ -90,11 +89,11 @@ export function LandingTopics() {
       <div className="flex flex-wrap items-center gap-5 pt-1">
         <span className="inline-flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-          <span className={cn(TYPE.helper, "text-muted-foreground")}>{w.honzaAsks}</span>
+          <span className={cn(TYPE.helper, "text-[#5C534D]")}>{w.honzaAsks}</span>
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-full bg-[#3a7bd5]" aria-hidden />
-          <span className={cn(TYPE.helper, "text-muted-foreground")}>{w.youReply}</span>
+          <span className={cn(TYPE.helper, "text-[#5C534D]")}>{w.youReply}</span>
         </span>
       </div>
     </section>
