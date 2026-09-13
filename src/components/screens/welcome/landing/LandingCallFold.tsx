@@ -83,7 +83,7 @@ export function LandingCallFold() {
         </div>
       </div>
 
-      <p className={cn("max-w-[480px] text-center text-[#4A443F]", TYPE.subtitle, "md:text-[14px]")}>
+      <p className={cn("max-w-[42ch] text-pretty text-center text-[#4A443F]", TYPE.subtitle, "md:max-w-[46ch] md:text-[14px]")}>
         {w.sectionCallLead}
       </p>
     </section>

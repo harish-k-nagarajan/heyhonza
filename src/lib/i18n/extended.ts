@@ -116,6 +116,7 @@ export type WelcomeCopy = {
   sectionScheduleTitle: string;
   sectionScheduleLead: string;
   schedulePreviewMessage: string;
+  schedulePreviewHint: string;
   schedulePreviewAria: string;
   scheduleNotificationAppName: string;
   scheduleNotificationTime: string;
@@ -289,38 +290,35 @@ const enExtended: ExtendedCopy = {
     logIn: "Log in",
     heroHeadline: "Learn Czech by texting a friend",
     heroSubcopy:
-      "Not a streak. Not a leaderboard. Open the app. Honza is already writing to you in Czech.",
+      "No streak, no leaderboard. Open the app and Honza is already writing to you in Czech",
     heroCta: "Say hi to Honza",
     heroCtaHint: "Free · takes a minute",
-    signedOutHeadline: "Honza will be here when you are.",
+    signedOutHeadline: "Honza will be here when you are",
     signedOutSubcopy:
-      "Your progress is saved. Whenever you're ready for another Czech chat, sign back in — I'll pick up where we left off.",
+      "Your progress is saved. Sign back in and we pick up the Czech chat where you left off",
     signedOutCta: "Sign back in",
     signedOutCtaHint: "Same account · one tap",
     sectionChatKicker: "WHAT IT LOOKS LIKE",
     sectionChatTitle: "Honza writes first",
     sectionChatTitleLine2: "You reply in Czech",
-    sectionChatLead:
-      "He corrects gently and keeps the conversation going — no textbook drills, just real chat",
+    sectionChatLead: "Gentle corrections, then the chat continues",
     sectionCallKicker: "PRACTICE SPEAKING",
-    sectionCallTitle: "When you're ready, just call him",
-    sectionCallLead:
-      "Same Honza, same patience — practice speaking out loud, he listens, corrects, and keeps talking",
+    sectionCallTitle: "Call him when you're ready",
+    sectionCallLead: "Speak Czech out loud and he talks back",
     sectionScheduleKicker: "DAILY CHECK-INS",
     sectionScheduleTitle: "Pick when Honza writes",
-    sectionScheduleLead:
-      "One to three Czech messages a day — set exact times or let Honza surprise you when it feels natural",
-    schedulePreviewMessage: "Ahoj! Co dnes vaříš? Napiš mi česky — klidně blbě",
+    sectionScheduleLead: "One to three Czech messages a day",
+    schedulePreviewMessage: "Ahoj! Co dnes vaříš? Napiš mi česky, klidně blbě",
+    schedulePreviewHint: "Add Honza to your home screen so it works on iPhone and Android",
     schedulePreviewAria: "Settings preview and iPhone notification preview",
     scheduleNotificationAppName: "HONZA",
     scheduleNotificationTime: "now",
     sectionTopicsKicker: "TOPICS",
     sectionTopicsTitle: "What you'll talk about",
-    sectionTopicsLead:
-      "Real Czech about things you care about — pick topics, then hear them in conversation",
+    sectionTopicsLead: "Pick topics you care about, then talk in Czech",
     sectionLevelsKicker: "LEVELS",
     sectionLevelsTitle: "Meets you at your level",
-    sectionLevelsLead: "From your first sentences to almost-fluent conversation",
+    sectionLevelsLead: "From first sentences to almost fluent",
     honzaAsks: "Honza asks",
     youReply: "You reply",
     conversationPreview: "Conversation preview",
@@ -330,24 +328,23 @@ const enExtended: ExtendedCopy = {
     speaking: "speaking",
     youSaid: "YOU SAID",
     footerHeadline: "Ready to say ahoj?",
-    footerNote:
-      "Free to start. Takes a minute. Add Honza to your home screen and he lives on your phone.",
+    footerNote: "Free to start. Add Honza to your home screen and he lives on your phone",
     stickyCta: "Say hi to Honza",
     steps: [
       {
         n: "01",
         title: "Honza starts",
-        body: "Open the app and a message is already waiting — in Czech, about something you actually care about.",
+        body: "Open the app and a Czech message is already waiting, about something you care about",
       },
       {
         n: "02",
         title: "You reply in Czech",
-        body: "Type it back. Badly is fine. Getting it wrong is the part where the learning happens.",
+        body: "Type it back, even badly. Getting it wrong is where the learning happens",
       },
       {
         n: "03",
         title: "He fixes it, kindly",
-        body: "Honza corrects the slip, tells you why, and keeps the conversation going.",
+        body: "Honza corrects the slip, tells you why, and keeps going",
       },
     ],
   },
@@ -376,7 +373,7 @@ const enExtended: ExtendedCopy = {
       A1: "Short sentences, zero stress",
       A2: "Honza pushes you further",
       B1: "Real topics, gentle fixes",
-      B2: "Almost fluent — still learning",
+      B2: "Almost fluent, still learning",
     },
   },
   errors: {
@@ -508,38 +505,35 @@ const csExtended: ExtendedCopy = {
     logIn: "Přihlásit se",
     heroHeadline: "Uč se česky psaním s kamarádem",
     heroSubcopy:
-      "Ne série. Ne žebříček. Otevři appku. Honza ti už píše česky.",
+      "Žádná série, žádný žebříček. Otevři appku a Honza ti už píše česky",
     heroCta: "Pozdrav Honzu",
-    heroCtaHint: "Zdarma · minuta",
-    signedOutHeadline: "Honza tu bude, až budeš chtít.",
+    heroCtaHint: "Zdarma · za minutu",
+    signedOutHeadline: "Honza tu bude, až budeš chtít",
     signedOutSubcopy:
-      "Tvůj pokrok je uložený. Až budeš chtít zase česky chatovat, přihlas se — navážeme tam, kde jsme skončili.",
+      "Tvůj pokrok je uložený. Přihlas se a navážeme tam, kde jsme s češtinou skončili",
     signedOutCta: "Přihlásit se znovu",
     signedOutCtaHint: "Stejný účet · jedno klepnutí",
     sectionChatKicker: "JAK TO VYPADÁ",
     sectionChatTitle: "Honza píše první",
     sectionChatTitleLine2: "Ty odpovíš česky",
-    sectionChatLead:
-      "Laskavě opraví a povídá si dál — žádné učebnicové drill, jen reálný chat",
+    sectionChatLead: "Laskavě opraví a povídá si dál",
     sectionCallKicker: "MLUVENÍ",
-    sectionCallTitle: "Až budeš připravený, zavolej mu",
-    sectionCallLead:
-      "Stejný Honza, stejná trpělivost — mluvíš nahlas, on poslouchá, opraví a mluví dál",
+    sectionCallTitle: "Zavolej mu, až budeš chtít",
+    sectionCallLead: "Mluv česky nahlas a on ti odpoví",
     sectionScheduleKicker: "DENNÍ ZPRÁVY",
     sectionScheduleTitle: "Vyber, kdy Honza píše",
-    sectionScheduleLead:
-      "Jedna až tři české zprávy denně — přesný čas, nebo nech Honzu napsat, když to sedí",
-    schedulePreviewMessage: "Ahoj! Co dnes vaříš? Napiš mi česky — klidně blbě",
+    sectionScheduleLead: "Jedna až tři české zprávy denně",
+    schedulePreviewMessage: "Ahoj! Co dnes vaříš? Napiš mi česky, klidně blbě",
+    schedulePreviewHint: "Přidej Honzu na plochu, ať to funguje na iPhonu i Androidu",
     schedulePreviewAria: "Náhled nastavení a oznámení na iPhonu",
     scheduleNotificationAppName: "HONZA",
     scheduleNotificationTime: "teď",
     sectionTopicsKicker: "TÉMATA",
-    sectionTopicsTitle: "O čem budete mluvit",
-    sectionTopicsLead:
-      "Skutečná čeština o věcech, které tě zajímají — vyber témata a uslyšíš je v konverzaci",
+    sectionTopicsTitle: "O čem půjde řeč",
+    sectionTopicsLead: "Vyber témata, která tě zajímají, a mluv o nich česky",
     sectionLevelsKicker: "ÚROVNĚ",
     sectionLevelsTitle: "Na tvé úrovni",
-    sectionLevelsLead: "Od prvních vět až skoro k plynulé konverzaci",
+    sectionLevelsLead: "Od prvních vět až skoro k plynulosti",
     honzaAsks: "Honza se ptá",
     youReply: "Ty odpovídáš",
     conversationPreview: "Náhled konverzace",
@@ -547,26 +541,25 @@ const csExtended: ExtendedCopy = {
     correction: "Oprava",
     online: "online",
     speaking: "mluví",
-    youSaid: "ŘEKL JSI",
-    footerHeadline: "Připravený říct ahoj?",
-    footerNote:
-      "Začít zdarma. Minuta. Přidej Honzu na plochu a bude na telefonu jako každá appka.",
+    youSaid: "TVOJE SLOVA",
+    footerHeadline: "Máš chuť říct ahoj?",
+    footerNote: "Začni zdarma. Přidej Honzu na plochu a zůstane v telefonu jako každá appka",
     stickyCta: "Pozdrav Honzu",
     steps: [
       {
         n: "01",
         title: "Honza začíná",
-        body: "Otevřeš appku a zpráva už na tebe čeká — česky a o něčem, co tě fakt zajímá.",
+        body: "Otevřeš appku a zpráva už na tebe čeká, česky a o něčem, co tě zajímá",
       },
       {
         n: "02",
         title: "Odepíšeš česky",
-        body: "Napiš to zpátky. Klidně blbě. Právě v těch chybách se to naučíš.",
+        body: "Napiš to zpátky, klidně blbě. Právě v chybách se to naučíš",
       },
       {
         n: "03",
         title: "Laskavě to opraví",
-        body: "Honza chybu opraví, vysvětlí proč, a povídá si s tebou dál.",
+        body: "Honza chybu opraví, řekne proč a povídá si dál",
       },
     ],
   },
@@ -595,7 +588,7 @@ const csExtended: ExtendedCopy = {
       A1: "Krátké věty, bez stresu",
       A2: "Honza tě posune dál",
       B1: "Reálná témata, jemné opravy",
-      B2: "Skoro plynule — pořád se učíš",
+      B2: "Skoro plynule, pořád se učíš",
     },
   },
   errors: {

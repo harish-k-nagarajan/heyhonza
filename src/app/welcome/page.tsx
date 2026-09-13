@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { WelcomeScreen } from "@/components/screens/welcome/WelcomeScreen";
 
 export const metadata: Metadata = {
-  title: "Honza — learn Czech by texting a friend",
+  title: "Honza · learn Czech by texting a friend",
   description:
     "Honza is a Czech tutor who opens the conversation. Short daily chats in real Czech, gently corrected.",
 };

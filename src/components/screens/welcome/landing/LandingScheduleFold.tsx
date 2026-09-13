@@ -56,7 +56,7 @@ export function LandingScheduleFold() {
         >
           <LandingScheduleSettingsMock
             className="w-full max-w-[360px]"
-            hint={s.scheduleHint}
+          hint={w.schedulePreviewHint}
             toggleLabel={s.scheduleSubtitle(2)}
             howOftenLabel={s.scheduleHowOften}
             whenLabel={s.scheduleWhen}
@@ -82,9 +82,9 @@ export function LandingScheduleFold() {
 
       <p
         className={cn(
-          "max-w-[520px] text-center text-[#4A443F]",
+          "max-w-[42ch] text-pretty text-center text-[#4A443F]",
           TYPE.subtitle,
-          "md:text-[14px]",
+          "md:max-w-[46ch] md:text-[14px]",
         )}
       >
         {w.sectionScheduleLead}
