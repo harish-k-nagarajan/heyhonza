@@ -83,7 +83,7 @@ export function LandingScheduleSettingsMock({
     <div
       className={cn(
         "flex w-full flex-col gap-3 rounded-[28px] border border-border bg-white p-5",
-        "shadow-[0_12px_32px_rgba(120,90,70,0.09)]",
+        "shadow-[0_16px_40px_rgba(120,90,70,0.08)]",
         className,
       )}
     >

@@ -152,6 +152,13 @@
   --acc-collapse: var(--duration-medium);
   --acc-chevron: var(--duration-fast);
   --acc-ease: var(--ease-smooth-out);
+  /* Toast — landing schedule notification (transitions-dev #22) */
+  --toast-open: var(--duration-medium);
+  --toast-close: var(--duration-fast);
+  --toast-distance: 16px;
+  --toast-blur: var(--blur-small);
+  --toast-scale: var(--scale-medium);
+  --toast-ease: var(--ease-smooth-out);
 }
 
 /*
@@ -479,6 +486,35 @@ body {
 .landing-page {
   color: #2a2420;
 }
+.landing-ios-ui {
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "SF Pro Display", system-ui, "Helvetica Neue", Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.landing-fold-schedule .t-toast {
+  transform-origin: 50% 100%;
+  opacity: 0;
+  transform: translateY(var(--toast-distance)) scale(var(--toast-scale));
+  filter: blur(var(--toast-blur));
+  will-change: transform, opacity, filter;
+  transition:
+    opacity var(--toast-close) var(--toast-ease),
+    transform var(--toast-close) var(--toast-ease),
+    filter var(--toast-close) var(--toast-ease);
+}
+.landing-fold-schedule .t-toast.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  transition:
+    opacity var(--toast-open) var(--toast-ease),
+    transform var(--toast-open) var(--toast-ease),
+    filter var(--toast-open) var(--toast-ease);
+}
+/* Scroll scene drives notification via GSAP — avoid fighting CSS transitions */
+.landing-fold-schedule .t-toast.landing-schedule-notify-driven {
+  transition: none !important;
+}
 .landing-fold-hero {
   background: linear-gradient(180deg, #fff8f5 0%, #fff4ee 100%);
 }
@@ -487,6 +523,15 @@ body {
 }
 .landing-fold-call {
   background: linear-gradient(180deg, #eeffee 0%, var(--background) 100%);
+}
+.landing-fold-schedule {
+  background: linear-gradient(180deg, #fff4ee 0%, #fff8f5 100%);
+}
+@media (min-width: 768px) {
+  .landing-fold-schedule [data-landing-schedule-settings],
+  .landing-fold-schedule [data-landing-schedule-phone] {
+    backface-visibility: hidden;
+  }
 }
 .landing-supporting {
   background: var(--background);
@@ -642,8 +687,12 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .landing-float-bubble,
   .landing-ticker-left,
-  .landing-ticker-right {
-    animation: none !important;
+  .landing-ticker-right,
+  .landing-fold-schedule .t-toast {
+    transition: none !important;
+    opacity: 1;
+    transform: none;
+    filter: none;
   }
   .landing-cta-primary:hover::before,
   .landing-cta-primary:active::before {

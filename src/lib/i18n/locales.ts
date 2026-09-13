@@ -451,7 +451,8 @@ const en: LocaleStrings = {
     scheduleRandom: "Random",
     scheduleFirstMessage: "First message",
     scheduleFirstMessageAria: "First message time",
-    scheduleHint: "Asks for notifications — on iPhone, add Honza to the Home Screen first",
+    scheduleHint:
+      "You'll be asked to allow notifications. Add Honza to your home screen first — then check-ins work the same on iPhone and Android.",
     appLanguageHint: "Which language should the app use?",
     aiTextHint: "Paste an OpenRouter key so Honza can reply in chat.",
     aiVoiceHint: "Paste an ElevenLabs key so Honza can speak on calls.",
@@ -675,7 +676,8 @@ const cs: LocaleStrings = {
     scheduleRandom: "Náhodně",
     scheduleFirstMessage: "První zpráva",
     scheduleFirstMessageAria: "Čas první zprávy",
-    scheduleHint: "Požádá o oznámení. Na iPhonu nejdřív přidej Honzu na plochu.",
+    scheduleHint:
+      "Požádá o povolení oznámení. Nejdřív přidej Honzu na plochu — funguje stejně na iPhonu i Androidu.",
     appLanguageHint: "V jakém jazyce chceš rozhraní?",
     aiTextHint: "Vlož OpenRouter klíč, ať ti Honza odpovídá v chatu.",
     aiVoiceHint: "Vlož ElevenLabs klíč, ať Honza mluví v hovorech.",

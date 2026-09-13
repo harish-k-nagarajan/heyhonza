@@ -18,19 +18,57 @@ function pointRelativeTo(container: HTMLElement, el: HTMLElement): Point {
   };
 }
 
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
+function easeInOutCubic(t: number) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-function lerpPoint(from: Point, to: Point, t: number): Point {
+function quadraticPoint(from: Point, control: Point, to: Point, t: number): Point {
+  const omt = 1 - t;
   return {
-    x: lerp(from.x, to.x, t),
-    y: lerp(from.y, to.y, t),
+    x: omt * omt * from.x + 2 * omt * t * control.x + t * t * to.x,
+    y: omt * omt * from.y + 2 * omt * t * control.y + t * t * to.y,
   };
 }
 
-function easeInOutCubic(t: number) {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+type MorphPathConfig = {
+  /** Delay on global eased progress (0–1) before this bubble moves. */
+  staggerStart: number;
+  /** How much global progress this bubble uses to complete its path. */
+  staggerSpan: number;
+  /** Bulge perpendicular to the chord (sign = side of arc). */
+  perp: number;
+  /** Shift control along the chord. */
+  along: number;
+};
+
+/** Each demo bubble gets its own arc + timing so the handoff feels scattered, not paired. */
+const MORPH_PATHS: MorphPathConfig[] = [
+  { staggerStart: 0, staggerSpan: 0.9, perp: 1.2, along: -0.38 },
+  { staggerStart: 0.07, staggerSpan: 0.88, perp: -1.35, along: -0.12 },
+  { staggerStart: 0.12, staggerSpan: 0.86, perp: 1.05, along: 0.28 },
+  { staggerStart: 0.17, staggerSpan: 0.84, perp: -1.1, along: 0.08 },
+];
+
+function controlForPath(from: Point, to: Point, cfg: MorphPathConfig): Point {
+  const mid = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const perpX = -dy / len;
+  const perpY = dx / len;
+  const bow = len * 0.52;
+  return {
+    x: mid.x + dx * cfg.along + perpX * bow * cfg.perp,
+    y: mid.y + dy * cfg.along + perpY * bow * cfg.perp,
+  };
+}
+
+function bubbleMorphT(globalEased: number, index: number, raw: number): number {
+  if (raw > 0.92) return 1;
+  if (raw < 0.06) return 0;
+  const cfg = MORPH_PATHS[index] ?? MORPH_PATHS[0];
+  const local = (globalEased - cfg.staggerStart) / cfg.staggerSpan;
+  return easeInOutCubic(Math.min(1, Math.max(0, local)));
 }
 
 const MORPH_START = 0.02;
@@ -67,7 +105,7 @@ export function useLandingChatScrollScene(
         const ghostEls = () =>
           Array.from(layer.querySelectorAll<HTMLElement>(".landing-morph-ghost"));
 
-        const pairs: Array<{ from: Point; to: Point }> = [];
+        const pairs: Array<{ from: Point; to: Point; control: Point }> = [];
 
         const measurePairs = () => {
           pairs.length = 0;
@@ -76,9 +114,13 @@ export function useLandingChatScrollScene(
           heroes.forEach((hero, i) => {
             const chat = chats[i];
             if (!chat) return;
+            const from = pointRelativeTo(pin, hero);
+            const to = pointRelativeTo(pin, chat);
+            const pathCfg = MORPH_PATHS[i] ?? MORPH_PATHS[0];
             pairs.push({
-              from: pointRelativeTo(pin, hero),
-              to: pointRelativeTo(pin, chat),
+              from,
+              to,
+              control: controlForPath(from, to, pathCfg),
             });
           });
         };
@@ -119,10 +161,8 @@ export function useLandingChatScrollScene(
               ghost.style.opacity = "0";
               return;
             }
-            let morphT = t;
-            if (raw < 0.08) morphT = 0;
-            if (raw > 0.9) morphT = 1;
-            const point = lerpPoint(pair.from, pair.to, morphT);
+            const morphT = bubbleMorphT(t, i, raw);
+            const point = quadraticPoint(pair.from, pair.control, pair.to, morphT);
             applyGhostStyle(ghost, point, 1);
           });
         };
@@ -137,7 +177,7 @@ export function useLandingChatScrollScene(
             start: "top top",
             end: "bottom bottom",
             pin,
-            scrub: 1,
+            scrub: 1.15,
             invalidateOnRefresh: true,
             anticipatePin: 1,
             onRefresh: () => {
