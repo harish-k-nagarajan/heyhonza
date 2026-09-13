@@ -107,10 +107,18 @@ export type WelcomeCopy = {
   signedOutCtaHint: string;
   sectionChatKicker: string;
   sectionChatTitle: string;
+  sectionChatTitleLine2: string;
   sectionChatLead: string;
   sectionCallKicker: string;
   sectionCallTitle: string;
   sectionCallLead: string;
+  sectionScheduleKicker: string;
+  sectionScheduleTitle: string;
+  sectionScheduleLead: string;
+  schedulePreviewMessage: string;
+  schedulePreviewAria: string;
+  scheduleNotificationAppName: string;
+  scheduleNotificationTime: string;
   sectionTopicsKicker: string;
   sectionTopicsTitle: string;
   sectionTopicsLead: string;
@@ -125,8 +133,6 @@ export type WelcomeCopy = {
   online: string;
   speaking: string;
   youSaid: string;
-  pushKicker: string;
-  pushBody: string;
   footerHeadline: string;
   footerNote: string;
   stickyCta: string;
@@ -292,20 +298,29 @@ const enExtended: ExtendedCopy = {
     signedOutCta: "Sign back in",
     signedOutCtaHint: "Same account · one tap",
     sectionChatKicker: "WHAT IT LOOKS LIKE",
-    sectionChatTitle: "Honza writes first. You reply in Czech.",
+    sectionChatTitle: "Honza writes first",
+    sectionChatTitleLine2: "You reply in Czech",
     sectionChatLead:
-      "He corrects gently and keeps the conversation going. No textbook drills — just real chat.",
+      "He corrects gently and keeps the conversation going — no textbook drills, just real chat",
     sectionCallKicker: "PRACTICE SPEAKING",
-    sectionCallTitle: "When you're ready, just call him.",
+    sectionCallTitle: "When you're ready, just call him",
     sectionCallLead:
-      "Same Honza, same patience — but now you practice speaking out loud. He listens, corrects, and keeps talking.",
+      "Same Honza, same patience — practice speaking out loud, he listens, corrects, and keeps talking",
+    sectionScheduleKicker: "DAILY CHECK-INS",
+    sectionScheduleTitle: "Pick when Honza writes",
+    sectionScheduleLead:
+      "One to three Czech messages a day — set exact times or let Honza surprise you when it feels natural",
+    schedulePreviewMessage: "Ahoj! Co dnes vaříš? Napiš mi česky — klidně blbě",
+    schedulePreviewAria: "Settings preview and iPhone notification preview",
+    scheduleNotificationAppName: "HONZA",
+    scheduleNotificationTime: "now",
     sectionTopicsKicker: "TOPICS",
     sectionTopicsTitle: "What you'll talk about",
     sectionTopicsLead:
-      "Real Czech about things you care about — pick your topics, then hear them in conversation.",
+      "Real Czech about things you care about — pick topics, then hear them in conversation",
     sectionLevelsKicker: "LEVELS",
     sectionLevelsTitle: "Meets you at your level",
-    sectionLevelsLead: "From your first sentences to almost-fluent conversation.",
+    sectionLevelsLead: "From your first sentences to almost-fluent conversation",
     honzaAsks: "Honza asks",
     youReply: "You reply",
     conversationPreview: "Conversation preview",
@@ -314,9 +329,6 @@ const enExtended: ExtendedCopy = {
     online: "online",
     speaking: "speaking",
     youSaid: "YOU SAID",
-    pushKicker: "ALSO · SCHEDULED MESSAGES",
-    pushBody:
-      "Honza can message you 1–3 times a day — at a time you pick, or randomly when it feels natural.",
     footerHeadline: "Ready to say ahoj?",
     footerNote:
       "Free to start. Takes a minute. Add Honza to your home screen and he lives on your phone.",
@@ -361,10 +373,10 @@ const enExtended: ExtendedCopy = {
       B2: "Upper-int — almost fluent.",
     },
     blurb: {
-      A1: "Short sentences, zero stress.",
-      A2: "Honza pushes you further.",
-      B1: "Real topics, gentle fixes.",
-      B2: "Almost fluent — still learning.",
+      A1: "Short sentences, zero stress",
+      A2: "Honza pushes you further",
+      B1: "Real topics, gentle fixes",
+      B2: "Almost fluent — still learning",
     },
   },
   errors: {
@@ -505,20 +517,29 @@ const csExtended: ExtendedCopy = {
     signedOutCta: "Přihlásit se znovu",
     signedOutCtaHint: "Stejný účet · jedno klepnutí",
     sectionChatKicker: "JAK TO VYPADÁ",
-    sectionChatTitle: "Honza píše první. Ty odpovíš česky.",
+    sectionChatTitle: "Honza píše první",
+    sectionChatTitleLine2: "Ty odpovíš česky",
     sectionChatLead:
-      "Laskavě opraví a povídá si dál. Žádné učebnicové drill — jen reálný chat.",
+      "Laskavě opraví a povídá si dál — žádné učebnicové drill, jen reálný chat",
     sectionCallKicker: "MLUVENÍ",
-    sectionCallTitle: "Až budeš připravený, zavolej mu.",
+    sectionCallTitle: "Až budeš připravený, zavolej mu",
     sectionCallLead:
-      "Stejný Honza, stejná trpělivost — teď ale mluvíš nahlas. Poslouchá, opraví a mluví dál.",
+      "Stejný Honza, stejná trpělivost — mluvíš nahlas, on poslouchá, opraví a mluví dál",
+    sectionScheduleKicker: "DENNÍ ZPRÁVY",
+    sectionScheduleTitle: "Vyber, kdy Honza píše",
+    sectionScheduleLead:
+      "Jedna až tři české zprávy denně — přesný čas, nebo nech Honzu napsat, když to sedí",
+    schedulePreviewMessage: "Ahoj! Co dnes vaříš? Napiš mi česky — klidně blbě",
+    schedulePreviewAria: "Náhled nastavení a oznámení na iPhonu",
+    scheduleNotificationAppName: "HONZA",
+    scheduleNotificationTime: "teď",
     sectionTopicsKicker: "TÉMATA",
     sectionTopicsTitle: "O čem budete mluvit",
     sectionTopicsLead:
-      "Skutečná čeština o věcech, které tě zajímají — vyber témata a uslyšíš je v konverzaci.",
+      "Skutečná čeština o věcech, které tě zajímají — vyber témata a uslyšíš je v konverzaci",
     sectionLevelsKicker: "ÚROVNĚ",
     sectionLevelsTitle: "Na tvé úrovni",
-    sectionLevelsLead: "Od prvních vět až skoro k plynulé konverzaci.",
+    sectionLevelsLead: "Od prvních vět až skoro k plynulé konverzaci",
     honzaAsks: "Honza se ptá",
     youReply: "Ty odpovídáš",
     conversationPreview: "Náhled konverzace",
@@ -527,9 +548,6 @@ const csExtended: ExtendedCopy = {
     online: "online",
     speaking: "mluví",
     youSaid: "ŘEKL JSI",
-    pushKicker: "TAKÉ · PLÁNOVANÉ ZPRÁVY",
-    pushBody:
-      "Honza ti může psát 1–3× denně — v čase, který zvolíš, nebo náhodně, když to sedí.",
     footerHeadline: "Připravený říct ahoj?",
     footerNote:
       "Začít zdarma. Minuta. Přidej Honzu na plochu a bude na telefonu jako každá appka.",
@@ -574,10 +592,10 @@ const csExtended: ExtendedCopy = {
       B2: "Pokročilý — skoro plynule.",
     },
     blurb: {
-      A1: "Krátké věty, bez stresu.",
-      A2: "Honza tě posune dál.",
-      B1: "Reálná témata, jemné opravy.",
-      B2: "Skoro plynule — pořád se učíš.",
+      A1: "Krátké věty, bez stresu",
+      A2: "Honza tě posune dál",
+      B1: "Reálná témata, jemné opravy",
+      B2: "Skoro plynule — pořád se učíš",
     },
   },
   errors: {

@@ -17,7 +17,6 @@ export function LandingLevels() {
   return (
     <section className="flex flex-col gap-5 px-6 md:px-10">
       <LandingFoldHeader
-        num="04"
         kicker={w.sectionLevelsKicker}
         title={w.sectionLevelsTitle}
         lead={w.sectionLevelsLead}
@@ -34,7 +33,7 @@ export function LandingLevels() {
               className="rounded-[20px] border border-border bg-white p-4"
             >
               <p className={cn(TYPE.label, "text-accent")}>{id}</p>
-              <p className={cn("mt-1.5", TYPE.bodySm, "leading-[1.35] text-muted-foreground")}>
+              <p className={cn("mt-1.5", TYPE.bodySm, "leading-[1.35] text-[#4A443F]")}>
                 {blurb}
               </p>
             </article>

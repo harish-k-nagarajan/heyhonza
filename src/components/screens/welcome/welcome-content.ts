@@ -152,44 +152,41 @@ export const LANDING_TOPIC_ANSWERS = [
 
 /** English level blurbs — labels come from LEVEL_OPTIONS. */
 export const LEVEL_LANDING_BLURBS: Record<LevelId, string> = {
-  A1: "Short sentences, zero stress.",
-  A2: "Honza pushes you further.",
-  B1: "Real topics, gentle fixes.",
-  B2: "Almost fluent — still learning.",
+  A1: "Short sentences, zero stress",
+  A2: "Honza pushes you further",
+  B1: "Real topics, gentle fixes",
+  B2: "Almost fluent — still learning",
 };
 
 export const LANDING_LEVEL_IDS = LEVEL_OPTIONS.map((l) => l.id);
 
 export const LANDING_SECTIONS = {
   chat: {
-    num: "01",
     kicker: "WHAT IT LOOKS LIKE",
-    title: "Honza writes first. You reply in Czech.",
-    lead: "He corrects gently and keeps the conversation going. No textbook drills — just real chat.",
+    title: "Honza writes first",
+    titleLine2: "You reply in Czech",
+    lead: "He corrects gently and keeps the conversation going — no textbook drills, just real chat",
   },
   call: {
-    num: "02",
     kicker: "PRACTICE SPEAKING",
-    title: "When you're ready, just call him.",
-    lead: "Same Honza, same patience — but now you practice speaking out loud. He listens, corrects, and keeps talking.",
+    title: "When you're ready, just call him",
+    lead: "Same Honza, same patience — practice speaking out loud, he listens, corrects, and keeps talking",
+  },
+  schedule: {
+    kicker: "DAILY CHECK-INS",
+    title: "Pick when Honza writes",
+    lead: "One to three Czech messages a day — set exact times or let Honza surprise you when it feels natural",
   },
   topics: {
-    num: "03",
     kicker: "TOPICS",
     title: "What you'll talk about",
-    lead: "Real Czech about things you care about — pick your topics, then hear them in conversation.",
+    lead: "Real Czech about things you care about — pick topics, then hear them in conversation",
   },
   levels: {
-    num: "04",
     kicker: "LEVELS",
     title: "Meets you at your level",
-    lead: "From your first sentences to almost-fluent conversation.",
+    lead: "From your first sentences to almost-fluent conversation",
   },
-} as const;
-
-export const LANDING_PUSH_NOTE = {
-  kicker: "ALSO · SCHEDULED MESSAGES",
-  body: "Honza can message you 1–3 times a day — at a time you pick, or randomly when it feels natural.",
 } as const;
 
 export const LANDING_FOOTER = {
