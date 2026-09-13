@@ -11,6 +11,7 @@ import {
 } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+import { OnboardingProviderFields } from "@/components/screens/onboarding/OnboardingProviderFields";
 import type { OnboardingScreen } from "@/hooks/useOnboardingScreen";
 import { useLocale } from "@/lib/i18n/useLocale";
 
@@ -19,10 +20,10 @@ const TOPIC_ROWS: TopicId[][] = [
   ["work", "grammar", "smalltalk"],
 ];
 
-function ProgressDots({ step }: { step: number }) {
+function ProgressDots({ step, total }: { step: number; total: number }) {
   return (
     <div className="flex w-full justify-center gap-1.5">
-      {[1, 2, 3, 4, 5].map((dot) => (
+      {Array.from({ length: total }, (_, i) => i + 1).map((dot) => (
         <span
           key={dot}
           className={cn(
@@ -126,10 +127,12 @@ function formatDisplayTime(value: string): string {
   return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
 }
 
-/** Hmat onboarding — 5-step flow from Handoff — Onboarding Flow. */
+/** Hmat onboarding — 6-step flow. */
 export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
   const { t } = useLocale();
   const o = t.onboarding;
+  const s = t.settings;
+  const total = screen.totalSteps;
 
   if (!screen.ready) {
     return (
@@ -144,18 +147,18 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
     );
   }
 
-  const ctaLabel = screen.step === 5 ? o.startChatting : o.continue;
+  const ctaLabel = screen.step === total ? o.startChatting : o.continue;
 
   return (
     <div className="flex min-h-[calc(100dvh-4rem)] w-full items-center justify-center px-4 py-10">
       <div
         className="flex w-full max-w-[390px] flex-col gap-3 overflow-y-auto rounded-[28px] border border-[#E8E2DC] bg-white px-5 pb-7 pt-5 max-h-[min(780px,calc(100dvh-5rem))]"
       >
-        <ProgressDots step={screen.step} />
+        <ProgressDots step={screen.step} total={total} />
 
         {screen.step === 1 ? (
           <>
-            <StepLabel>{o.stepOf(1, 5)}</StepLabel>
+            <StepLabel>{o.stepOf(1, total)}</StepLabel>
             <StepTitle>{o.step1Title}</StepTitle>
             <div className="mat-recess flex w-full flex-col items-center rounded-[16px] px-4 py-6">
               <HmatOrb state="idle" size={120} />
@@ -167,7 +170,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
 
         {screen.step === 2 ? (
           <>
-            <StepLabel>{o.stepOf(2, 5)}</StepLabel>
+            <StepLabel>{o.stepOf(2, total)}</StepLabel>
             <StepTitle>{o.step2Title}</StepTitle>
             <StepBody>{o.step2Body}</StepBody>
             <div className="flex flex-col gap-2">
@@ -207,7 +210,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
 
         {screen.step === 3 ? (
           <>
-            <StepLabel>{o.stepOf(3, 5)}</StepLabel>
+            <StepLabel>{o.stepOf(3, total)}</StepLabel>
             <StepTitle>{o.step3Title}</StepTitle>
             <StepBody>{o.step3Body}</StepBody>
             <div className="flex flex-col gap-2">
@@ -235,7 +238,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
 
         {screen.step === 4 ? (
           <>
-            <StepLabel>{o.stepOf(4, 5)}</StepLabel>
+            <StepLabel>{o.stepOf(4, total)}</StepLabel>
             <StepTitle>{o.step4Title}</StepTitle>
             <StepBody>{o.step4Body}</StepBody>
 
@@ -292,14 +295,54 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
             ) : null}
 
             <OnboardingCta onClick={screen.continue}>{ctaLabel}</OnboardingCta>
+            <button
+              type="button"
+              onClick={screen.skipScheduleSetup}
+              className="w-full py-3 text-center font-sans text-[15px] font-semibold text-[#2A2420] underline"
+            >
+              {o.setupLater}
+            </button>
           </>
         ) : null}
 
         {screen.step === 5 ? (
           <>
-            <StepLabel>{o.stepOptional}</StepLabel>
+            <StepLabel>{o.stepOf(5, total)}</StepLabel>
             <StepTitle>{o.step5Title}</StepTitle>
             <StepBody>{o.step5Body}</StepBody>
+            <OnboardingProviderFields
+              llm={screen.llm}
+              tts={screen.tts}
+              busy={screen.providerBusy}
+              onSave={screen.saveProviderKey}
+              onDisconnect={screen.disconnectProvider}
+              variant="hmat"
+              labels={{
+                openRouterName: s.openRouterName,
+                openRouterDesc: s.openRouterDesc,
+                elevenLabsName: s.elevenLabsName,
+                elevenLabsDesc: s.elevenLabsDesc,
+                pasteApiKey: s.pasteApiKey,
+                saveKey: s.saveKey,
+                disconnect: s.disconnect,
+              }}
+            />
+            <OnboardingCta onClick={screen.continue}>{ctaLabel}</OnboardingCta>
+            <button
+              type="button"
+              onClick={screen.continue}
+              className="w-full py-3 text-center font-sans text-[15px] font-semibold text-[#2A2420] underline"
+            >
+              {o.skip}
+            </button>
+          </>
+        ) : null}
+
+        {screen.step === 6 ? (
+          <>
+            <StepLabel>{o.stepOptional}</StepLabel>
+            <StepTitle>{o.step6Title}</StepTitle>
+            <StepBody>{o.step6Body}</StepBody>
 
             <SectionMicroLabel>{o.googleDoc}</SectionMicroLabel>
             <StepBody>{o.googleDocShare}</StepBody>

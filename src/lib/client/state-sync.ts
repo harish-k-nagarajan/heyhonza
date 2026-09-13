@@ -70,6 +70,9 @@ type StatePatch = {
 export async function patchServerState(
   patch: StatePatch,
 ): Promise<{ persisted: boolean; added?: { id: string; syncedAt: number } }> {
+  if (!dbMode) {
+    await fetchServerState();
+  }
   if (!dbMode) return { persisted: false };
   try {
     const res = await fetch("/api/state", {

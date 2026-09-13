@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { persistProfile } from "@/lib/client/context-actions";
 import { fetchServerState } from "@/lib/client/state-sync";
 import { useChatStore } from "@/stores/useChatStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
@@ -32,7 +33,14 @@ export function ServerSync() {
         if (data.profile.preferredModel) {
           settings.setPreferredModel(data.profile.preferredModel);
         }
-        settings.setOnboardingComplete(data.profile.onboardingCompleted);
+        const hasChatHistory =
+          (data.messages?.length ?? 0) > 0 || (data.endedSessions?.length ?? 0) > 0;
+        let onboardingDone = data.profile.onboardingCompleted;
+        if (!onboardingDone && hasChatHistory) {
+          onboardingDone = true;
+          void persistProfile({ onboardingCompleted: true });
+        }
+        settings.setOnboardingComplete(onboardingDone);
         if (data.profile.name) settings.setLearnerName(data.profile.name);
         if (data.profile.formality) settings.setFormality(data.profile.formality);
         if (typeof data.profile.scheduleEnabled === "boolean") {

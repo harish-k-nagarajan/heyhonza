@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-13 (Homepage copy + language switcher)
+## Current entry — 2026-09-13 (Onboarding branch)
+
+### What changed
+- **Re-login loop:** `finish()` now **awaits** `persistProfile({ onboardingCompleted: true, … })` before routing to chat; `patchServerState` re-fetches `/api/state` if `dbMode` was stale. **Backfill:** users with chat history but `onboarding_completed: false` in Postgres get flagged complete on `ServerSync` and patched server-side.
+- **Reminders:** Step 4 adds **Set up later** → `scheduleEnabled: false` persisted; Continue on step 4 enables reminders (`scheduleEnabled: true`). Finish no longer forces reminders on.
+- **Flow:** 6 steps — new **step 5** for OpenRouter + ElevenLabs BYOK (`OnboardingProviderFields`); context import is **step 6** (optional).
+
+### What to verify manually
+- Sign out → sign in as existing user with completed onboarding → lands on `/chat`, not `/onboarding`.
+- Step 4 “Set up later” → Settings shows reminders off after finish.
+
+---
+
+## Previous — 2026-09-13 (Homepage copy + language switcher)
 
 ### What changed
 - Homepage copy pass (EN + CS in `extended.ts`): cut em dashes, trailing periods on titles/leads, gendered Czech (`připravený`), and anglicisms (`učebnicové drill`). Leads shortened so Topics/Levels wrap to 1–2 lines (`max-w-[42ch]`, `text-pretty` / `text-balance`).

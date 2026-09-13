@@ -14,8 +14,9 @@ import type { ProfilePatch } from "@/lib/server/user-data";
  */
 
 /** Persist a profile field change (topics / level / model / onboarding flag). */
-export function persistProfile(patch: ProfilePatch): void {
-  void patchServerState({ profile: patch });
+export async function persistProfile(patch: ProfilePatch): Promise<boolean> {
+  const result = await patchServerState({ profile: patch });
+  return result.persisted;
 }
 
 /** Add an ingested context chunk locally and (when signed in) to the DB. */

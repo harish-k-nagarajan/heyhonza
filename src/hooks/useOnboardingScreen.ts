@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useScreenReady } from "@/hooks/useScreenReady";
+import type { ProviderUiStatus } from "@/hooks/useSettingsScreen";
 import { addContext, persistProfile } from "@/lib/client/context-actions";
 import { ROUTES } from "@/lib/constants";
 import { DESIGNS } from "@/lib/design/registry";
@@ -18,19 +19,23 @@ import { isLikelyGoogleDocUrl } from "@/lib/validators";
 import { useDesignStore } from "@/stores/useDesignStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 
-export type OnboardingStep = 1 | 2 | 3 | 4 | 5;
+const TOTAL_STEPS = 6;
+
+export type OnboardingStep = 1 | 2 | 3 | 4 | 5 | 6;
 
 /**
- * Behaviour for the 5-step onboarding flow (Handoff — Onboarding Flow):
- * Intro → Level → Topics → Schedule → Context (optional) → Chat.
+ * Behaviour for the 6-step onboarding flow:
+ * Intro → Level → Topics → Schedule → API keys → Context (optional) → Chat.
  */
 export type OnboardingScreen = {
   ready: boolean;
   design: DesignId;
   family: DesignFamily;
   step: OnboardingStep;
+  totalSteps: number;
   continue: () => void;
   skip: () => void;
+  skipScheduleSetup: () => void;
 
   level: LevelId;
   chooseLevel: (l: LevelId) => void;
@@ -43,6 +48,12 @@ export type OnboardingScreen = {
   setScheduleMode: (mode: ScheduleMode) => void;
   firstMessageTime: string;
   setFirstMessageTime: (time: string) => void;
+
+  llm: ProviderUiStatus | null;
+  tts: ProviderUiStatus | null;
+  providerBusy: boolean;
+  saveProviderKey: (provider: "openrouter" | "elevenlabs", key: string) => Promise<string | null>;
+  disconnectProvider: (provider: "openrouter" | "elevenlabs") => Promise<void>;
 
   docUrl: string;
   setDocUrl: (v: string) => void;
@@ -57,6 +68,14 @@ export type OnboardingScreen = {
 
   finish: () => void;
 };
+
+function detectTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
 
 export function useOnboardingScreen(): OnboardingScreen {
   const router = useRouter();
@@ -73,6 +92,7 @@ export function useOnboardingScreen(): OnboardingScreen {
   const setScheduleMode = useSettingsStore((s) => s.setScheduleMode);
   const firstMessageTime = useSettingsStore((s) => s.firstMessageTime);
   const setFirstMessageTime = useSettingsStore((s) => s.setFirstMessageTime);
+  const setScheduleEnabled = useSettingsStore((s) => s.setScheduleEnabled);
 
   const design = useDesignStore((s) => s.design);
 
@@ -82,22 +102,74 @@ export function useOnboardingScreen(): OnboardingScreen {
   const [docLoading, setDocLoading] = useState(false);
   const [docError, setDocError] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [llm, setLlm] = useState<ProviderUiStatus | null>(null);
+  const [tts, setTts] = useState<ProviderUiStatus | null>(null);
+  const [providerBusy, setProviderBusy] = useState(false);
 
   useEffect(() => {
     if (ready && onboardingComplete) router.replace(ROUTES.chat);
   }, [ready, onboardingComplete, router]);
+
+  const refreshProviders = useCallback(async () => {
+    try {
+      const res = await fetch("/api/providers/status", { cache: "no-store" });
+      const data = (await res.json()) as {
+        llm?: ProviderUiStatus;
+        tts?: ProviderUiStatus;
+      };
+      if (data.llm) setLlm(data.llm);
+      if (data.tts) setTts(data.tts);
+    } catch {
+      setLlm({ source: "none", connected: false });
+      setTts({ source: "none", connected: false });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    let cancelled = false;
+    void fetch("/api/providers/status", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data: { llm?: ProviderUiStatus; tts?: ProviderUiStatus }) => {
+        if (cancelled) return;
+        if (data.llm) setLlm(data.llm);
+        if (data.tts) setTts(data.tts);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLlm({ source: "none", connected: false });
+        setTts({ source: "none", connected: false });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [ready]);
+
+  const persistSchedule = useCallback(
+    (enabled: boolean) => {
+      const tz = detectTimezone();
+      void persistProfile({
+        timezone: tz,
+        scheduleEnabled: enabled,
+        dailyMessageCount,
+        scheduleMode,
+        firstMessageTime,
+      });
+    },
+    [dailyMessageCount, firstMessageTime, scheduleMode],
+  );
 
   const toggleTopic = (id: TopicId) => {
     const next = selectedTopics.includes(id)
       ? selectedTopics.filter((t) => t !== id)
       : [...selectedTopics, id];
     setTopics(next);
-    persistProfile({ topics: next });
+    void persistProfile({ topics: next });
   };
 
   const chooseLevel = (l: LevelId) => {
     setLevel(l);
-    persistProfile({ level: l });
+    void persistProfile({ level: l });
   };
 
   const importGoogleDoc = () => {
@@ -187,26 +259,77 @@ export function useOnboardingScreen(): OnboardingScreen {
     void (async () => {
       await flushPaste();
       setOnboardingComplete(true);
-      persistProfile({
+      const enabled = useSettingsStore.getState().scheduleEnabled;
+      await persistProfile({
         onboardingCompleted: true,
         topics: selectedTopics,
         level,
-        scheduleEnabled: true,
+        scheduleEnabled: enabled,
         dailyMessageCount,
         scheduleMode,
         firstMessageTime,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+        timezone: detectTimezone(),
       });
       router.push(ROUTES.chat);
     })();
   };
 
+  const advanceFromSchedule = (enableReminders: boolean) => {
+    setScheduleEnabled(enableReminders);
+    persistSchedule(enableReminders);
+    setStep(5);
+  };
+
+  const skipScheduleSetup = () => {
+    advanceFromSchedule(false);
+  };
+
   const continueFlow = () => {
-    if (step < 5) {
+    if (step === 4) {
+      advanceFromSchedule(true);
+      return;
+    }
+    if (step < TOTAL_STEPS) {
       setStep((s) => (s + 1) as OnboardingStep);
       return;
     }
     finish();
+  };
+
+  const saveProviderKey = async (
+    provider: "openrouter" | "elevenlabs",
+    key: string,
+  ): Promise<string | null> => {
+    setProviderBusy(true);
+    try {
+      const res = await fetch("/api/providers/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, key }),
+      });
+      const data = (await res.json()) as { ok?: boolean; reason?: string };
+      if (!res.ok || !data.ok) return data.reason ?? "Could not save that key.";
+      await refreshProviders();
+      return null;
+    } catch {
+      return "Network error.";
+    } finally {
+      setProviderBusy(false);
+    }
+  };
+
+  const disconnectProvider = async (provider: "openrouter" | "elevenlabs") => {
+    setProviderBusy(true);
+    try {
+      await fetch("/api/providers/keys", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider }),
+      });
+      await refreshProviders();
+    } finally {
+      setProviderBusy(false);
+    }
   };
 
   const setPasteValue = (v: string) => {
@@ -219,8 +342,10 @@ export function useOnboardingScreen(): OnboardingScreen {
     design,
     family: DESIGNS[design].family,
     step,
+    totalSteps: TOTAL_STEPS,
     continue: continueFlow,
     skip: finish,
+    skipScheduleSetup,
     level,
     chooseLevel,
     topics: selectedTopics,
@@ -231,6 +356,11 @@ export function useOnboardingScreen(): OnboardingScreen {
     setScheduleMode,
     firstMessageTime,
     setFirstMessageTime,
+    llm,
+    tts,
+    providerBusy,
+    saveProviderKey,
+    disconnectProvider,
     docUrl,
     setDocUrl,
     docLoading,
