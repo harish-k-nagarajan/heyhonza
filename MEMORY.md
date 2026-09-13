@@ -4,7 +4,19 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-08-30 (Inter body)
+## Current entry — 2026-09-13 (landing hero recess)
+
+### What changed
+- Welcome hero orb now uses the in-app **rectangular recess + glass bezel** (`HmatPresenceRecess` `variant="display"`), centered, instead of a bare 148px face.
+- Headline is **Learn Czech by texting a friend** (no trailing period).
+- Landing recess is a compact 272×220 rectangle around the glass slab — not a square, not phone-width. Chat bubbles sit above it so they stay visible.
+
+### Decision
+Landing shows the recess slab + orb only — no WAITING channel/label, no tap target, no RecessCardLight frost ring. Chat/Call keep the full presence chrome.
+
+---
+
+## Previous — 2026-08-30 (Inter body)
 
 ### What changed
 - Body face is **Inter** (`font-sans` / `--font-body`), loaded via `next/font/google` with `latin-ext`. Replaces Space Grotesk everywhere that used the body axis.

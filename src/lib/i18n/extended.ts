@@ -281,7 +281,7 @@ const enExtended: ExtendedCopy = {
   },
   welcome: {
     logIn: "Log in",
-    heroHeadline: "Learn Czech by texting a friend.",
+    heroHeadline: "Learn Czech by texting a friend",
     heroSubcopy:
       "Not a streak. Not a leaderboard. Open the app. Honza is already writing to you in Czech.",
     heroCta: "Say hi to Honza",
@@ -494,7 +494,7 @@ const csExtended: ExtendedCopy = {
   },
   welcome: {
     logIn: "Přihlásit se",
-    heroHeadline: "Uč se česky psaním s kamarádem.",
+    heroHeadline: "Uč se česky psaním s kamarádem",
     heroSubcopy:
       "Ne série. Ne žebříček. Otevři appku. Honza ti už píše česky.",
     heroCta: "Pozdrav Honzu",
