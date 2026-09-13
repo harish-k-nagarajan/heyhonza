@@ -65,14 +65,14 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
           <h1
             className={cn(
               TYPE.displayLg,
-              "max-w-[720px] text-foreground md:text-[34px]",
+              "w-full text-balance text-foreground md:max-w-[720px] md:text-[34px]",
             )}
           >
             {copy.headline}
           </h1>
           <p
             className={cn(
-              "max-w-[720px]",
+              "max-w-[36ch] text-pretty md:max-w-[42ch]",
               TYPE.subtitle,
               "text-[15px] leading-[1.5] md:text-[15px]",
             )}

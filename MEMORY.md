@@ -4,11 +4,22 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-13 (Schedule fold centering + scroll scene)
+## Current entry — 2026-09-13 (Homepage copy + language switcher)
+
+### What changed
+- Homepage copy pass (EN + CS in `extended.ts`): cut em dashes, trailing periods on titles/leads, gendered Czech (`připravený`), and anglicisms (`učebnicové drill`). Leads shortened so Topics/Levels wrap to 1–2 lines (`max-w-[42ch]`, `text-pretty` / `text-balance`).
+- CS/EN switcher on `/welcome` nav (`LanguageSwitcher variant="nav"`), persists via `uiLocale`. Demo chat samples stay Czech in both locales.
+
+### Decision
+Marketing titles and single-line leads have no terminal period. Two-sentence lines keep the internal period only.
+
+---
+
+## Previous — 2026-09-13 (Schedule fold centering + scroll scene)
 
 ### What changed
 - **Schedule preview centering:** Stage is `max-w-[520px]` with settings `left-0` + phone `right-0` so the overlap sits centered (was `left-[248px]` in a 640px box → empty right gutter).
-- **Scroll scene:** `useLandingScheduleScrollScene` (GSAP + ScrollTrigger, same stack as Call fold) — settings peel forward mid-scroll, settle behind the phone, then **transitions.dev #22 toast** (`.t-toast.is-open`) for the lock-screen banner. Respects `prefers-reduced-motion` (final state, no scrub).
+- **Scroll scene:** `useLandingScheduleScrollScene` (GSAP + ScrollTrigger, same stack as Call fold) — settings peel forward mid-scroll, settle behind the phone, then **transitions.dev #22 toast** (`t-toast.is-open`) for the lock-screen banner. Respects `prefers-reduced-motion` (final state, no scrub).
 
 ### Prior same day — Fold 04 C shipped — pen + code
 

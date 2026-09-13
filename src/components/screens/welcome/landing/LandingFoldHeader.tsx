@@ -17,7 +17,7 @@ export function LandingFoldHeader({
   return (
     <header className={cn("flex flex-col items-center gap-3 text-center", className)}>
       <p className={cn(TYPE.label, "text-[#6B625C]")}>{kicker}</p>
-      <h2 className={cn(TYPE.display, "max-w-[28ch] text-foreground md:text-[24px]")}>
+      <h2 className={cn(TYPE.display, "max-w-[24ch] text-balance text-foreground md:text-[24px]")}>
         {title}
         {titleLine2 ? (
           <>
@@ -27,7 +27,13 @@ export function LandingFoldHeader({
         ) : null}
       </h2>
       {lead ? (
-        <p className={cn("max-w-[32ch] text-[#4A443F]", TYPE.subtitle, "md:text-[14px]")}>
+        <p
+          className={cn(
+            "max-w-[42ch] text-pretty text-[#4A443F]",
+            TYPE.subtitle,
+            "md:max-w-[46ch] md:text-[14px]",
+          )}
+        >
           {lead}
         </p>
       ) : null}

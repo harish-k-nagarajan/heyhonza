@@ -13,17 +13,17 @@ export const WELCOME_STEPS = [
   {
     n: "01",
     title: "Honza starts",
-    body: "Open the app and a message is already waiting — in Czech, about something you actually care about.",
+    body: "Open the app and a Czech message is already waiting, about something you care about",
   },
   {
     n: "02",
     title: "You reply in Czech",
-    body: "Type it back. Badly is fine. Getting it wrong is the part where the learning happens.",
+    body: "Type it back, even badly. Getting it wrong is where the learning happens",
   },
   {
     n: "03",
     title: "He fixes it, kindly",
-    body: "Honza corrects the slip, tells you why, and keeps the conversation going.",
+    body: "Honza corrects the slip, tells you why, and keeps going",
   },
 ] as const;
 
@@ -32,17 +32,17 @@ export const WELCOME_STEPS_CS = [
   {
     n: "01",
     title: "Honza začíná",
-    body: "Otevřeš appku a zpráva už na tebe čeká — česky a o něčem, co tě fakt zajímá.",
+    body: "Otevřeš appku a zpráva už na tebe čeká, česky a o něčem, co tě zajímá",
   },
   {
     n: "02",
     title: "Odepíšeš česky",
-    body: "Napiš to zpátky. Klidně blbě. Právě v těch chybách se to naučíš.",
+    body: "Napiš to zpátky, klidně blbě. Právě v chybách se to naučíš",
   },
   {
     n: "03",
     title: "Laskavě to opraví",
-    body: "Honza chybu opraví, vysvětlí proč, a povídá si s tebou dál.",
+    body: "Honza chybu opraví, řekne proč a povídá si dál",
   },
 ] as const;
 
@@ -79,16 +79,16 @@ export const LANDING_PWA_HINT =
 export const LANDING_HERO_FIRST = {
   headline: "Learn Czech by texting a friend",
   subcopy:
-    "Not a streak. Not a leaderboard. Open the app. Honza is already writing to you in Czech.",
+    "No streak, no leaderboard. Open the app and Honza is already writing to you in Czech",
   cta: "Say hi to Honza",
   ctaHint: "Free · takes a minute",
 } as const;
 
 /** Shown right after sign-out — warm send-off, nudge to come back. */
 export const LANDING_HERO_SIGNED_OUT = {
-  headline: "Honza will be here when you are.",
+  headline: "Honza will be here when you are",
   subcopy:
-    "Your progress is saved. Whenever you're ready for another Czech chat, sign back in — I'll pick up where we left off.",
+    "Your progress is saved. Sign back in and we pick up the Czech chat where you left off",
   cta: "Sign back in",
   ctaHint: "Same account · one tap",
 } as const;
@@ -155,7 +155,7 @@ export const LEVEL_LANDING_BLURBS: Record<LevelId, string> = {
   A1: "Short sentences, zero stress",
   A2: "Honza pushes you further",
   B1: "Real topics, gentle fixes",
-  B2: "Almost fluent — still learning",
+  B2: "Almost fluent, still learning",
 };
 
 export const LANDING_LEVEL_IDS = LEVEL_OPTIONS.map((l) => l.id);
@@ -165,33 +165,33 @@ export const LANDING_SECTIONS = {
     kicker: "WHAT IT LOOKS LIKE",
     title: "Honza writes first",
     titleLine2: "You reply in Czech",
-    lead: "He corrects gently and keeps the conversation going — no textbook drills, just real chat",
+    lead: "Gentle corrections, then the chat continues",
   },
   call: {
     kicker: "PRACTICE SPEAKING",
-    title: "When you're ready, just call him",
-    lead: "Same Honza, same patience — practice speaking out loud, he listens, corrects, and keeps talking",
+    title: "Call him when you're ready",
+    lead: "Speak Czech out loud and he talks back",
   },
   schedule: {
     kicker: "DAILY CHECK-INS",
     title: "Pick when Honza writes",
-    lead: "One to three Czech messages a day — set exact times or let Honza surprise you when it feels natural",
+    lead: "One to three Czech messages a day",
   },
   topics: {
     kicker: "TOPICS",
     title: "What you'll talk about",
-    lead: "Real Czech about things you care about — pick topics, then hear them in conversation",
+    lead: "Pick topics you care about, then talk in Czech",
   },
   levels: {
     kicker: "LEVELS",
     title: "Meets you at your level",
-    lead: "From your first sentences to almost-fluent conversation",
+    lead: "From first sentences to almost fluent",
   },
 } as const;
 
 export const LANDING_FOOTER = {
   headline: "Ready to say ahoj?",
-  note: "Free to start. Takes a minute. Add Honza to your home screen and he lives on your phone.",
+  note: "Free to start. Add Honza to your home screen and he lives on your phone",
 } as const;
 
 export const LANDING_STORAGE_KEY = "honza-landing-seen";

@@ -19,7 +19,7 @@ import { useLandingVisitor } from "./useLandingVisitor";
 /** Hmat marketing landing — shown on `/welcome`. */
 export function HmatLanding() {
   const visitor = useLandingVisitor();
-  const { t } = useLocale();
+  const { locale, t } = useLocale();
 
   if (!visitor.ready) {
     return (
@@ -36,7 +36,10 @@ export function HmatLanding() {
 
   return (
     <>
-      <div className="landing-page -mx-5 w-[calc(100%+2.5rem)] overflow-x-clip bg-[#fff8f5] md:-mx-0 md:w-full">
+      <div
+        lang={locale}
+        className="landing-page -mx-5 w-[calc(100%+2.5rem)] overflow-x-clip bg-[#fff8f5] md:-mx-0 md:w-full"
+      >
         <LandingNav />
         <LandingBubbleMorphProvider>
           <LandingHero visitor={visitor} />
