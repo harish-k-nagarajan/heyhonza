@@ -35,8 +35,13 @@ export function ServerSync() {
         }
         const hasChatHistory =
           (data.messages?.length ?? 0) > 0 || (data.endedSessions?.length ?? 0) > 0;
+        // Level/topics/timezone get written during the flow. If those landed but
+        // `onboarding_completed` did not (e.g. a profile update that also set a
+        // missing `onboarding_step` column), treat the learner as done.
+        const finishedWithoutFlag =
+          (data.profile.topics?.length ?? 0) > 0 && Boolean(data.profile.timezone);
         let onboardingDone = data.profile.onboardingCompleted;
-        if (!onboardingDone && hasChatHistory) {
+        if (!onboardingDone && (hasChatHistory || finishedWithoutFlag)) {
           onboardingDone = true;
           void persistProfile({ onboardingCompleted: true });
         }

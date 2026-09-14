@@ -159,12 +159,15 @@ export async function loadUserState(): Promise<UserState | null> {
 
   await migrateOrphanMessages(user.id, supabase);
 
+  const profileColumns =
+    "name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone";
+  const profileColumnsWithoutStep =
+    "name, level, topics, preferred_model, onboarding_completed, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone";
+
   const [profileRes, contextRes, sessionsRes, messagesRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select(
-        "name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
-      )
+      .select(profileColumns)
       .eq("id", user.id)
       .maybeSingle(),
     supabase
@@ -184,7 +187,15 @@ export async function loadUserState(): Promise<UserState | null> {
       .order("created_at", { ascending: true }),
   ]);
 
-  const p = profileRes.data;
+  let p = profileRes.data;
+  if (profileRes.error) {
+    const fallback = await supabase
+      .from("profiles")
+      .select(profileColumnsWithoutStep)
+      .eq("id", user.id)
+      .maybeSingle();
+    p = fallback.data;
+  }
   const daily = Number(p?.daily_message_count ?? 1);
   const profile: PersistedProfile = {
     name: p?.name ?? null,
@@ -425,7 +436,12 @@ export async function updateProfile(patch: ProfilePatch): Promise<boolean> {
   if ("timezone" in patch) row.timezone = patch.timezone;
   if (Object.keys(row).length === 0) return true;
   const { error } = await supabase.from("profiles").update(row).eq("id", userId);
-  return !error;
+  if (!error) return true;
+  if (!("onboarding_step" in row)) return false;
+  delete row.onboarding_step;
+  if (Object.keys(row).length === 0) return false;
+  const retry = await supabase.from("profiles").update(row).eq("id", userId);
+  return !retry.error;
 }
 
 /** Persist a freshly ingested context chunk; returns the stored row's id. */

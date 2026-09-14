@@ -272,10 +272,8 @@ export function useOnboardingScreen(): OnboardingScreen {
     setFinishing(true);
     void (async () => {
       await flushPaste();
-      setOnboardingComplete(true);
-      router.replace(ROUTES.chat);
       const enabled = useSettingsStore.getState().scheduleEnabled;
-      void persistProfile({
+      await persistProfile({
         onboardingCompleted: true,
         onboardingStep: 1,
         topics: selectedTopics,
@@ -285,9 +283,10 @@ export function useOnboardingScreen(): OnboardingScreen {
         scheduleMode,
         firstMessageTime,
         timezone: detectTimezone(),
-      }).then(() => {
-        setOnboardingStep(1);
       });
+      setOnboardingComplete(true);
+      setOnboardingStep(1);
+      router.replace(ROUTES.chat);
     })();
   };
 

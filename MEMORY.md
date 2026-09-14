@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-13 (Onboarding branch)
+## Current entry — 2026-09-14 (Onboarding restart bug)
+
+### What broke
+- Signed-in users landed on `/onboarding` again. Tonight’s `onboarding_step` work selected/wrote a column that **is not on the live `profiles` table** (migration `0005` never applied). PostgREST then failed the whole profile read, so `/api/state` returned a blank profile with `onboardingCompleted: false` and `ServerSync` overwrote local settings. Finish writes that included `onboardingStep` also failed as a whole, so the completion flag never stuck.
+
+### Fix
+- Load/update profile retries without `onboarding_step` if that column is missing. `finish()` awaits persist again before routing. `ServerSync` backfills `onboarding_completed` when topics + timezone already landed.
+
+### Still needed
+- Apply `supabase/migrations/0005_onboarding_step.sql` on the Hey Honza project so resume-step can persist.
+
+---
+
+## Previous — 2026-09-13 (Onboarding branch)
 
 ### What changed
 - **Re-login loop:** `finish()` now **awaits** `persistProfile({ onboardingCompleted: true, … })` before routing to chat; `patchServerState` re-fetches `/api/state` if `dbMode` was stale. **Backfill:** users with chat history but `onboarding_completed: false` in Postgres get flagged complete on `ServerSync` and patched server-side.
