@@ -40,6 +40,7 @@ export type PersistedProfile = {
   topics: string[];
   preferredModel: string | null;
   onboardingCompleted: boolean;
+  onboardingStep: number;
   formality: FormalityMode;
   scheduleEnabled: boolean;
   dailyMessageCount: DailyMessageCount;
@@ -162,7 +163,7 @@ export async function loadUserState(): Promise<UserState | null> {
     supabase
       .from("profiles")
       .select(
-        "name, level, topics, preferred_model, onboarding_completed, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
+        "name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
       )
       .eq("id", user.id)
       .maybeSingle(),
@@ -191,6 +192,7 @@ export async function loadUserState(): Promise<UserState | null> {
     topics: (p?.topics as string[] | null) ?? [],
     preferredModel: p?.preferred_model ?? null,
     onboardingCompleted: Boolean(p?.onboarding_completed),
+    onboardingStep: clampOnboardingStep(Number(p?.onboarding_step ?? 1)),
     formality: p?.formality === "vy" ? "vy" : "ty",
     scheduleEnabled: p?.schedule_enabled !== false,
     dailyMessageCount: daily === 2 || daily === 3 ? daily : 1,
@@ -382,12 +384,17 @@ export async function loadSessionMessages(
   }));
 }
 
+function clampOnboardingStep(n: number): number {
+  return Math.min(6, Math.max(1, Math.round(n)));
+}
+
 export type ProfilePatch = Partial<{
   name: string | null;
   level: string;
   topics: string[];
   preferredModel: string | null;
   onboardingCompleted: boolean;
+  onboardingStep: number;
   formality: FormalityMode;
   scheduleEnabled: boolean;
   dailyMessageCount: DailyMessageCount;
@@ -407,6 +414,8 @@ export async function updateProfile(patch: ProfilePatch): Promise<boolean> {
   if ("preferredModel" in patch) row.preferred_model = patch.preferredModel;
   if ("onboardingCompleted" in patch)
     row.onboarding_completed = patch.onboardingCompleted;
+  if ("onboardingStep" in patch && patch.onboardingStep !== undefined)
+    row.onboarding_step = clampOnboardingStep(patch.onboardingStep);
   if ("formality" in patch) row.formality = patch.formality;
   if ("scheduleEnabled" in patch) row.schedule_enabled = patch.scheduleEnabled;
   if ("dailyMessageCount" in patch)

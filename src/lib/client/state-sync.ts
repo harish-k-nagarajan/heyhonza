@@ -25,6 +25,7 @@ export type ServerState = {
     topics: string[];
     preferredModel: string | null;
     onboardingCompleted: boolean;
+    onboardingStep?: number;
     formality?: "ty" | "vy";
     scheduleEnabled?: boolean;
     dailyMessageCount?: 1 | 2 | 3;

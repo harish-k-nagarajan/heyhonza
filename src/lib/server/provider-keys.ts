@@ -9,6 +9,14 @@ import { getUserId } from "@/lib/server/user-data";
 
 export type ProviderId = "openrouter" | "elevenlabs";
 
+/** Strip paste noise without altering the key body (spaces inside keys are invalid). */
+export function normalizeProviderKey(raw: string): string {
+  return raw
+    .trim()
+    .replace(/^["'`]+|["'`]+$/g, "")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "");
+}
+
 export type ProviderSource = "none" | "env" | "user";
 
 const ENV_KEYS: Record<ProviderId, () => string | undefined> = {
@@ -62,7 +70,7 @@ export async function saveUserProviderKey(
   const userId = await getUserId();
   if (!userId || !isSupabaseConfigured()) return false;
   const supabase = await createSupabaseServerClient();
-  const ciphertext = encryptSecret(plainKey.trim());
+  const ciphertext = encryptSecret(normalizeProviderKey(plainKey));
   const { error } = await supabase.from("user_provider_keys").upsert(
     {
       user_id: userId,
@@ -87,21 +95,46 @@ export async function deleteUserProviderKey(provider: ProviderId): Promise<boole
   return !error;
 }
 
+/** OpenRouter's public model list returns 200 even with bad keys — auth/key does not. */
 export async function validateOpenRouterKey(apiKey: string): Promise<boolean> {
-  const res = await fetch("https://openrouter.ai/api/v1/models", {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
-  return res.ok;
+  const trimmed = normalizeProviderKey(apiKey);
+  if (!trimmed) return false;
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/auth/key", {
+      headers: {
+        Authorization: `Bearer ${trimmed}`,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
+/**
+ * ElevenLabs keys are often scoped without "User" read — `/v1/user` then 401s even
+ * when TTS works. Probe endpoints Honza actually needs (models / voices) first.
+ */
 export async function validateElevenLabsKey(apiKey: string): Promise<boolean> {
-  const res = await fetch("https://api.elevenlabs.io/v1/user", {
-    headers: { "xi-api-key": apiKey, Accept: "application/json" },
-    cache: "no-store",
-  });
-  return res.ok;
+  const trimmed = normalizeProviderKey(apiKey);
+  if (!trimmed) return false;
+
+  const headers = { "xi-api-key": trimmed, Accept: "application/json" };
+  const probes = [
+    "https://api.elevenlabs.io/v1/models",
+    "https://api.elevenlabs.io/v1/voices?page_size=1",
+    "https://api.elevenlabs.io/v1/user",
+  ];
+
+  try {
+    for (const url of probes) {
+      const res = await fetch(url, { headers, cache: "no-store" });
+      if (res.ok) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
 }

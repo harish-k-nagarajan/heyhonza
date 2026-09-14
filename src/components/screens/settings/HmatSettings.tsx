@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 
+import { HmatProviderKeyRow } from "@/components/screens/settings/HmatProviderKeyEditor";
 import {
   HmatSettingsCard,
   HmatSettingsConfirm,
@@ -35,7 +36,7 @@ import {
 } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
-import type { ProviderUiStatus, SettingsScreen } from "@/hooks/useSettingsScreen";
+import type { SettingsScreen } from "@/hooks/useSettingsScreen";
 import { useLocale } from "@/lib/i18n/useLocale";
 
 const TOPIC_ROWS: TopicId[][] = [
@@ -155,30 +156,6 @@ function SettingsFileDrop({
   );
 }
 
-function providerBadge(
-  status: ProviderUiStatus | null,
-  s: ReturnType<typeof useLocale>["t"]["settings"],
-) {
-  if (status?.source === "user") {
-    return { connected: true, label: s.apiKeyAdded, tone: "ok" as const };
-  }
-  return { connected: false, label: s.addApiKey, tone: "warn" as const };
-}
-
-function SaveIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M20 6 9 17l-5-5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 function UnlinkIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -216,91 +193,6 @@ function ConnectIcon() {
         strokeLinecap="round"
       />
     </svg>
-  );
-}
-
-function ProviderKeyEditor({
-  status,
-  busy,
-  onSave,
-  onDisconnect,
-  pasteLabel,
-  saveLabel,
-  disconnectLabel,
-}: {
-  status: ProviderUiStatus | null;
-  busy: boolean;
-  onSave: (key: string) => Promise<string | null>;
-  onDisconnect: () => Promise<void>;
-  pasteLabel: string;
-  saveLabel: string;
-  disconnectLabel: string;
-}) {
-  const [key, setKey] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const hasUserKey = status?.source === "user";
-
-  const save = () => {
-    void (async () => {
-      setError(null);
-      const reason = await onSave(key.trim());
-      if (reason) setError(reason);
-      else setKey("");
-    })();
-  };
-
-  if (hasUserKey) {
-    return (
-      <HmatSettingsInlineField
-        readOnly
-        value=""
-        placeholder="••••••••••••"
-        aria-label={pasteLabel}
-        actionVisible
-        action={
-          <HmatSettingsGlyphButton
-            ariaLabel={disconnectLabel}
-            tone="danger"
-            onClick={() => {
-              if (busy) return;
-              void onDisconnect();
-            }}
-          >
-            <UnlinkIcon />
-          </HmatSettingsGlyphButton>
-        }
-      />
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      <HmatSettingsInlineField
-        type="password"
-        autoComplete="off"
-        value={key}
-        onChange={(e) => setKey(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && key.trim() && !busy) {
-            e.preventDefault();
-            save();
-          }
-        }}
-        placeholder={pasteLabel}
-        aria-label={pasteLabel}
-        actionVisible={Boolean(key.trim())}
-        action={
-          <HmatSettingsGlyphButton
-            ariaLabel={saveLabel}
-            disabled={busy || !key.trim()}
-            onClick={save}
-          >
-            <SaveIcon />
-          </HmatSettingsGlyphButton>
-        }
-      />
-      {error ? <p className={cn(TYPE.helper, "text-accent")}>{error}</p> : null}
-    </div>
   );
 }
 
@@ -346,8 +238,6 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
     </HmatSettingsCard>
   );
 
-  const llmBadge = providerBadge(screen.llm, s);
-  const ttsBadge = providerBadge(screen.tts, s);
   const pickerModels = curatedPickerModels(s.modelBlurb);
   if (!pickerModels.some((m) => m.id === screen.model)) {
     pickerModels.unshift({
@@ -467,31 +357,24 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       <HmatSettingsSection label={s.sections.aiText}>
         <HmatSettingsCard className="space-y-3.5 p-4">
           <HmatSettingsHint>{s.aiTextHint}</HmatSettingsHint>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <HmatSettingsIconWrap>
-                <TextIcon />
-              </HmatSettingsIconWrap>
-              <div>
-                <HmatSettingsRowTitle>{s.openRouterName}</HmatSettingsRowTitle>
-                <HmatSettingsRowSubtitle>{s.openRouterDesc}</HmatSettingsRowSubtitle>
-              </div>
-            </div>
-            <HmatSettingsStatusBadge
-              connected={llmBadge.connected}
-              connectedLabel={llmBadge.label}
-              disconnectedLabel={llmBadge.label}
-              tone={llmBadge.tone}
-            />
-          </div>
-          <ProviderKeyEditor
+          <HmatProviderKeyRow
+            title={s.openRouterName}
+            description={s.openRouterDesc}
             status={screen.llm}
             busy={screen.providerBusy}
-            onSave={(key) => screen.saveProviderKey("openrouter", key)}
-            onDisconnect={() => screen.disconnectProvider("openrouter")}
+            connectedLabel={s.connected}
+            disconnectedLabel={s.disconnected}
+            invalidKeyLabel={s.invalidApiKey}
             pasteLabel={s.pasteApiKey}
             saveLabel={s.saveKey}
             disconnectLabel={s.disconnect}
+            onSave={(key) => screen.saveProviderKey("openrouter", key)}
+            onDisconnect={() => screen.disconnectProvider("openrouter")}
+            icon={
+              <HmatSettingsIconWrap>
+                <TextIcon />
+              </HmatSettingsIconWrap>
+            }
           />
           <div className="space-y-2">
             <HmatSettingsMicroLabel>{s.modelLabel}</HmatSettingsMicroLabel>
@@ -511,31 +394,24 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       <HmatSettingsSection label={s.sections.aiVoice}>
         <HmatSettingsCard className="space-y-3.5 p-4">
           <HmatSettingsHint>{s.aiVoiceHint}</HmatSettingsHint>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <HmatSettingsIconWrap className="bg-[#FFF0E8]">
-                <AudioIcon />
-              </HmatSettingsIconWrap>
-              <div>
-                <HmatSettingsRowTitle>{s.elevenLabsName}</HmatSettingsRowTitle>
-                <HmatSettingsRowSubtitle>{s.elevenLabsDesc}</HmatSettingsRowSubtitle>
-              </div>
-            </div>
-            <HmatSettingsStatusBadge
-              connected={ttsBadge.connected}
-              connectedLabel={ttsBadge.label}
-              disconnectedLabel={ttsBadge.label}
-              tone={ttsBadge.tone}
-            />
-          </div>
-          <ProviderKeyEditor
+          <HmatProviderKeyRow
+            title={s.elevenLabsName}
+            description={s.elevenLabsDesc}
             status={screen.tts}
             busy={screen.providerBusy}
-            onSave={(key) => screen.saveProviderKey("elevenlabs", key)}
-            onDisconnect={() => screen.disconnectProvider("elevenlabs")}
+            connectedLabel={s.connected}
+            disconnectedLabel={s.disconnected}
+            invalidKeyLabel={s.invalidApiKey}
             pasteLabel={s.pasteApiKey}
             saveLabel={s.saveKey}
             disconnectLabel={s.disconnect}
+            onSave={(key) => screen.saveProviderKey("elevenlabs", key)}
+            onDisconnect={() => screen.disconnectProvider("elevenlabs")}
+            icon={
+              <HmatSettingsIconWrap className="bg-[#FFF0E8]">
+                <AudioIcon />
+              </HmatSettingsIconWrap>
+            }
           />
         </HmatSettingsCard>
       </HmatSettingsSection>

@@ -12,6 +12,7 @@ import {
   type TopicId,
 } from "@/lib/constants";
 import { OnboardingProviderFields } from "@/components/screens/onboarding/OnboardingProviderFields";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import type { OnboardingScreen } from "@/hooks/useOnboardingScreen";
 import { useLocale } from "@/lib/i18n/useLocale";
 
@@ -47,7 +48,7 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
   const s = t.settings;
   const total = screen.totalSteps;
 
-  if (!screen.ready) {
+  if (!screen.ready || screen.finishing) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground">
         {o.loading}
@@ -58,7 +59,8 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
   const ctaLabel = screen.step === total ? o.startChatting : o.continue;
 
   return (
-    <div className="mx-auto flex max-w-app flex-col gap-5">
+    <div className="relative mx-auto flex max-w-app flex-col gap-5">
+      <LanguageSwitcher className="absolute right-0 top-0 z-10" />
       <ProgressDots step={screen.step} total={total} />
 
       {screen.step === 1 ? (
@@ -271,6 +273,9 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
               pasteApiKey: s.pasteApiKey,
               saveKey: s.saveKey,
               disconnect: s.disconnect,
+              connected: s.connected,
+              disconnected: s.disconnected,
+              invalidApiKey: s.invalidApiKey,
             }}
           />
           <Button type="button" className="w-full" onClick={screen.continue}>

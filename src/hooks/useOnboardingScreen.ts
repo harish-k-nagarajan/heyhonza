@@ -29,6 +29,8 @@ export type OnboardingStep = 1 | 2 | 3 | 4 | 5 | 6;
  */
 export type OnboardingScreen = {
   ready: boolean;
+  /** True while wrapping up — avoids flashing step 1 before route change. */
+  finishing: boolean;
   design: DesignId;
   family: DesignFamily;
   step: OnboardingStep;
@@ -82,6 +84,8 @@ export function useOnboardingScreen(): OnboardingScreen {
   const ready = useScreenReady();
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
   const setOnboardingComplete = useSettingsStore((s) => s.setOnboardingComplete);
+  const step = useSettingsStore((s) => s.onboardingStep);
+  const setOnboardingStep = useSettingsStore((s) => s.setOnboardingStep);
   const selectedTopics = useSettingsStore((s) => s.selectedTopics);
   const setTopics = useSettingsStore((s) => s.setTopics);
   const level = useSettingsStore((s) => s.level);
@@ -96,7 +100,6 @@ export function useOnboardingScreen(): OnboardingScreen {
 
   const design = useDesignStore((s) => s.design);
 
-  const [step, setStep] = useState<OnboardingStep>(1);
   const [docUrl, setDocUrl] = useState("");
   const [paste, setPaste] = useState("");
   const [docLoading, setDocLoading] = useState(false);
@@ -105,6 +108,7 @@ export function useOnboardingScreen(): OnboardingScreen {
   const [llm, setLlm] = useState<ProviderUiStatus | null>(null);
   const [tts, setTts] = useState<ProviderUiStatus | null>(null);
   const [providerBusy, setProviderBusy] = useState(false);
+  const [finishing, setFinishing] = useState(false);
 
   useEffect(() => {
     if (ready && onboardingComplete) router.replace(ROUTES.chat);
@@ -144,6 +148,14 @@ export function useOnboardingScreen(): OnboardingScreen {
       cancelled = true;
     };
   }, [ready]);
+
+  const goToStep = useCallback(
+    (next: OnboardingStep) => {
+      setOnboardingStep(next);
+      void persistProfile({ onboardingStep: next });
+    },
+    [setOnboardingStep],
+  );
 
   const persistSchedule = useCallback(
     (enabled: boolean) => {
@@ -256,12 +268,16 @@ export function useOnboardingScreen(): OnboardingScreen {
   };
 
   const finish = () => {
+    if (finishing || onboardingComplete) return;
+    setFinishing(true);
     void (async () => {
       await flushPaste();
       setOnboardingComplete(true);
+      router.replace(ROUTES.chat);
       const enabled = useSettingsStore.getState().scheduleEnabled;
-      await persistProfile({
+      void persistProfile({
         onboardingCompleted: true,
+        onboardingStep: 1,
         topics: selectedTopics,
         level,
         scheduleEnabled: enabled,
@@ -269,15 +285,16 @@ export function useOnboardingScreen(): OnboardingScreen {
         scheduleMode,
         firstMessageTime,
         timezone: detectTimezone(),
+      }).then(() => {
+        setOnboardingStep(1);
       });
-      router.push(ROUTES.chat);
     })();
   };
 
   const advanceFromSchedule = (enableReminders: boolean) => {
     setScheduleEnabled(enableReminders);
     persistSchedule(enableReminders);
-    setStep(5);
+    goToStep(5);
   };
 
   const skipScheduleSetup = () => {
@@ -290,7 +307,7 @@ export function useOnboardingScreen(): OnboardingScreen {
       return;
     }
     if (step < TOTAL_STEPS) {
-      setStep((s) => (s + 1) as OnboardingStep);
+      goToStep((step + 1) as OnboardingStep);
       return;
     }
     finish();
@@ -339,9 +356,10 @@ export function useOnboardingScreen(): OnboardingScreen {
 
   return {
     ready,
+    finishing,
     design,
     family: DESIGNS[design].family,
-    step,
+    step: step as OnboardingStep,
     totalSteps: TOTAL_STEPS,
     continue: continueFlow,
     skip: finish,
