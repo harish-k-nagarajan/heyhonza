@@ -41,6 +41,9 @@ export function ServerSync() {
           void persistProfile({ onboardingCompleted: true });
         }
         settings.setOnboardingComplete(onboardingDone);
+        if (!onboardingDone && typeof data.profile.onboardingStep === "number") {
+          settings.setOnboardingStep(data.profile.onboardingStep as 1 | 2 | 3 | 4 | 5 | 6);
+        }
         if (data.profile.name) settings.setLearnerName(data.profile.name);
         if (data.profile.formality) settings.setFormality(data.profile.formality);
         if (typeof data.profile.scheduleEnabled === "boolean") {

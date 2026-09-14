@@ -21,8 +21,11 @@ import type { ContextChunk, ContextSource } from "@/types";
 
 export type { FormalityMode };
 
+export type OnboardingStepNumber = 1 | 2 | 3 | 4 | 5 | 6;
+
 export type SettingsState = {
   onboardingComplete: boolean;
+  onboardingStep: OnboardingStepNumber;
   selectedTopics: TopicId[];
   contextChunks: ContextChunk[];
   preferredModel: ModelId;
@@ -37,6 +40,7 @@ export type SettingsState = {
   uiLocale: UiLocale;
   setUiLocale: (locale: UiLocale) => void;
   setOnboardingComplete: (v: boolean) => void;
+  setOnboardingStep: (step: OnboardingStepNumber) => void;
   setTopics: (topics: TopicId[]) => void;
   setPreferredModel: (m: ModelId) => void;
   setLevel: (l: LevelId) => void;
@@ -59,8 +63,14 @@ function rid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function clampOnboardingStep(n: number): OnboardingStepNumber {
+  const v = Math.min(6, Math.max(1, Math.round(n)));
+  return v as OnboardingStepNumber;
+}
+
 const initial = {
   onboardingComplete: false,
+  onboardingStep: 1 as OnboardingStepNumber,
   selectedTopics: [] as TopicId[],
   contextChunks: [] as ContextChunk[],
   preferredModel: DEFAULT_MODEL_ID as ModelId,
@@ -81,6 +91,7 @@ export const useSettingsStore = create<SettingsState>()(
       ...initial,
       setUiLocale: (uiLocale) => set({ uiLocale }),
       setOnboardingComplete: (v) => set({ onboardingComplete: v }),
+      setOnboardingStep: (step) => set({ onboardingStep: clampOnboardingStep(step) }),
       setTopics: (topics) => set({ selectedTopics: topics }),
       setPreferredModel: (m) => set({ preferredModel: m }),
       setLevel: (l) => set({ level: l }),

@@ -92,11 +92,13 @@ export function HmatSettingsStatusBadge({
   connectedLabel,
   disconnectedLabel,
   tone,
+  marker,
 }: {
   connected: boolean;
   connectedLabel: string;
   disconnectedLabel: string;
-  tone?: "ok" | "warn" | "off";
+  tone?: "ok" | "warn" | "off" | "error";
+  marker?: "dot" | "x";
 }) {
   const resolved = tone ?? (connected ? "ok" : "off");
   const styles =
@@ -104,11 +106,36 @@ export function HmatSettingsStatusBadge({
       ? { wrap: "bg-[#E8F5E9]", dot: "bg-[#2F8F4E]", text: "text-[#2F8F4E]" }
       : resolved === "warn"
         ? { wrap: "bg-[#FFF4E5]", dot: "bg-[#D97706]", text: "text-[#B45309]" }
-        : { wrap: "bg-[#FFF0F0]", dot: "bg-[#C46B6B]", text: "text-[#C46B6B]" };
+        : resolved === "error"
+          ? { wrap: "bg-[#FFEBEB]", dot: "bg-[#C46B6B]", text: "text-[#C46B6B]" }
+          : { wrap: "bg-[#FFF0F0]", dot: "bg-[#C46B6B]", text: "text-[#C46B6B]" };
   const label = connected ? connectedLabel : disconnectedLabel;
+  const resolvedMarker = marker ?? (resolved === "error" ? "x" : "dot");
+
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1", styles.wrap)}>
-      <span className={cn("h-1.5 w-1.5 rounded-full", styles.dot)} aria-hidden />
+    <span
+      className={cn("inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1", styles.wrap)}
+      role="status"
+    >
+      {resolvedMarker === "x" ? (
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          className={cn(styles.text)}
+          aria-hidden
+        >
+          <path
+            d="M3 3l6 6M9 3 3 9"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+          />
+        </svg>
+      ) : (
+        <span className={cn("h-1.5 w-1.5 rounded-full", styles.dot)} aria-hidden />
+      )}
       <span className={cn("font-display text-[11px] font-bold", styles.text)}>{label}</span>
     </span>
   );
@@ -398,18 +425,26 @@ export function HmatSettingsInlineField({
   action,
   actionVisible,
   className,
+  invalid,
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement> & {
   action: ReactNode;
   actionVisible: boolean;
+  invalid?: boolean;
 }) {
   return (
-    <div className="hmat-frost-field relative flex min-h-[52px] items-center">
+    <div
+      className={cn(
+        "hmat-frost-field relative flex min-h-[52px] items-center",
+        invalid && "hmat-frost-field--invalid",
+      )}
+    >
       <input
         className={cn(
           "h-11 w-full min-w-0 bg-transparent px-3.5 pr-14 font-sans text-sm text-[#243D2C] outline-none",
           className,
         )}
+        aria-invalid={invalid || undefined}
         {...props}
       />
       <div className="absolute right-1.5 top-1/2 -translate-y-1/2">

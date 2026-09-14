@@ -1,8 +1,7 @@
 "use client";
 
 import { HmatOrb } from "@/components/honza/HmatOrb";
-import { Button } from "@/components/ui/Button";
-import { HmatFileInput } from "@/components/screens/hmat/HmatChrome";
+import { OnboardingContextFields } from "@/components/screens/onboarding/OnboardingContextFields";
 import {
   DAILY_MESSAGE_COUNTS,
   LEVEL_OPTIONS,
@@ -12,6 +11,7 @@ import {
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import { OnboardingProviderFields } from "@/components/screens/onboarding/OnboardingProviderFields";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import type { OnboardingScreen } from "@/hooks/useOnboardingScreen";
 import { useLocale } from "@/lib/i18n/useLocale";
 
@@ -20,9 +20,18 @@ const TOPIC_ROWS: TopicId[][] = [
   ["work", "grammar", "smalltalk"],
 ];
 
+function OnboardingCardHeader({ step, total }: { step: number; total: number }) {
+  return (
+    <div className="relative w-full pt-0.5">
+      <LanguageSwitcher variant="nav" className="absolute right-0 top-0 z-10" />
+      <ProgressDots step={step} total={total} />
+    </div>
+  );
+}
+
 function ProgressDots({ step, total }: { step: number; total: number }) {
   return (
-    <div className="flex w-full justify-center gap-1.5">
+    <div className="flex w-full justify-center gap-1.5 px-14">
       {Array.from({ length: total }, (_, i) => i + 1).map((dot) => (
         <span
           key={dot}
@@ -134,7 +143,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
   const s = t.settings;
   const total = screen.totalSteps;
 
-  if (!screen.ready) {
+  if (!screen.ready || screen.finishing) {
     return (
       <div
         className={cn(
@@ -154,7 +163,7 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
       <div
         className="flex w-full max-w-[390px] flex-col gap-3 overflow-y-auto rounded-[28px] border border-[#E8E2DC] bg-white px-5 pb-7 pt-5 max-h-[min(780px,calc(100dvh-5rem))]"
       >
-        <ProgressDots step={screen.step} total={total} />
+        <OnboardingCardHeader step={screen.step} total={total} />
 
         {screen.step === 1 ? (
           <>
@@ -325,6 +334,9 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
                 pasteApiKey: s.pasteApiKey,
                 saveKey: s.saveKey,
                 disconnect: s.disconnect,
+                connected: s.connected,
+                disconnected: s.disconnected,
+                invalidApiKey: s.invalidApiKey,
               }}
             />
             <OnboardingCta onClick={screen.continue}>{ctaLabel}</OnboardingCta>
@@ -344,46 +356,26 @@ export function HmatOnboarding({ screen }: { screen: OnboardingScreen }) {
             <StepTitle>{o.step6Title}</StepTitle>
             <StepBody>{o.step6Body}</StepBody>
 
-            <SectionMicroLabel>{o.googleDoc}</SectionMicroLabel>
-            <StepBody>{o.googleDocShare}</StepBody>
-            <input
-              value={screen.docUrl}
-              onChange={(e) => screen.setDocUrl(e.target.value)}
-              placeholder={t.settings.googleDocPlaceholder}
-              aria-label={t.settings.googleDocAria}
-              className="mat-field w-full rounded-[14px] bg-transparent px-3.5 py-2.5 font-sans text-sm text-foreground outline-none"
+            <OnboardingContextFields
+              screen={screen}
+              s={{
+                googleDocLabel: o.googleDoc,
+                googleDocShare: o.googleDocShare,
+                googleDocPlaceholder: s.googleDocPlaceholder,
+                googleDocAria: s.googleDocAria,
+                connectGoogleDoc: s.connectGoogleDoc,
+                fetching: s.fetching,
+                googleDocConnected: s.googleDocConnected,
+                googleDocFailed: s.googleDocFailed,
+                disconnected: s.disconnected,
+                remove: s.remove,
+                fileLabel: s.fileLabel,
+                fileUploadHint: s.fileUploadHint,
+                pastePlaceholder: s.pastePlaceholder,
+                pastedTextAria: s.pastedTextAria,
+                fileOrPaste: o.fileOrPaste,
+              }}
             />
-            {screen.docError ? (
-              <p className={cn(TYPE.helper, "text-accent")}>{screen.docError}</p>
-            ) : null}
-            <Button
-              type="button"
-              surface="mat-key"
-              shape="card"
-              size="md"
-              className="w-full"
-              onClick={screen.importGoogleDoc}
-              disabled={screen.docLoading}
-            >
-              {screen.docLoading ? t.settings.fetching : t.settings.addFromGoogleDocs}
-            </Button>
-
-            <SectionMicroLabel>{o.fileOrPaste}</SectionMicroLabel>
-            <div className="space-y-1.5">
-              <p className={TYPE.helper}>{t.settings.fileLabel}</p>
-              <HmatFileInput onFile={screen.onFile} />
-            </div>
-            <textarea
-              value={screen.paste}
-              onChange={(e) => screen.setPaste(e.target.value)}
-              rows={3}
-              placeholder={t.settings.pastePlaceholder}
-              aria-label={t.settings.pastedTextAria}
-              className="mat-field w-full resize-none rounded-[14px] bg-transparent px-3.5 py-2.5 font-sans text-sm text-foreground outline-none"
-            />
-            {screen.fileError ? (
-              <p className={cn(TYPE.helper, "text-accent")}>{screen.fileError}</p>
-            ) : null}
 
             <OnboardingCta onClick={screen.continue}>{ctaLabel}</OnboardingCta>
             <button

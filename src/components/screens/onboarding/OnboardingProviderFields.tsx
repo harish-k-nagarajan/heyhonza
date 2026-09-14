@@ -3,9 +3,38 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { HmatProviderKeyRow } from "@/components/screens/settings/HmatProviderKeyEditor";
+import { HmatSettingsIconWrap } from "@/components/screens/settings/HmatSettingsUi";
 import type { ProviderUiStatus } from "@/hooks/useSettingsScreen";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+
+function TextIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 6h16M4 12h10M4 18h14"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function AudioIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 3a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 19v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 type ProviderBlockProps = {
   title: string;
@@ -17,10 +46,9 @@ type ProviderBlockProps = {
   disconnectLabel: string;
   onSave: (key: string) => Promise<string | null>;
   onDisconnect: () => Promise<void>;
-  variant: "hmat" | "classic";
 };
 
-function ProviderBlock({
+function ClassicProviderBlock({
   title,
   description,
   status,
@@ -30,17 +58,10 @@ function ProviderBlock({
   disconnectLabel,
   onSave,
   onDisconnect,
-  variant,
 }: ProviderBlockProps) {
   const [key, setKey] = useState("");
   const [error, setError] = useState<string | null>(null);
   const hasUserKey = status?.source === "user";
-  const connected = status?.connected ?? false;
-
-  const inputClass =
-    variant === "hmat"
-      ? "mat-field w-full rounded-[14px] bg-transparent px-3.5 py-2.5 font-sans text-sm text-foreground outline-none"
-      : "w-full";
 
   const save = () => {
     void (async () => {
@@ -54,28 +75,10 @@ function ProviderBlock({
   return (
     <div className="space-y-2">
       <div>
-        <p
-          className={cn(
-            variant === "hmat"
-              ? "font-display text-[9px] font-bold uppercase tracking-[0.16em] text-[#9C9089]"
-              : "font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground",
-          )}
-        >
+        <p className="font-sans text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
           {title}
         </p>
-        <p
-          className={cn(
-            "mt-1 text-sm",
-            variant === "hmat" ? "text-[#9C9089]" : "text-muted-foreground",
-          )}
-        >
-          {description}
-        </p>
-        {connected && !hasUserKey ? (
-          <p className={cn(TYPE.helper, "mt-1 text-emerald-700")}>
-            {variant === "hmat" ? "Connected via server" : "Connected via server"}
-          </p>
-        ) : null}
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
 
       {hasUserKey ? (
@@ -85,7 +88,7 @@ function ProviderBlock({
             value=""
             placeholder="••••••••••••"
             aria-label={pasteLabel}
-            className={inputClass}
+            className="w-full"
           />
           <Button
             type="button"
@@ -115,14 +118,12 @@ function ProviderBlock({
             }}
             placeholder={pasteLabel}
             aria-label={pasteLabel}
-            className={inputClass}
+            className="w-full"
           />
           <Button
             type="button"
-            variant={variant === "hmat" ? undefined : "secondary"}
-            surface={variant === "hmat" ? "mat-key" : undefined}
-            shape={variant === "hmat" ? "card" : undefined}
-            size="md"
+            variant="secondary"
+            size="sm"
             className="shrink-0"
             disabled={busy || !key.trim()}
             onClick={save}
@@ -158,12 +159,60 @@ export function OnboardingProviderFields({
     pasteApiKey: string;
     saveKey: string;
     disconnect: string;
+    connected: string;
+    disconnected: string;
+    invalidApiKey: string;
   };
   variant: "hmat" | "classic";
 }) {
+  if (variant === "hmat") {
+    return (
+      <div className="flex flex-col gap-6">
+        <HmatProviderKeyRow
+          title={labels.openRouterName}
+          description={labels.openRouterDesc}
+          status={llm}
+          busy={busy}
+          connectedLabel={labels.connected}
+          disconnectedLabel={labels.disconnected}
+          invalidKeyLabel={labels.invalidApiKey}
+          pasteLabel={labels.pasteApiKey}
+          saveLabel={labels.saveKey}
+          disconnectLabel={labels.disconnect}
+          onSave={(key) => onSave("openrouter", key)}
+          onDisconnect={() => onDisconnect("openrouter")}
+          icon={
+            <HmatSettingsIconWrap>
+              <TextIcon />
+            </HmatSettingsIconWrap>
+          }
+        />
+        <HmatProviderKeyRow
+          title={labels.elevenLabsName}
+          description={labels.elevenLabsDesc}
+          status={tts}
+          busy={busy}
+          connectedLabel={labels.connected}
+          disconnectedLabel={labels.disconnected}
+          invalidKeyLabel={labels.invalidApiKey}
+          pasteLabel={labels.pasteApiKey}
+          saveLabel={labels.saveKey}
+          disconnectLabel={labels.disconnect}
+          onSave={(key) => onSave("elevenlabs", key)}
+          onDisconnect={() => onDisconnect("elevenlabs")}
+          icon={
+            <HmatSettingsIconWrap className="bg-[#FFF0E8]">
+              <AudioIcon />
+            </HmatSettingsIconWrap>
+          }
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-5">
-      <ProviderBlock
+      <ClassicProviderBlock
         title={labels.openRouterName}
         description={labels.openRouterDesc}
         status={llm}
@@ -173,9 +222,8 @@ export function OnboardingProviderFields({
         disconnectLabel={labels.disconnect}
         onSave={(key) => onSave("openrouter", key)}
         onDisconnect={() => onDisconnect("openrouter")}
-        variant={variant}
       />
-      <ProviderBlock
+      <ClassicProviderBlock
         title={labels.elevenLabsName}
         description={labels.elevenLabsDesc}
         status={tts}
@@ -185,7 +233,6 @@ export function OnboardingProviderFields({
         disconnectLabel={labels.disconnect}
         onSave={(key) => onSave("elevenlabs", key)}
         onDisconnect={() => onDisconnect("elevenlabs")}
-        variant={variant}
       />
     </div>
   );

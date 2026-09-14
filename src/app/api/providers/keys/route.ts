@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import {
   deleteUserProviderKey,
+  normalizeProviderKey,
   saveUserProviderKey,
   validateElevenLabsKey,
   validateOpenRouterKey,
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
   }
 
   const provider = parseProvider(body.provider);
-  const key = typeof body.key === "string" ? body.key.trim() : "";
+  const key = typeof body.key === "string" ? normalizeProviderKey(body.key) : "";
   if (!provider || !key) {
     return NextResponse.json({ ok: false, reason: "Missing provider or key." }, { status: 400 });
   }

@@ -247,6 +247,7 @@ export type SettingsCopy = {
   elevenLabsDesc: string;
   connected: string;
   disconnected: string;
+  invalidApiKey: string;
   serverKey: string;
   yourKey: string;
   addApiKey: string;
@@ -462,6 +463,7 @@ const en: LocaleStrings = {
     elevenLabsDesc: "Spoken replies on calls",
     connected: "Connected",
     disconnected: "Not connected",
+    invalidApiKey: "Invalid key",
     serverKey: "Server key",
     yourKey: "Your key",
     addApiKey: "Add an API key",
@@ -687,6 +689,7 @@ const cs: LocaleStrings = {
     elevenLabsDesc: "Mluvené odpovědi v hovorech",
     connected: "Připojeno",
     disconnected: "Nepřipojeno",
+    invalidApiKey: "Neplatný klíč",
     serverKey: "Serverový klíč",
     yourKey: "Tvůj klíč",
     addApiKey: "Přidat API klíč",
