@@ -52,6 +52,13 @@ export type CallCopy = {
   statusListening: string;
   statusTapMic: string;
   statusThinking: string;
+  titleUnlinked: string;
+  chipUnlinked: string;
+  missingElevenLabsTitle: string;
+  missingElevenLabs: string;
+  missingOpenRouterTitle: string;
+  missingOpenRouter: string;
+  addElevenLabsKey: string;
 };
 
 export type OnboardingCopy = {
@@ -247,6 +254,13 @@ const enExtended: ExtendedCopy = {
     statusListening: "Listening… speak Czech",
     statusTapMic: "Tap the mic to answer",
     statusThinking: "Honza is thinking…",
+    titleUnlinked: "Call with Honza",
+    chipUnlinked: "unlinked",
+    missingElevenLabsTitle: "Calls need a key",
+    missingElevenLabs: "Honza uses ElevenLabs to power calls. Add an API key to continue.",
+    missingOpenRouterTitle: "Calls need a key",
+    missingOpenRouter: "Honza uses OpenRouter to power replies. Add an API key to continue.",
+    addElevenLabsKey: "Add ElevenLabs key",
   },
   onboarding: {
     loading: "Loading…",
@@ -467,6 +481,13 @@ const csExtended: ExtendedCopy = {
     statusListening: "Poslouchám… mluv česky",
     statusTapMic: "Klepni na mikrofon a odpověz",
     statusThinking: "Honza přemýšlí…",
+    titleUnlinked: "Hovor s Honzou",
+    chipUnlinked: "odpojen",
+    missingElevenLabsTitle: "Hovor potřebuje klíč",
+    missingElevenLabs: "Honza používá ElevenLabs pro hovory. Přidej API klíč a můžeme pokračovat.",
+    missingOpenRouterTitle: "Hovor potřebuje klíč",
+    missingOpenRouter: "Honza používá OpenRouter pro odpovědi. Přidej API klíč a můžeme pokračovat.",
+    addElevenLabsKey: "Přidat ElevenLabs klíč",
   },
   onboarding: {
     loading: "Načítání…",

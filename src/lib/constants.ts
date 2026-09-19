@@ -10,6 +10,8 @@ export const ROUTES = {
   call: "/call",
   settings: "/settings",
   account: "/settings/account",
+  settingsAiText: "/settings#ai-text",
+  settingsAiVoice: "/settings#ai-voice",
 } as const;
 
 export function chatHistoryRoute(id: string) {

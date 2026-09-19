@@ -23,7 +23,9 @@ export type IconName =
   | "send"
   | "mic"
   | "hang"
-  | "history";
+  | "history"
+  | "chatUnlinked"
+  | "callUnlinked";
 
 type IconProps = {
   name: IconName;
@@ -130,6 +132,39 @@ const PATHS: Record<IconName, React.ReactNode> = {
       d="M3.5 13.6c4.7-4.2 12.3-4.2 17 0l1.5-2.4C17 5.6 7 5.6 2 11.2z"
       fill="currentColor"
     />
+  ),
+  chatUnlinked: (
+    <>
+      <path
+        d="M3.6 5h16.8v10.4H10.5l-5 3.8v-3.8H3.6z"
+        stroke="currentColor"
+        strokeWidth={2.1}
+        strokeLinejoin="round"
+      />
+      <rect x="7.4" y="9" width="2.1" height="2.1" rx="0.4" fill="currentColor" />
+      <rect x="10.9" y="9" width="2.1" height="2.1" rx="0.4" fill="currentColor" />
+      <rect x="14.4" y="9" width="2.1" height="2.1" rx="0.4" fill="currentColor" />
+      <path
+        d="M5.2 18.8 18.8 5.2"
+        stroke="currentColor"
+        strokeWidth={2.2}
+        strokeLinecap="round"
+      />
+    </>
+  ),
+  callUnlinked: (
+    <>
+      <path
+        d="M7 3.2C5.4 3.2 3.6 4.8 3.6 6.6 3.6 13.6 10.4 20.4 17.4 20.4c1.8 0 3.4-1.8 3.4-3.4v-2.3c0-.8-.5-1.4-1.3-1.5l-2.7-.3c-.8-.1-1.5.2-1.9.9l-.5.9a13 13 0 0 1-4.3-4.3l.9-.5c.7-.4 1-1.1.9-1.9l-.3-2.7C11 3.7 10.4 3.2 9.6 3.2z"
+        fill="currentColor"
+      />
+      <path
+        d="M5.2 18.8 18.8 5.2"
+        stroke="currentColor"
+        strokeWidth={2.2}
+        strokeLinecap="round"
+      />
+    </>
   ),
   history: (
     <>

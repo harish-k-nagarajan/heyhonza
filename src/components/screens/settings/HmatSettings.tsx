@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { HmatProviderKeyRow } from "@/components/screens/settings/HmatProviderKeyEditor";
 import {
@@ -202,6 +202,16 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
   const s = t.settings;
   const [resetOpen, setResetOpen] = useState(false);
 
+  useEffect(() => {
+    if (!screen.ready) return;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) return;
+    const id = window.setTimeout(() => {
+      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+    return () => window.clearTimeout(id);
+  }, [screen.ready]);
+
   if (!screen.ready) {
     return (
       <div
@@ -354,7 +364,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
         </HmatSettingsCard>
       </HmatSettingsSection>
 
-      <HmatSettingsSection label={s.sections.aiText}>
+      <HmatSettingsSection id="ai-text" label={s.sections.aiText}>
         <HmatSettingsCard className="space-y-3.5 p-4">
           <HmatSettingsHint>{s.aiTextHint}</HmatSettingsHint>
           <HmatProviderKeyRow
@@ -391,7 +401,7 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
         </HmatSettingsCard>
       </HmatSettingsSection>
 
-      <HmatSettingsSection label={s.sections.aiVoice}>
+      <HmatSettingsSection id="ai-voice" label={s.sections.aiVoice}>
         <HmatSettingsCard className="space-y-3.5 p-4">
           <HmatSettingsHint>{s.aiVoiceHint}</HmatSettingsHint>
           <HmatProviderKeyRow

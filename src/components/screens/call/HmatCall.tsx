@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { CaptionTextReveal } from "@/components/call/CaptionTextReveal";
@@ -7,6 +8,7 @@ import { CallControlCluster } from "@/components/screens/call/CallControlCluster
 import { ROUTES } from "@/lib/constants";
 import {
   HmatCaptionPanel,
+  HmatNeedsKeyEmpty,
   HmatPresenceRecess,
   HmatScreenTitle,
   HmatStatusChip,
@@ -19,7 +21,7 @@ import { callChip, callTitle } from "@/lib/i18n/extended";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
-import { tapMedium } from "@/lib/interaction/haptic";
+import { tapLight, tapMedium } from "@/lib/interaction/haptic";
 
 function captionPlaceholder(
   phase: CallScreen["phase"],
@@ -44,6 +46,9 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
     listening,
     supported,
     speakerOn,
+    llmReady,
+    ttsReady,
+    providersLoaded,
   } = screen;
   const { stackClassName, triggerPop } = useReactPop();
   const wasInCallRef = useRef(false);
@@ -58,9 +63,17 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
     wasInCallRef.current = inCall;
   }, [inCall, triggerPop]);
 
-  if (!screen.ready) return <HmatScreenLoading />;
+  if (!screen.ready || !providersLoaded) return <HmatScreenLoading />;
 
   const showLiveCaption = inCall && caption;
+  const needsKey = providersLoaded && !inCall && (!llmReady || !ttsReady);
+  const missingVoice = !ttsReady;
+  const statusTitle = needsKey ? c.titleUnlinked : callTitle(phase, c);
+  const statusLabel = needsKey ? c.chipUnlinked : callChip(phase, listening, c);
+  const emptyTitle = missingVoice ? c.missingElevenLabsTitle : c.missingOpenRouterTitle;
+  const emptyBody = missingVoice ? c.missingElevenLabs : c.missingOpenRouter;
+  const keyHref = missingVoice ? ROUTES.settingsAiVoice : ROUTES.settingsAiText;
+  const keyCta = missingVoice ? c.addElevenLabsKey : t.chat.addOpenRouterKey;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
@@ -80,21 +93,25 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
       />
 
       <div className="flex shrink-0 flex-col items-center gap-1.5">
-        <HmatScreenTitle>{callTitle(phase, c)}</HmatScreenTitle>
-        <HmatStatusChip label={callChip(phase, listening, c)} />
+        <HmatScreenTitle>{statusTitle}</HmatScreenTitle>
+        <HmatStatusChip label={statusLabel} muted={needsKey} />
       </div>
 
-      <HmatCaptionPanel
-        kicker={c.captionKicker}
-        muted={!showLiveCaption}
-        live={Boolean(showLiveCaption)}
-      >
-        {showLiveCaption ? (
-          <CaptionTextReveal key={caption} className="absolute inset-0" text={caption!} />
-        ) : (
-          captionPlaceholder(phase, inCall, c)
-        )}
-      </HmatCaptionPanel>
+      {needsKey ? (
+        <HmatNeedsKeyEmpty title={emptyTitle} body={emptyBody} icon="callUnlinked" />
+      ) : (
+        <HmatCaptionPanel
+          kicker={c.captionKicker}
+          muted={!showLiveCaption}
+          live={Boolean(showLiveCaption)}
+        >
+          {showLiveCaption ? (
+            <CaptionTextReveal key={caption} className="absolute inset-0" text={caption!} />
+          ) : (
+            captionPlaceholder(phase, inCall, c)
+          )}
+        </HmatCaptionPanel>
+      )}
 
       {error ? (
         <p className={cn(TYPE.helper, "text-center text-accent")} role="alert">
@@ -112,21 +129,31 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
         </p>
       ) : null}
 
-      <div className="flex-1" />
+      {needsKey ? null : <div className="flex-1" />}
 
       <div className="flex shrink-0 flex-col items-center pb-1">
-        <CallControlCluster
-          inCall={inCall}
-          disabled={!supported}
-          speakerOn={speakerOn}
-          callLabel={c.callCta}
-          endLabel={c.endCall}
-          speakerOnAria={c.speakerOnAria}
-          speakerOffAria={c.speakerOffAria}
-          onStartCall={() => screen.startCall()}
-          onToggleSpeaker={() => screen.toggleSpeaker()}
-          onEndCall={() => screen.endCall(false)}
-        />
+        {needsKey ? (
+          <Link
+            href={keyHref}
+            onClick={() => tapLight()}
+            className="hmat-ink-action flex h-[52px] w-full items-center justify-center rounded-2xl text-white"
+          >
+            <span className={cn(TYPE.bodySm, "font-display font-semibold")}>{keyCta}</span>
+          </Link>
+        ) : (
+          <CallControlCluster
+            inCall={inCall}
+            disabled={!supported}
+            speakerOn={speakerOn}
+            callLabel={c.callCta}
+            endLabel={c.endCall}
+            speakerOnAria={c.speakerOnAria}
+            speakerOffAria={c.speakerOffAria}
+            onStartCall={() => screen.startCall()}
+            onToggleSpeaker={() => screen.toggleSpeaker()}
+            onEndCall={() => screen.endCall(false)}
+          />
+        )}
       </div>
     </div>
   );
