@@ -4,7 +4,24 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-19 (unlinked copy + no CTA flash)
+## Current entry — 2026-09-19 (landing bubble float)
+
+### What changed
+- Hero chat bubbles **float down in mixed order** into the phone preview (cubic drop with ~14–26px wander). The old length-scaled perpendicular arc is gone — that was the circular fly-out past the recess.
+- Each bubble leaves on its own stagger (user-right first, then lower-right, left, then lower-left). Scroll maps linearly + `scrub: 1.85`; no stacked easeInOutCubic whip.
+- Scene is **no longer md-only**. Hero bubbles render on mobile; the morph layer is a `document.body` portal so `overflow-x-clip` cannot hide ghosts. Pin + runway (`min-h-[190vh]` / `md:min-h-[260vh]`) run on all widths except `prefers-reduced-motion`.
+- Hero fold no longer forces `100dvh`, so the headline stays in view during the start of the drop.
+
+### What broke
+- Mobile: bubbles were `hidden md:block`, the morph layer was `hidden md:block`, and GSAP `matchMedia('(min-width: 768px)')` never started the scene — so there was nothing to animate on a phone.
+- Desktop: `perp * len * 0.52` (~half the hero→chat distance sideways) plus dual cubic easing made a fast orbit outside the recess.
+
+### Decision
+Pin + morph on **every viewport** (reduced-motion still static). Keep Lenis + GSAP ScrollTrigger; do not go back to Motion for this handoff.
+
+---
+
+## Previous — 2026-09-19 (unlinked copy + no CTA flash)
 
 ### What changed
 - Empty-state body is **Honza uses OpenRouter/ElevenLabs…**, not "we use".
@@ -158,7 +175,7 @@ Prefer **vector faces in the pen** over relative image fills — Save As / path 
 - **Landing bubble width:** `LANDING_BUBBLE_MAX_BY_INDEX` on `LandingChatBubble` (one `max-w-[min(…)]` per message index); hero wrappers are position-only — no double max-width with chat/morph ghosts.
 
 ### Decision
-Landing scroll choreography uses **Lenis + GSAP ScrollTrigger** (not `motion` scroll morph). Keep **Motion** elsewhere in the app. Pin + morph **desktop md+ only**; mobile static marketing layout.
+Landing scroll choreography uses **Lenis + GSAP ScrollTrigger** (not `motion` scroll morph). Keep **Motion** elsewhere in the app. Pin + bubble float runs on **all viewports** except reduced motion (updated 2026-09-19).
 
 ---
 

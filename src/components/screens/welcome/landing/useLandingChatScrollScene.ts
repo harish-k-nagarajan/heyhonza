@@ -9,70 +9,65 @@ gsap.registerPlugin(ScrollTrigger);
 
 type Point = { x: number; y: number };
 
-function pointRelativeTo(container: HTMLElement, el: HTMLElement): Point {
-  const c = container.getBoundingClientRect();
+function pointViewport(el: HTMLElement): Point {
   const r = el.getBoundingClientRect();
-  return {
-    x: r.left - c.left,
-    y: r.top - c.top,
-  };
+  return { x: r.left, y: r.top };
 }
 
-function easeInOutCubic(t: number) {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
 }
 
-function quadraticPoint(from: Point, control: Point, to: Point, t: number): Point {
-  const omt = 1 - t;
+function cubicPoint(p0: Point, p1: Point, p2: Point, p3: Point, t: number): Point {
+  const u = 1 - t;
+  const tt = t * t;
+  const uu = u * u;
   return {
-    x: omt * omt * from.x + 2 * omt * t * control.x + t * t * to.x,
-    y: omt * omt * from.y + 2 * omt * t * control.y + t * t * to.y,
+    x: uu * u * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + tt * t * p3.x,
+    y: uu * u * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + tt * t * p3.y,
   };
 }
 
 type MorphPathConfig = {
-  /** Delay on global eased progress (0–1) before this bubble moves. */
   staggerStart: number;
-  /** How much global progress this bubble uses to complete its path. */
   staggerSpan: number;
-  /** Bulge perpendicular to the chord (sign = side of arc). */
-  perp: number;
-  /** Shift control along the chord. */
-  along: number;
+  wanderX: number;
 };
 
-/** Each demo bubble gets its own arc + timing so the handoff feels scattered, not paired. */
+/**
+ * Mixed departure order (not 0–3). Wander is a small px drift — never a
+ * length-scaled sideways orbit around the recess.
+ */
 const MORPH_PATHS: MorphPathConfig[] = [
-  { staggerStart: 0, staggerSpan: 0.9, perp: 1.2, along: -0.38 },
-  { staggerStart: 0.07, staggerSpan: 0.88, perp: -1.35, along: -0.12 },
-  { staggerStart: 0.12, staggerSpan: 0.86, perp: 1.05, along: 0.28 },
-  { staggerStart: 0.17, staggerSpan: 0.84, perp: -1.1, along: 0.08 },
+  { staggerStart: 0.2, staggerSpan: 0.62, wanderX: 22 },
+  { staggerStart: 0.02, staggerSpan: 0.58, wanderX: -18 },
+  { staggerStart: 0.36, staggerSpan: 0.56, wanderX: 14 },
+  { staggerStart: 0.1, staggerSpan: 0.6, wanderX: -26 },
 ];
 
-function controlForPath(from: Point, to: Point, cfg: MorphPathConfig): Point {
-  const mid = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
-  const dx = to.x - from.x;
+function controlsForPath(from: Point, to: Point, wanderX: number): { c1: Point; c2: Point } {
   const dy = to.y - from.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const perpX = -dy / len;
-  const perpY = dx / len;
-  const bow = len * 0.52;
   return {
-    x: mid.x + dx * cfg.along + perpX * bow * cfg.perp,
-    y: mid.y + dy * cfg.along + perpY * bow * cfg.perp,
+    c1: {
+      x: from.x + wanderX,
+      y: from.y + dy * 0.32,
+    },
+    c2: {
+      x: lerp(from.x, to.x, 0.78) + wanderX * 0.2,
+      y: from.y + dy * 0.72,
+    },
   };
 }
 
-function bubbleMorphT(globalEased: number, index: number, raw: number): number {
-  if (raw > 0.92) return 1;
-  if (raw < 0.06) return 0;
+function bubbleMorphT(raw: number, index: number): number {
+  if (raw >= 0.97) return 1;
+  if (raw < 0.015) return 0;
   const cfg = MORPH_PATHS[index] ?? MORPH_PATHS[0];
-  const local = (globalEased - cfg.staggerStart) / cfg.staggerSpan;
-  return easeInOutCubic(Math.min(1, Math.max(0, local)));
+  const local = (raw - cfg.staggerStart) / cfg.staggerSpan;
+  return Math.min(1, Math.max(0, local));
 }
 
-const MORPH_START = 0.02;
-const MORPH_END = 0.98;
+const MORPH_END = 0.97;
 
 export function useLandingChatScrollScene(
   bridgeRef: RefObject<HTMLDivElement | null>,
@@ -84,140 +79,120 @@ export function useLandingChatScrollScene(
 
       const bridge = bridgeRef.current;
       const pin = bridge.querySelector<HTMLElement>("[data-landing-pin]");
-      const layer = bridge.querySelector<HTMLElement>("[data-landing-morph-layer]");
+      const layer = document.querySelector<HTMLElement>("[data-landing-morph-layer]");
       if (!pin || !layer) return;
 
-      const mm = gsap.matchMedia();
+      ScrollTrigger.config({ ignoreMobileResize: true });
 
-      mm.add("(min-width: 768px)", () => {
-        const heroEls = () =>
-          Array.from(
-            bridge.querySelectorAll<HTMLElement>("[data-landing-hero-bubble]"),
-          );
-        const chatBubbleEls = () =>
-          Array.from(
-            bridge.querySelectorAll<HTMLElement>("[data-landing-chat-bubble]"),
-          );
-        const slotEls = () =>
-          Array.from(
-            bridge.querySelectorAll<HTMLElement>("[data-landing-chat-slot]"),
-          );
-        const ghostEls = () =>
-          Array.from(layer.querySelectorAll<HTMLElement>(".landing-morph-ghost"));
+      const heroEls = () =>
+        Array.from(bridge.querySelectorAll<HTMLElement>("[data-landing-hero-bubble]"));
+      const chatBubbleEls = () =>
+        Array.from(bridge.querySelectorAll<HTMLElement>("[data-landing-chat-bubble]"));
+      const slotEls = () =>
+        Array.from(bridge.querySelectorAll<HTMLElement>("[data-landing-chat-slot]"));
+      const ghostEls = () =>
+        Array.from(layer.querySelectorAll<HTMLElement>(".landing-morph-ghost"));
 
-        const pairs: Array<{ from: Point; to: Point; control: Point }> = [];
+      const wanderScale = () =>
+        Math.min(1, Math.max(0.4, window.innerWidth / 900));
 
-        const measurePairs = () => {
-          pairs.length = 0;
-          const heroes = heroEls();
-          const chats = chatBubbleEls();
-          heroes.forEach((hero, i) => {
-            const chat = chats[i];
-            if (!chat) return;
-            const from = pointRelativeTo(pin, hero);
-            const to = pointRelativeTo(pin, chat);
-            const pathCfg = MORPH_PATHS[i] ?? MORPH_PATHS[0];
-            pairs.push({
-              from,
-              to,
-              control: controlForPath(from, to, pathCfg),
-            });
-          });
-        };
+      const applyGhostStyle = (ghost: HTMLElement, point: Point, opacity: number) => {
+        ghost.style.transform = `translate3d(${point.x}px, ${point.y}px, 0)`;
+        ghost.style.width = "";
+        ghost.style.height = "";
+        ghost.style.opacity = String(opacity);
+      };
 
-        const applyGhostStyle = (ghost: HTMLElement, point: Point, opacity: number) => {
-          ghost.style.transform = `translate3d(${point.x}px, ${point.y}px, 0)`;
-          ghost.style.width = "";
-          ghost.style.height = "";
-          ghost.style.opacity = String(opacity);
-        };
+      const setMorphProgress = (raw: number) => {
+        const heroes = heroEls();
+        const chats = chatBubbleEls();
+        const slots = slotEls();
+        const ghosts = ghostEls();
+        const showInFlow = raw >= MORPH_END;
+        const scale = wanderScale();
 
-        const setMorphProgress = (raw: number) => {
-          const heroes = heroEls();
-          const slots = slotEls();
-          const ghosts = ghostEls();
+        layer.style.pointerEvents = "none";
+        layer.style.opacity = showInFlow ? "0" : "1";
 
-          const t = easeInOutCubic(Math.min(1, Math.max(0, raw)));
-          const showMorph = raw > MORPH_START && raw < MORPH_END;
-          const showInFlow = raw >= MORPH_END;
-
-          layer.style.pointerEvents = "none";
-          layer.style.opacity = showMorph || raw <= MORPH_START ? "1" : "0";
-
-          heroes.forEach((hero) => {
-            hero.classList.toggle("landing-float-paused", raw > 0.04);
-            hero.style.visibility = raw > MORPH_START ? "hidden" : "visible";
-          });
-
-          slots.forEach((slot) => {
-            slot.style.visibility = showInFlow ? "visible" : "hidden";
-            slot.style.opacity = "";
-            slot.style.pointerEvents = showInFlow ? "" : "none";
-          });
-
-          ghosts.forEach((ghost, i) => {
-            const pair = pairs[i];
-            if (!pair || !showMorph) {
-              ghost.style.opacity = "0";
-              return;
-            }
-            const morphT = bubbleMorphT(t, i, raw);
-            const point = quadraticPoint(pair.from, pair.control, pair.to, morphT);
-            applyGhostStyle(ghost, point, 1);
-          });
-        };
-
-        measurePairs();
-        setMorphProgress(0);
-
-        const proxy = { p: 0 };
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: bridge,
-            start: "top top",
-            end: "bottom bottom",
-            pin,
-            scrub: 1.15,
-            invalidateOnRefresh: true,
-            anticipatePin: 1,
-            onRefresh: () => {
-              measurePairs();
-              setMorphProgress(proxy.p);
-            },
-          },
+        heroes.forEach((hero, i) => {
+          const morphT = bubbleMorphT(raw, i);
+          hero.classList.toggle("landing-float-paused", raw > 0.01);
+          hero.style.visibility = morphT > 0.001 ? "hidden" : "visible";
         });
 
-        tl.to(proxy, {
-          p: 1,
-          duration: 1,
-          ease: "none",
-          onUpdate() {
+        slots.forEach((slot) => {
+          slot.style.visibility = showInFlow ? "visible" : "hidden";
+          slot.style.opacity = "";
+          slot.style.pointerEvents = showInFlow ? "" : "none";
+        });
+
+        ghosts.forEach((ghost, i) => {
+          const hero = heroes[i];
+          const chat = chats[i];
+          if (!hero || !chat || showInFlow) {
+            ghost.style.opacity = "0";
+            return;
+          }
+          const morphT = bubbleMorphT(raw, i);
+          if (morphT <= 0) {
+            ghost.style.opacity = "0";
+            return;
+          }
+          const from = pointViewport(hero);
+          const to = pointViewport(chat);
+          const cfg = MORPH_PATHS[i] ?? MORPH_PATHS[0];
+          const { c1, c2 } = controlsForPath(from, to, cfg.wanderX * scale);
+          applyGhostStyle(ghost, cubicPoint(from, c1, c2, to, morphT), 1);
+        });
+      };
+
+      const proxy = { p: 0 };
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: bridge,
+          start: "top top",
+          end: "bottom bottom",
+          pin,
+          pinSpacing: true,
+          scrub: 1.85,
+          invalidateOnRefresh: true,
+          anticipatePin: 0,
+          onRefresh: () => {
             setMorphProgress(proxy.p);
           },
-        });
+        },
+      });
 
-        ScrollTrigger.refresh();
-        requestAnimationFrame(() => {
-          measurePairs();
+      tl.to(proxy, {
+        p: 1,
+        duration: 1,
+        ease: "none",
+        onUpdate() {
           setMorphProgress(proxy.p);
-        });
+        },
+      });
 
-        return () => {
-          heroEls().forEach((hero) => {
-            hero.style.visibility = "";
-            hero.classList.remove("landing-float-paused");
-          });
-          slotEls().forEach((slot) => {
-            slot.style.visibility = "";
-            slot.style.opacity = "";
-            slot.style.pointerEvents = "";
-          });
-          layer.style.opacity = "";
-        };
+      setMorphProgress(0);
+      ScrollTrigger.refresh();
+      requestAnimationFrame(() => {
+        setMorphProgress(proxy.p);
       });
 
       return () => {
-        mm.revert();
+        heroEls().forEach((hero) => {
+          hero.style.visibility = "";
+          hero.classList.remove("landing-float-paused");
+        });
+        slotEls().forEach((slot) => {
+          slot.style.visibility = "";
+          slot.style.opacity = "";
+          slot.style.pointerEvents = "";
+        });
+        layer.style.opacity = "";
+        ghostEls().forEach((ghost) => {
+          ghost.style.opacity = "";
+          ghost.style.transform = "";
+        });
       };
     },
     { scope: bridgeRef, dependencies: [enabled] },

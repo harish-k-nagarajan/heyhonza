@@ -32,7 +32,7 @@ export const LANDING_BUBBLE_MAX_BY_INDEX = [
 /** Absolute placement in the hero orbit (md+). Position only — width lives on `LandingChatBubble`. */
 export const LANDING_HERO_BUBBLE_LAYOUT = [
   "left-[2%] top-[8%]",
-  "right-[2%] top-[6%]",
-  "left-[0%] top-[62%]",
-  "right-[0%] top-[58%]",
+  "right-[4%] top-[6%]",
+  "left-[1%] top-[62%]",
+  "right-[4%] top-[58%]",
 ] as const;
