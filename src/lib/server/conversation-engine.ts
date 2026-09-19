@@ -4,11 +4,15 @@ import {
   DEFAULT_FORMALITY,
   DEFAULT_LEVEL_ID,
   LEVEL_OPTIONS,
-  TOPIC_OPTIONS,
   type FormalityMode,
   type LevelId,
 } from "@/lib/constants";
 import { MAX_CONTEXT_CHARS } from "@/lib/context";
+import {
+  THREAD_TURN_LIMIT,
+  topicLabel,
+  topicLabelsFor,
+} from "@/lib/topic-focus";
 
 import { resolveModel } from "./models";
 
@@ -57,11 +61,6 @@ export class EngineError extends Error {
 
 export function isEngineConfigured(): boolean {
   return Boolean(process.env.OPENROUTER_API_KEY);
-}
-
-function topicLabels(ids: string[] | undefined): string[] {
-  if (!ids?.length) return [];
-  return TOPIC_OPTIONS.filter((t) => ids.includes(t.id)).map((t) => t.label);
 }
 
 function resolveLevel(requested: string | undefined): LevelId {
@@ -116,6 +115,11 @@ const CALL_GUIDANCE = `Tohle je ŽIVÝ HOVOR — tvoje odpověď se převede na 
 - Opravuj mluvením: zopakuj správný tvar přirozeně ve větě, nevypisuj gramatické tabulky.
 - Vždy zakonči krátkou otázkou, ať student hned mluví dál.`;
 
+const SAFETY_GUIDANCE = `Bezpečnost — tvrdá pravidla:
+- Nemluv o 18+ / pornografii, sexuálním zneužívání, fyzickém ubližování, terorismu, rasismu ani nenávisti.
+- Nevymýšlej zprávy, fakta o studentovi, ani učivo, které v poznámkách učitele není.
+- Když student o zakázané téma požádá, odmítni jednou větou a hned změň téma. Česky: „Tohle není téma, o kterém budu mluvit. Pojďme změnit téma.“ Když píše anglicky, můžeš říct: "This is not a topic I will talk about. Let's change the topic."`;
+
 export function buildSystemPrompt(params: {
   topics: string[];
   learnerContext: string;
@@ -123,23 +127,43 @@ export function buildSystemPrompt(params: {
   mode?: EngineMode;
   learnerName?: string | null;
   formality?: FormalityMode;
+  focusTopic?: string | null;
+  recentTopics?: string[];
+  lastOpeners?: string[];
 }): string {
   const topics =
     params.topics.length > 0 ? params.topics.join(", ") : "běžná konverzace";
+  const focus = topicLabel(params.focusTopic) ?? params.focusTopic ?? null;
+  const recent = topicLabelsFor(params.recentTopics).filter((label) => label !== focus);
   const ctx = params.learnerContext.slice(0, MAX_CONTEXT_CHARS);
-  const ctxBlock = ctx ? `\n\nKontext o uživateli:\n${ctx}` : "";
+  const ctxBlock = ctx
+    ? `\n\nPoznámky od učitele / studentovy materiály (nejnovější část, ne celý sešit). Jsi doplněk k lidskému učiteli, ne autor sylabu. Procvičuj slova a situace z poznámek. Můžeš kolem nich přidat trochu konverzace. NEVYMÝŠLEJ novou látku a nepředstírej, že učitel učil něco, co tu není.\n${ctx}`
+    : "";
   const modeBlock = params.mode === "call" ? `\n\n${CALL_GUIDANCE}` : "";
   const name = params.learnerName?.trim();
   const nameLine = name ? `Uživatele jmenuj / oslovuj: ${name}.` : "";
   const formality = formalityGuidance(params.formality ?? DEFAULT_FORMALITY);
+  const focusBlock = focus
+    ? `\nTéma tohoto sezení: ${focus}. Úvodní zpráva a hlavní nit MUSÍ být o tomto tématu. Vybrané zájmy studenta: ${topics}.${recent.length ? ` Nedávno jste už probírali: ${recent.join(", ")} — nezačínej jimi.` : ""}`
+    : `\nTémata, která studenta zajímají: ${topics}.`;
+  const openerBlock =
+    params.lastOpeners && params.lastOpeners.length > 0
+      ? `\nNeopakuj tyto nedávné úvodní otázky: ${params.lastOpeners.map((q) => `„${q}"`).join(" / ")}.`
+      : "";
+  const steerBlock = focus
+    ? `\nKdyž student uteče od tématu, krátce odpověz a přirozeně ho vrať k tématu sezení (${focus}). Když jasně chce zůstat u jiného tématu, vydrž 1–2 repliky, pak se vrať. Nebuď trapný ani přísný.`
+    : "";
 
-  return `Jsi Honza — přátelská postava, která učí češtinu. Oslovuješ uživatele v češtině, iniciuješ zprávy a malé úkoly. Uživatel má odpovídat v češtině. Buď stručný v chatu (max pár odstavců), vtipný ale slušný. Témata, která uživatele zajímají: ${topics}.
+  return `Jsi Honza — přátelská postava, která učí češtinu. Oslovuješ uživatele v češtině, iniciuješ zprávy a malé úkoly. Uživatel má odpovídat v češtině. Buď stručný v chatu (max pár odstavců), vtipný ale slušný.
 ${nameLine}
+${focusBlock}${openerBlock}${steerBlock}
 
 ${levelGuidance(params.level)}
 ${formality}
 
 Jako učitel: když student udělá chybu, nejdřív ho jemně oprav (ukaž správný tvar), pak krátce pokračuj v konverzaci další otázkou, ať rozhovor plyne. Chval pokrok.${ctxBlock}${modeBlock}
+
+${SAFETY_GUIDANCE}
 
 Pravidla:
 - Piš hlavně česky; míru angličtiny přizpůsob úrovni výše.
@@ -159,9 +183,20 @@ export function buildOpenerPrompt(opts: {
   lastContactAt?: number;
   now?: number;
   mode?: EngineMode;
+  focusTopic?: string | null;
+  lastOpeners?: string[];
 }): string {
   const now = opts.now ?? Date.now();
   const parts: string[] = [];
+  const focus = topicLabel(opts.focusTopic) ?? opts.focusTopic;
+  if (focus) {
+    parts.push(`Téma tohoto sezení je ${focus} — začni tím, ne jiným tématem.`);
+  }
+  if (opts.lastOpeners?.length) {
+    parts.push(
+      `Neopakuj tyto otázky: ${opts.lastOpeners.map((q) => `„${q}"`).join(" / ")}.`,
+    );
+  }
 
   if (typeof opts.localHour === "number") {
     const h = opts.localHour;
@@ -213,6 +248,9 @@ export function sanitizeMessages(
         "Ahoj Honzo! Začni konverzaci první zprávou v češtině (krátký pozdrav + jedna otázka).",
     });
   }
+  if (out.length > THREAD_TURN_LIMIT) {
+    return out.slice(-THREAD_TURN_LIMIT);
+  }
   return out.length > 0 ? out : null;
 }
 
@@ -230,6 +268,9 @@ export async function generateReply(params: {
   apiKey?: string | null;
   learnerName?: string | null;
   formality?: string;
+  focusTopic?: string | null;
+  recentTopics?: string[];
+  lastOpeners?: string[];
 }): Promise<{ text: string; model: string }> {
   const apiKey = params.apiKey?.trim() || process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
@@ -242,12 +283,15 @@ export async function generateReply(params: {
 
   const model = await resolveModel(params.requestedModel);
   const system = buildSystemPrompt({
-    topics: topicLabels(params.topics),
+    topics: topicLabelsFor(params.topics),
     learnerContext: params.learnerContext,
     level: resolveLevel(params.level),
     mode: params.mode,
     learnerName: params.learnerName,
     formality: resolveFormality(params.formality),
+    focusTopic: params.focusTopic,
+    recentTopics: params.recentTopics,
+    lastOpeners: params.lastOpeners,
   });
 
   const client = new OpenAI({

@@ -6,10 +6,16 @@ import {
   buildOpenerPrompt,
   generateReply,
 } from "@/lib/server/conversation-engine";
-import { buildLearnerContextText } from "@/lib/context";
+import { prepareEngineTurn } from "@/lib/server/engine-turn";
 import { resolveProviderKey } from "@/lib/server/provider-keys";
 import { sendPushToUser } from "@/lib/server/push-send";
 import { dueSlots, slotsForLocalDay } from "@/lib/server/schedule";
+import {
+  LAST_OPENER_LIMIT,
+  asStringList,
+  asTopicIds,
+  rememberOpener,
+} from "@/lib/topic-focus";
 import type { ContextChunk, ContextSource } from "@/types";
 
 type ProfileRow = {
@@ -24,6 +30,9 @@ type ProfileRow = {
   schedule_mode: string | null;
   first_message_time: string | null;
   timezone: string | null;
+  focus_topic?: string | null;
+  recent_topics?: string[] | null;
+  last_openers?: string[] | null;
 };
 
 function chunkFromRow(row: {
@@ -49,14 +58,23 @@ export async function runCheckIns(
   supabase: SupabaseClient,
   now = new Date(),
 ): Promise<{ sent: number; skipped: number; errors: number }> {
-  const { data: profiles, error } = await supabase
-    .from("profiles")
-    .select(
-      "id, name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
-    )
-    .eq("schedule_enabled", true);
+  const selects = [
+    "id, name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone, focus_topic, recent_topics, last_openers",
+    "id, name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
+  ];
+  let profiles: ProfileRow[] | null = null;
+  for (const cols of selects) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(cols)
+      .eq("schedule_enabled", true);
+    if (!error && data) {
+      profiles = data as unknown as ProfileRow[];
+      break;
+    }
+  }
 
-  if (error || !profiles) return { sent: 0, skipped: 0, errors: 1 };
+  if (!profiles) return { sent: 0, skipped: 0, errors: 1 };
 
   let sent = 0;
   let skipped = 0;
@@ -163,24 +181,62 @@ async function deliverForUser(
       }).format(now),
     );
 
+    const prepared = await prepareEngineTurn({
+      bootstrap: true,
+      topics: profile.topics ?? [],
+      focusTopic: profile.focus_topic ?? null,
+      recentTopics: asTopicIds(profile.recent_topics ?? []),
+      lastOpeners: asStringList(profile.last_openers, LAST_OPENER_LIMIT),
+      chunks,
+      learnerContextFallback: "",
+    });
+
     const opener = buildOpenerPrompt({
       localHour: Number.isFinite(localHour) ? localHour : undefined,
       lastContactAt,
       now: now.getTime(),
       mode: "chat",
+      focusTopic: prepared.focus,
+      lastOpeners: prepared.lastOpeners,
     });
 
     const { text } = await generateReply({
       requestedModel: profile.preferred_model ?? undefined,
       topics: profile.topics ?? [],
-      learnerContext: buildLearnerContextText(chunks),
+      learnerContext: prepared.contextText,
       level: profile.level ?? undefined,
       learnerName: profile.name,
       formality: profile.formality ?? undefined,
       apiKey: llm.key,
       messages: [{ role: "user", content: opener }],
       mode: "chat",
+      focusTopic: prepared.focus,
+      recentTopics: prepared.recent,
+      lastOpeners: prepared.lastOpeners,
     });
+
+    const nextOpeners = rememberOpener(prepared.lastOpeners, text);
+    const engineRow = {
+      focus_topic: prepared.focus,
+      recent_topics: prepared.recent,
+      last_openers: nextOpeners,
+    };
+    const { error: engineErr } = await supabase
+      .from("profiles")
+      .update(engineRow)
+      .eq("id", profile.id);
+    if (engineErr) {
+      console.warn("[check-ins] engine focus columns missing?", engineErr.message);
+    }
+    await Promise.all(
+      prepared.chunkUpdates.map((u) =>
+        supabase
+          .from("user_context")
+          .update({ content: u.text, synced_at: now.toISOString() })
+          .eq("id", u.id)
+          .eq("user_id", profile.id),
+      ),
+    );
 
     await supabase.from("messages").insert({
       user_id: profile.id,

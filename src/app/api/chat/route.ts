@@ -6,9 +6,22 @@ import {
   generateReply,
   sanitizeMessages,
 } from "@/lib/server/conversation-engine";
+import { prepareEngineTurn } from "@/lib/server/engine-turn";
 import { clientKey, rateLimit } from "@/lib/server/rate-limit";
-import { insertMessages, loadEngineContext } from "@/lib/server/user-data";
+import {
+  insertMessages,
+  loadEngineContext,
+  updateContextContent,
+  updateProfile,
+} from "@/lib/server/user-data";
 import { resolveProviderKey } from "@/lib/server/provider-keys";
+import {
+  LAST_OPENER_LIMIT,
+  RECENT_TOPIC_LIMIT,
+  asStringList,
+  asTopicIds,
+  rememberOpener,
+} from "@/lib/topic-focus";
 
 export const runtime = "nodejs";
 
@@ -30,6 +43,9 @@ type ChatRequestBody = {
   sessionId?: string;
   formality?: string;
   learnerName?: string;
+  focusTopic?: string | null;
+  recentTopics?: string[];
+  lastOpeners?: string[];
 };
 
 export async function POST(req: Request) {
@@ -70,8 +86,30 @@ export async function POST(req: Request) {
   const persisted = serverContext !== null;
   const llm = await resolveProviderKey("openrouter");
 
-  // On bootstrap, Honza initiates: replace the thread with a single synthetic
-  // opener instruction that's aware of time-of-day + time since last contact.
+  const topics = serverContext
+    ? serverContext.topics
+    : Array.isArray(body.topics)
+      ? body.topics
+      : [];
+  const prepared = await prepareEngineTurn({
+    bootstrap,
+    topics,
+    focusTopic: serverContext
+      ? serverContext.focusTopic
+      : typeof body.focusTopic === "string"
+        ? body.focusTopic
+        : null,
+    recentTopics: serverContext
+      ? serverContext.recentTopics
+      : asTopicIds(body.recentTopics),
+    lastOpeners: serverContext
+      ? serverContext.lastOpeners
+      : asStringList(body.lastOpeners, LAST_OPENER_LIMIT),
+    chunks: serverContext?.contextChunks ?? [],
+    learnerContextFallback:
+      typeof body.learnerContext === "string" ? body.learnerContext : "",
+  });
+
   const engineMessages = bootstrap
     ? [
         {
@@ -81,6 +119,8 @@ export async function POST(req: Request) {
             lastContactAt:
               typeof body.lastContactAt === "number" ? body.lastContactAt : undefined,
             mode: kind,
+            focusTopic: prepared.focus,
+            lastOpeners: prepared.lastOpeners,
           }),
         },
       ]
@@ -90,16 +130,8 @@ export async function POST(req: Request) {
     const { text, model } = await generateReply({
       mode: kind,
       requestedModel: serverContext?.preferredModel ?? body.model,
-      topics: serverContext
-        ? serverContext.topics
-        : Array.isArray(body.topics)
-          ? body.topics
-          : undefined,
-      learnerContext: serverContext
-        ? serverContext.contextText
-        : typeof body.learnerContext === "string"
-          ? body.learnerContext
-          : "",
+      topics,
+      learnerContext: prepared.contextText,
       level: serverContext?.level ?? (typeof body.level === "string" ? body.level : undefined),
       learnerName:
         serverContext?.name ??
@@ -109,10 +141,15 @@ export async function POST(req: Request) {
         (typeof body.formality === "string" ? body.formality : undefined),
       apiKey: llm.key,
       messages: engineMessages,
+      focusTopic: prepared.focus,
+      recentTopics: prepared.recent,
+      lastOpeners: prepared.lastOpeners,
     });
 
-    // Persist the just-sent user turn (not on bootstrap, which has no real user
-    // message) plus Honza's reply, so history survives refresh / re-login.
+    const nextOpeners = bootstrap
+      ? rememberOpener(prepared.lastOpeners, text)
+      : prepared.lastOpeners;
+
     if (persisted) {
       const turns: {
         role: "user" | "assistant";
@@ -126,9 +163,25 @@ export async function POST(req: Request) {
       }
       turns.push({ role: "assistant", content: text, kind, sessionId });
       await insertMessages(turns);
+      await updateProfile({
+        focusTopic: prepared.focus,
+        recentTopics: prepared.recent.slice(-RECENT_TOPIC_LIMIT),
+        lastOpeners: nextOpeners,
+      });
+      await Promise.all(
+        prepared.chunkUpdates.map((u) => updateContextContent(u.id, u.text)),
+      );
     }
 
-    return NextResponse.json({ message: text, model, persisted, kind });
+    return NextResponse.json({
+      message: text,
+      model,
+      persisted,
+      kind,
+      focusTopic: prepared.focus,
+      recentTopics: prepared.recent,
+      lastOpeners: nextOpeners,
+    });
   } catch (e) {
     if (e instanceof EngineError) {
       return NextResponse.json({ error: e.message }, { status: e.status });

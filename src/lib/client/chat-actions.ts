@@ -1,6 +1,6 @@
 "use client";
 
-import { buildLearnerContextText } from "@/lib/context";
+import { buildLearnerContextText, DOC_CACHE_MS } from "@/lib/context";
 import {
   clearReplyChoreography,
   scheduleAssistantReveal,
@@ -8,6 +8,9 @@ import {
 import { previewFromThread, useChatStore } from "@/stores/useChatStore";
 import { useMoodStore } from "@/stores/useMoodStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
+import { isDbMode } from "@/lib/client/state-sync";
+import { upsertContext } from "@/lib/client/context-actions";
+import { asTopicIds } from "@/lib/topic-focus";
 import type { MessageKind } from "@/types";
 
 /**
@@ -16,6 +19,47 @@ import type { MessageKind } from "@/types";
  */
 
 let initiateLock = false;
+
+async function refreshLocalGoogleDocIfStale(): Promise<void> {
+  if (isDbMode()) return;
+  const chunks = useSettingsStore.getState().contextChunks;
+  const doc = chunks.find((c) => c.meta.kind === "google_doc");
+  if (!doc || doc.meta.kind !== "google_doc" || !doc.meta.url) return;
+  if (Date.now() - doc.meta.addedAt < DOC_CACHE_MS) return;
+  const url = doc.meta.url;
+  try {
+    const res = await fetch("/api/context/google-doc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    const data = (await res.json()) as { text?: string };
+    if (res.ok && data.text) {
+      await upsertContext(data.text, {
+        kind: "google_doc",
+        url,
+        addedAt: Date.now(),
+      });
+    }
+  } catch {
+    // Keep the last snapshot if the live export fails.
+  }
+}
+
+function applyEngineFocus(data: {
+  focusTopic?: string | null;
+  recentTopics?: string[];
+  lastOpeners?: string[];
+}): void {
+  if (!data.recentTopics && data.focusTopic === undefined && !data.lastOpeners) {
+    return;
+  }
+  useSettingsStore.getState().setEngineFocus({
+    focusTopic: asTopicIds(data.focusTopic ? [data.focusTopic] : [])[0] ?? null,
+    recentTopics: asTopicIds(data.recentTopics ?? useSettingsStore.getState().recentTopics),
+    lastOpeners: data.lastOpeners ?? useSettingsStore.getState().lastOpeners,
+  });
+}
 
 async function callChatApi(
   messages: { role: "user" | "assistant"; content: string }[],
@@ -27,6 +71,7 @@ async function callChatApi(
     sessionId?: string;
   },
 ): Promise<string> {
+  await refreshLocalGoogleDocIfStale();
   const s = useSettingsStore.getState();
   const res = await fetch("/api/chat", {
     method: "POST",
@@ -38,14 +83,24 @@ async function callChatApi(
       level: s.level,
       formality: s.formality,
       learnerName: s.learnerName || undefined,
+      focusTopic: s.focusTopic,
+      recentTopics: s.recentTopics,
+      lastOpeners: s.lastOpeners,
       messages,
       bootstrap,
       ...extra,
     }),
   });
-  const data = (await res.json()) as { message?: string; error?: string };
+  const data = (await res.json()) as {
+    message?: string;
+    error?: string;
+    focusTopic?: string | null;
+    recentTopics?: string[];
+    lastOpeners?: string[];
+  };
   if (!res.ok) throw new Error(data.error ?? "Server error");
   if (!data.message) throw new Error("Empty response");
+  applyEngineFocus(data);
   return data.message;
 }
 
@@ -102,9 +157,14 @@ export async function initiateOpener(): Promise<void> {
   chat.setError(null);
   useMoodStore.getState().setMood("thinking");
   try {
+    const prior = [
+      ...chat.messages,
+      ...Object.values(chat.archivedMessages).flat(),
+    ];
+    const lastContactAt = prior.length ? prior[prior.length - 1]!.createdAt : 0;
     const reply = await callChatApi([], true, {
       localHour: new Date().getHours(),
-      lastContactAt: 0,
+      lastContactAt,
       sessionId: chat.activeSessionId,
     });
     if (useChatStore.getState().messages.length === 0) {

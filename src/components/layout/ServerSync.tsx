@@ -62,6 +62,11 @@ export function ServerSync() {
           settings.setFirstMessageTime(data.profile.firstMessageTime);
         }
         if (data.profile.timezone) settings.setTimezone(data.profile.timezone);
+        settings.setEngineFocus({
+          focusTopic: (data.profile.focusTopic as TopicId | null) ?? null,
+          recentTopics: (data.profile.recentTopics as TopicId[] | undefined) ?? [],
+          lastOpeners: data.profile.lastOpeners ?? [],
+        });
         settings.setContextChunks(data.contextChunks ?? []);
 
         // `kind` must survive hydration: it's what makes a call transcript

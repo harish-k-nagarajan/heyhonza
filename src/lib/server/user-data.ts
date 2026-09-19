@@ -8,6 +8,11 @@ import type {
   FormalityMode,
   ScheduleMode,
 } from "@/lib/constants";
+import {
+  LAST_OPENER_LIMIT,
+  asStringList,
+  asTopicIds,
+} from "@/lib/topic-focus";
 import type { ContextChunk, ContextSource } from "@/types";
 
 /**
@@ -47,6 +52,9 @@ export type PersistedProfile = {
   scheduleMode: ScheduleMode;
   firstMessageTime: string;
   timezone: string | null;
+  focusTopic: string | null;
+  recentTopics: string[];
+  lastOpeners: string[];
 };
 
 export type UserState = {
@@ -159,17 +167,26 @@ export async function loadUserState(): Promise<UserState | null> {
 
   await migrateOrphanMessages(user.id, supabase);
 
-  const profileColumns =
-    "name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone";
-  const profileColumnsWithoutStep =
-    "name, level, topics, preferred_model, onboarding_completed, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone";
+  const profileColumnSets = [
+    "name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone, focus_topic, recent_topics, last_openers",
+    "name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
+    "name, level, topics, preferred_model, onboarding_completed, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
+  ];
 
-  const [profileRes, contextRes, sessionsRes, messagesRes] = await Promise.all([
-    supabase
+  let p: Record<string, unknown> | null = null;
+  for (const cols of profileColumnSets) {
+    const profileRes = await supabase
       .from("profiles")
-      .select(profileColumns)
+      .select(cols)
       .eq("id", user.id)
-      .maybeSingle(),
+      .maybeSingle();
+    if (!profileRes.error) {
+      p = (profileRes.data as Record<string, unknown> | null) ?? null;
+      break;
+    }
+  }
+
+  const [contextRes, sessionsRes, messagesRes] = await Promise.all([
     supabase
       .from("user_context")
       .select("id, source_kind, source_ref, content, synced_at")
@@ -187,21 +204,12 @@ export async function loadUserState(): Promise<UserState | null> {
       .order("created_at", { ascending: true }),
   ]);
 
-  let p = profileRes.data;
-  if (profileRes.error) {
-    const fallback = await supabase
-      .from("profiles")
-      .select(profileColumnsWithoutStep)
-      .eq("id", user.id)
-      .maybeSingle();
-    p = fallback.data;
-  }
   const daily = Number(p?.daily_message_count ?? 1);
   const profile: PersistedProfile = {
-    name: p?.name ?? null,
-    level: p?.level ?? "A2",
+    name: (p?.name as string | null) ?? null,
+    level: typeof p?.level === "string" ? p.level : "A2",
     topics: (p?.topics as string[] | null) ?? [],
-    preferredModel: p?.preferred_model ?? null,
+    preferredModel: (p?.preferred_model as string | null) ?? null,
     onboardingCompleted: Boolean(p?.onboarding_completed),
     onboardingStep: clampOnboardingStep(Number(p?.onboarding_step ?? 1)),
     formality: p?.formality === "vy" ? "vy" : "ty",
@@ -213,6 +221,9 @@ export async function loadUserState(): Promise<UserState | null> {
         ? p.first_message_time
         : "09:00",
     timezone: (p?.timezone as string | null) ?? null,
+    focusTopic: typeof p?.focus_topic === "string" ? p.focus_topic : null,
+    recentTopics: asTopicIds((p?.recent_topics as string[] | null) ?? []),
+    lastOpeners: asStringList(p?.last_openers, LAST_OPENER_LIMIT),
   };
 
   const contextChunks = (contextRes.data ?? []).map(chunkFromRow);
@@ -262,21 +273,29 @@ export function buildContextText(chunks: ContextChunk[]): string {
 /** Load only what the engine needs to build context (context + topics + level). */
 export async function loadEngineContext(): Promise<{
   contextText: string;
+  contextChunks: ContextChunk[];
   topics: string[];
   level: string;
   preferredModel: string | null;
   name: string | null;
   formality: FormalityMode;
+  focusTopic: string | null;
+  recentTopics: string[];
+  lastOpeners: string[];
 } | null> {
   const state = await loadUserState();
   if (!state) return null;
   return {
     contextText: state.contextText,
+    contextChunks: state.contextChunks,
     topics: state.profile.topics,
     level: state.profile.level,
     preferredModel: state.profile.preferredModel,
     name: state.profile.name,
     formality: state.profile.formality,
+    focusTopic: state.profile.focusTopic,
+    recentTopics: state.profile.recentTopics,
+    lastOpeners: state.profile.lastOpeners,
   };
 }
 
@@ -412,6 +431,9 @@ export type ProfilePatch = Partial<{
   scheduleMode: ScheduleMode;
   firstMessageTime: string;
   timezone: string | null;
+  focusTopic: string | null;
+  recentTopics: string[];
+  lastOpeners: string[];
 }>;
 
 export async function updateProfile(patch: ProfilePatch): Promise<boolean> {
@@ -434,14 +456,44 @@ export async function updateProfile(patch: ProfilePatch): Promise<boolean> {
   if ("scheduleMode" in patch) row.schedule_mode = patch.scheduleMode;
   if ("firstMessageTime" in patch) row.first_message_time = patch.firstMessageTime;
   if ("timezone" in patch) row.timezone = patch.timezone;
+  if ("focusTopic" in patch) row.focus_topic = patch.focusTopic;
+  if ("recentTopics" in patch) row.recent_topics = asTopicIds(patch.recentTopics ?? []);
+  if ("lastOpeners" in patch)
+    row.last_openers = asStringList(patch.lastOpeners, LAST_OPENER_LIMIT);
   if (Object.keys(row).length === 0) return true;
-  const { error } = await supabase.from("profiles").update(row).eq("id", userId);
-  if (!error) return true;
-  if (!("onboarding_step" in row)) return false;
-  delete row.onboarding_step;
-  if (Object.keys(row).length === 0) return false;
-  const retry = await supabase.from("profiles").update(row).eq("id", userId);
-  return !retry.error;
+
+  const optional = [
+    "focus_topic",
+    "recent_topics",
+    "last_openers",
+    "onboarding_step",
+  ];
+  let payload = { ...row };
+  for (let i = 0; i <= optional.length; i += 1) {
+    const { error } = await supabase.from("profiles").update(payload).eq("id", userId);
+    if (!error) return true;
+    const drop = optional[i];
+    if (!drop || !(drop in payload)) return false;
+    delete payload[drop];
+    if (Object.keys(payload).length === 0) return false;
+  }
+  return false;
+}
+
+/** Update an existing notes row after a live Google Doc refresh. */
+export async function updateContextContent(
+  id: string,
+  text: string,
+): Promise<boolean> {
+  const userId = await getUserId();
+  if (!userId) return false;
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("user_context")
+    .update({ content: text, synced_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("user_id", userId);
+  return !error;
 }
 
 /** Persist a freshly ingested context chunk; returns the stored row's id. */
@@ -502,9 +554,22 @@ export async function resetUserData(): Promise<boolean> {
   await supabase.from("messages").delete().eq("user_id", userId);
   await supabase.from("chat_sessions").delete().eq("user_id", userId);
   await supabase.from("user_context").delete().eq("user_id", userId);
-  await supabase
+  const resetRow = {
+    onboarding_completed: false,
+    topics: [] as string[],
+    focus_topic: null as string | null,
+    recent_topics: [] as string[],
+    last_openers: [] as string[],
+  };
+  const { error } = await supabase
     .from("profiles")
-    .update({ onboarding_completed: false, topics: [] })
+    .update(resetRow)
     .eq("id", userId);
+  if (error) {
+    await supabase
+      .from("profiles")
+      .update({ onboarding_completed: false, topics: [] })
+      .eq("id", userId);
+  }
   return true;
 }
