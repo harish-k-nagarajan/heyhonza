@@ -50,13 +50,13 @@ export function LandingScheduleFold() {
         <div
           data-landing-schedule-settings
           className={cn(
-            "relative z-30 w-full max-w-[360px] will-change-[transform,filter,opacity]",
-            "md:absolute md:left-0 md:top-12 md:[transform-style:preserve-3d]",
+            "relative z-30 w-full max-w-[360px]",
+            "md:absolute md:left-0 md:top-12 md:[transform-style:preserve-3d] md:will-change-[transform,filter,opacity]",
           )}
         >
           <LandingScheduleSettingsMock
             className="w-full max-w-[360px]"
-          hint={w.schedulePreviewHint}
+            hint={w.schedulePreviewHint}
             toggleLabel={s.scheduleSubtitle(2)}
             howOftenLabel={s.scheduleHowOften}
             whenLabel={s.scheduleWhen}
@@ -70,9 +70,8 @@ export function LandingScheduleFold() {
           data-landing-schedule-phone
           notifyOpen={!sceneEnabled}
           className={cn(
-            "relative z-10 mx-auto -mt-10 w-full max-w-[232px] will-change-transform",
-            "md:absolute md:left-[248px] md:top-2 md:mt-0 md:mx-0 md:[transform-style:preserve-3d]",
-            "max-[480px]:scale-[0.92]",
+            "relative z-10 mx-auto mt-2 w-full max-w-[232px]",
+            "md:absolute md:left-[248px] md:top-2 md:mt-0 md:mx-0 md:[transform-style:preserve-3d] md:will-change-transform",
           )}
           appName={w.scheduleNotificationAppName}
           message={w.schedulePreviewMessage}

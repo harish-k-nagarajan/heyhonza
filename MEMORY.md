@@ -4,7 +4,21 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-19 (landing bubble float)
+## Current entry — 2026-09-19 (schedule fold mobile)
+
+### What changed
+- Schedule fold pin / 3D layer scrub is **md-only** (`min-width: 768px`). Below that: no pin, no blur/`rotateY`/`translateZ`, toast sits open, settings + phone stack with a small gap.
+- Mobile phone mock is `w-[190px]` (desktop stays `md:w-[224px]`).
+
+### What broke
+- Mobile still ran `createPinnedScene` on a ~1040px stacked section in an ~844px viewport, so the iPhone + notification were clipped for the whole pin while the settings card wobbled/blurred in 2D (`perspective: none`).
+
+### Decision
+Desktop overlap scene stays. Mobile follows the Call fold: static rest pose, natural scroll.
+
+---
+
+## Previous — 2026-09-19 (landing bubble float)
 
 ### What changed
 - Hero chat bubbles **float down in mixed order** into the phone preview (cubic drop with ~14–26px wander). The old length-scaled perpendicular arc is gone — that was the circular fly-out past the recess.
