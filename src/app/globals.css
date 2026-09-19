@@ -515,6 +515,15 @@ body {
 .landing-fold-schedule .t-toast.landing-schedule-notify-driven {
   transition: none !important;
 }
+/* Mobile has no pin scene — toast stays in the open rest pose */
+@media (max-width: 767px) {
+  .landing-fold-schedule .t-toast {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+    will-change: auto;
+  }
+}
 .landing-fold-hero {
   background: linear-gradient(180deg, #fff8f5 0%, #fff4ee 100%);
 }

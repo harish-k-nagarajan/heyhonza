@@ -37,7 +37,7 @@ export function LandingIphoneNotificationPreview({
             "shadow-[inset_0_0_0_1px_#4a4a4c,inset_0_1px_0_rgba(255,255,255,0.22),0_24px_48px_rgba(28,24,20,0.22),0_8px_16px_rgba(28,24,20,0.12)]",
           )}
         >
-          <div className="relative aspect-[473/1024] w-[216px] overflow-hidden rounded-[39px] bg-black sm:w-[224px]">
+          <div className="relative aspect-[473/1024] w-[190px] overflow-hidden rounded-[39px] bg-black md:w-[224px]">
             <Image
               src="/images/iphone-lockscreen.jpg"
               alt=""

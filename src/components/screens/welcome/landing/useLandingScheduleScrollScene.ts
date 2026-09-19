@@ -221,12 +221,21 @@ export function useLandingScheduleScrollScene(
         return createPinnedScene(section, settings, phone, notify, "+=145%", true);
       });
 
+      // Stacked layout is taller than the phone viewport — do not pin.
       mm.add("(max-width: 767px)", () => {
-        if (!enabled) {
-          runFinal();
-          return () => resetLayers(settings, phone);
+        resetLayers(settings, phone);
+        if (notify) {
+          notify.classList.remove("landing-schedule-notify-driven");
+          setNotifyResting(notify, true);
         }
-        return createPinnedScene(section, settings, phone, notify, "+=125%", false);
+        return () => {
+          resetLayers(settings, phone);
+          if (notify) {
+            gsap.killTweensOf(notify);
+            notify.classList.remove("landing-schedule-notify-driven");
+            setNotifyResting(notify, false);
+          }
+        };
       });
 
       return () => {
