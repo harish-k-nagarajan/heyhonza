@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { HonzaTypingBubble } from "@/components/chat/HonzaTypingBubble";
@@ -7,6 +8,7 @@ import {
   HmatChatComposerRow,
   HmatChatThread,
   HmatHonzaBubble,
+  HmatNeedsKeyEmpty,
   HmatPresenceRecess,
   HmatScreenTitle,
   HmatStatusChip,
@@ -24,6 +26,7 @@ import {
 } from "@/lib/i18n/locales";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
+import { ROUTES } from "@/lib/constants";
 import type { ChatMessage } from "@/types";
 import { cn } from "@/lib/cn";
 import { tapLight } from "@/lib/interaction/haptic";
@@ -41,6 +44,7 @@ function readDurationMs(el: HTMLElement | null, prop: string, fallback: number):
 
 function longestChipLabel(c: ChatCopy): string {
   return [
+    c.chipUnlinked,
     c.chipReady,
     c.chipWaiting,
     c.chipOnline,
@@ -81,6 +85,8 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     heroMode,
     showStartGate,
     showEmptyState,
+    llmReady,
+    providersLoaded,
   } = screen;
   const typingPreview = useChatStore((s) => s.typingPreview);
   const typingPhaseActive = typingPreview !== null;
@@ -147,7 +153,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   }, []);
 
   useEffect(() => {
-    if (!mounted || !screen.ready) return;
+    if (!mounted || !screen.ready || !providersLoaded) return;
     const skipCeremony = chatBootCeremonyDone;
     chatBootCeremonyDone = true;
     const id = window.requestAnimationFrame(() => {
@@ -163,16 +169,19 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
       });
     });
     return () => window.cancelAnimationFrame(id);
-  }, [mounted, screen.ready]);
+  }, [mounted, screen.ready, providersLoaded]);
 
   const composerMode = heroMode ? "idle" : "ongoing";
   const localizedError = localizeClientError(lastError, t.errors);
+  const needsOpenRouterKey = showStartGate && providersLoaded && !llmReady;
   const statusPhase = resolveChatStatus({
     lastError,
     loading,
     showStartGate,
     heroMode,
     mood: expression.mood,
+    llmReady,
+    providersLoaded,
   });
   const statusLabel = chatChip(statusPhase, t.chat);
   const statusTitle = chatTitle(statusPhase, t.chat);
@@ -213,51 +222,60 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
               label={statusLabel}
               sizerLabel={sizerLabel}
               shimmer={loading}
+              muted={statusPhase === "unlinked"}
             />
           </span>
         </div>
       </div>
 
-      <div
-        ref={threadAccRef}
-        className="t-acc hmat-chat-thread-acc"
-        data-open={threadOpen ? "true" : "false"}
-      >
-        <div className="t-acc-panel">
-          <div className="t-acc-panel-inner">
-            <div className="t-panel-slide" data-open={threadOpen ? "true" : "false"}>
-              <HmatChatThread
-                ref={threadRef}
-                watchKey={`${visibleMessages.length}-${showTyping}-${heroMode}-${threadOpen}`}
-              >
-                {localizedError ? (
-                  <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
-                    {localizedError}
-                  </p>
-                ) : null}
+      {needsOpenRouterKey ? (
+        <HmatNeedsKeyEmpty
+          title={t.chat.missingOpenRouterTitle}
+          body={t.chat.missingOpenRouter}
+          icon="chatUnlinked"
+        />
+      ) : (
+        <div
+          ref={threadAccRef}
+          className="t-acc hmat-chat-thread-acc"
+          data-open={threadOpen ? "true" : "false"}
+        >
+          <div className="t-acc-panel">
+            <div className="t-acc-panel-inner">
+              <div className="t-panel-slide" data-open={threadOpen ? "true" : "false"}>
+                <HmatChatThread
+                  ref={threadRef}
+                  watchKey={`${visibleMessages.length}-${showTyping}-${heroMode}-${threadOpen}`}
+                >
+                  {localizedError ? (
+                    <p className={cn(TYPE.bodySm, "text-center text-accent")} role="alert">
+                      {localizedError}
+                    </p>
+                  ) : null}
 
-                {showEmptyState ? <HmatEmptyHint text={t.chat.emptyHint} /> : null}
+                  {showEmptyState ? <HmatEmptyHint text={t.chat.emptyHint} /> : null}
 
-                {showThreadMessages
-                  ? visibleMessages.map((m: ChatMessage, i) =>
-                      m.role === "user" ? (
-                        <HmatUserBubble key={m.id} index={i}>
-                          {m.content}
-                        </HmatUserBubble>
-                      ) : (
-                        <HmatHonzaBubble key={m.id} index={i}>
-                          {m.content}
-                        </HmatHonzaBubble>
-                      ),
-                    )
-                  : null}
+                  {showThreadMessages
+                    ? visibleMessages.map((m: ChatMessage, i) =>
+                        m.role === "user" ? (
+                          <HmatUserBubble key={m.id} index={i}>
+                            {m.content}
+                          </HmatUserBubble>
+                        ) : (
+                          <HmatHonzaBubble key={m.id} index={i}>
+                            {m.content}
+                          </HmatHonzaBubble>
+                        ),
+                      )
+                    : null}
 
-                {showTyping && threadOpen ? <HonzaTypingBubble variant="hmat" /> : null}
-              </HmatChatThread>
+                  {showTyping && threadOpen ? <HonzaTypingBubble variant="hmat" /> : null}
+                </HmatChatThread>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="shrink-0">
         <div
@@ -269,18 +287,31 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
             inert={!showStartGate || undefined}
             aria-hidden={!showStartGate}
           >
-            <button
-              type="button"
-              onClick={() => {
-                tapLight();
-                screen.startChat();
-              }}
-              className="hmat-ink-action flex h-[52px] w-full items-center justify-center rounded-2xl text-white"
-            >
-              <span className={cn(TYPE.bodySm, "font-display font-semibold")}>
-                {t.chat.startChat}
-              </span>
-            </button>
+            {needsOpenRouterKey ? (
+              <Link
+                href={ROUTES.settingsAiText}
+                onClick={() => tapLight()}
+                className="hmat-ink-action flex h-[52px] w-full items-center justify-center rounded-2xl text-white"
+              >
+                <span className={cn(TYPE.bodySm, "font-display font-semibold")}>
+                  {t.chat.addOpenRouterKey}
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  tapLight();
+                  screen.startChat();
+                }}
+                disabled={!providersLoaded || !llmReady}
+                className="hmat-ink-action flex h-[52px] w-full items-center justify-center rounded-2xl text-white disabled:opacity-40"
+              >
+                <span className={cn(TYPE.bodySm, "font-display font-semibold")}>
+                  {t.chat.startChat}
+                </span>
+              </button>
+            )}
           </div>
           <div
             className={cn("hmat-chat-action-face", !showStartGate && "is-front")}

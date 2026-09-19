@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useMoodExpression } from "@/hooks/useMoodExpression";
+import { rememberProviderStatusFromResponse } from "@/hooks/useProviderStatus";
 import { useScreenReady } from "@/hooks/useScreenReady";
 import { isLikelyGoogleDocUrl } from "@/lib/validators";
 import {
@@ -187,9 +188,11 @@ export function useSettingsScreen(): SettingsScreen {
       };
       if (data.llm) setLlm(data.llm);
       if (data.tts) setTts(data.tts);
+      rememberProviderStatusFromResponse(data);
     } catch {
       setLlm({ source: "none", connected: false });
       setTts({ source: "none", connected: false });
+      rememberProviderStatusFromResponse({});
     }
   }, []);
 
@@ -201,11 +204,13 @@ export function useSettingsScreen(): SettingsScreen {
         if (cancelled) return;
         if (data.llm) setLlm(data.llm);
         if (data.tts) setTts(data.tts);
+        rememberProviderStatusFromResponse(data);
       })
       .catch(() => {
         if (cancelled) return;
         setLlm({ source: "none", connected: false });
         setTts({ source: "none", connected: false });
+        rememberProviderStatusFromResponse({});
       });
     return () => {
       cancelled = true;

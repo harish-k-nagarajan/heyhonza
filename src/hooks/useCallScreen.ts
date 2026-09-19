@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMoodExpression } from "@/hooks/useMoodExpression";
+import { useProviderStatus } from "@/hooks/useProviderStatus";
 import { useScreenReady } from "@/hooks/useScreenReady";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useLocale } from "@/lib/i18n/useLocale";
@@ -81,6 +82,9 @@ export type CallScreen = {
   listening: boolean;
   supported: boolean;
   statusLine: string;
+  llmReady: boolean;
+  ttsReady: boolean;
+  providersLoaded: boolean;
   startCall: () => void;
   endCall: (goToChat: boolean) => void;
   /** Toggle the mic: start listening if idle, stop if hot. */
@@ -99,6 +103,7 @@ export function useCallScreen(): CallScreen {
   const design = useDesignStore((s) => s.design);
   const expression = useMoodExpression();
   const setMood = useMoodStore((s) => s.setMood);
+  const { llmReady, ttsReady, loaded: providersLoaded } = useProviderStatus();
 
   const [phase, setPhase] = useState<CallPhase>("ready");
   const [caption, setCaption] = useState<string | null>(null);
@@ -224,6 +229,7 @@ export function useCallScreen(): CallScreen {
   );
 
   const startCall = useCallback(() => {
+    if (!llmReady || !ttsReady) return;
     setError(null);
     setSeconds(0);
     setSpeakerOn(false);
@@ -252,7 +258,7 @@ export function useCallScreen(): CallScreen {
       if (!activeRef.current) return;
       await speakThenListen(opener);
     })();
-  }, [speakThenListen, t.errors]);
+  }, [llmReady, ttsReady, speakThenListen, t.errors]);
 
   // Leaving mid-call must kill the mic and the audio, not leave them running.
   useEffect(() => {
@@ -303,6 +309,9 @@ export function useCallScreen(): CallScreen {
     listening,
     supported,
     statusLine,
+    llmReady,
+    ttsReady,
+    providersLoaded,
     startCall,
     endCall,
     toggleMic,

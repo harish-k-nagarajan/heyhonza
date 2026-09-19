@@ -6,6 +6,7 @@ import { HmatOrb } from "@/components/honza/HmatOrb";
 import { RecessCardLight } from "@/components/honza/RecessCardLight";
 import { RecessReverb, recessMotion } from "@/components/honza/RecessReverb";
 import type { HonzaOrbState } from "@/components/honza/theme";
+import { HardwareIcon, type IconName } from "@/components/icons/HardwareIcons";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
@@ -161,10 +162,12 @@ export function HmatStatusChip({
   label,
   sizerLabel,
   shimmer,
+  muted,
 }: {
   label: string;
   sizerLabel?: string;
   shimmer?: boolean;
+  muted?: boolean;
 }) {
   const [layers, setLayers] = useState([{ id: 0, text: label, phase: "live" as "in" | "live" | "out" }]);
   const liveText = useRef(label);
@@ -203,8 +206,16 @@ export function HmatStatusChip({
   }, [layers]);
 
   return (
-    <span className="hmat-chip inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1">
-      <span className="h-1.5 w-1.5 shrink-0 rounded-[2px] bg-accent" aria-hidden />
+    <span
+      className={cn(
+        "hmat-chip inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1",
+        muted && "hmat-chip--muted",
+      )}
+    >
+      <span
+        className={cn("h-1.5 w-1.5 shrink-0 rounded-[2px]", muted ? "bg-[#6E8A74]" : "bg-accent")}
+        aria-hidden
+      />
       <span
         ref={boxRef}
         className={cn("t-think", shimmer && "is-shimmering")}
@@ -229,6 +240,49 @@ export function HmatStatusChip({
         ))}
       </span>
     </span>
+  );
+}
+
+export function HmatNeedsKeyEmpty({
+  title,
+  body,
+  icon,
+}: {
+  title: string;
+  body: string;
+  icon: IconName;
+}) {
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => setShown(true));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+
+  return (
+    <div
+      className={cn(
+        "t-stagger flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6",
+        shown && "is-shown",
+      )}
+    >
+      <div className="t-stagger-line t-stagger-line--1">
+        <div
+          className="flex h-[72px] w-[72px] items-center justify-center rounded-2xl text-[#6E8A74]"
+          style={{ background: "color-mix(in srgb, #6E8A74 12%, #fff)" }}
+        >
+          <HardwareIcon name={icon} size={32} emboss={false} />
+        </div>
+      </div>
+      <div className="flex max-w-[28ch] flex-col items-center gap-1.5 text-center">
+        <p className={cn("t-stagger-line t-stagger-line--2", TYPE.heading, "text-[#243D2C]")}>
+          {title}
+        </p>
+        <p className={cn("t-stagger-line t-stagger-line--3", TYPE.bodySm, "text-[#6E8A74]")}>
+          {body}
+        </p>
+      </div>
+    </div>
   );
 }
 

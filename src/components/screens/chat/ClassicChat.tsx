@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { ChatActionBar } from "@/components/chat/ChatActionBar";
@@ -13,6 +14,8 @@ import { Card } from "@/components/ui/Card";
 import type { ChatScreen } from "@/hooks/useChatScreen";
 import { useMoodReactions } from "@/hooks/useMoodReactions";
 import { useReactPop } from "@/hooks/useReactPop";
+import { ROUTES } from "@/lib/constants";
+import { buttonClassName } from "@/lib/design/button";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { localizeClientError } from "@/lib/i18n/extended";
 import { tapLight } from "@/lib/interaction/haptic";
@@ -29,6 +32,8 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
     showEmptyState,
     heroMode,
     showStartGate,
+    llmReady,
+    providersLoaded,
     endedSessions,
     historyOpen,
     setHistoryOpen,
@@ -47,7 +52,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [threadMessages.length]);
 
-  if (!screen.ready) {
+  if (!screen.ready || !providersLoaded) {
     return (
       <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
         <HonzaOrb state="idle" size="avatar" />
@@ -142,16 +147,35 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
         </Card>
 
         {showStartGate ? (
-          <Button
-            type="button"
-            className="w-full"
-            onClick={() => {
-              tapLight();
-              screen.startChat();
-            }}
-          >
-            {t.chat.startChat}
-          </Button>
+          providersLoaded && !llmReady ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-center font-sans text-sm font-semibold text-foreground">
+                {t.chat.missingOpenRouterTitle}
+              </p>
+              <p className="text-center font-sans text-sm text-muted-foreground">
+                {t.chat.missingOpenRouter}
+              </p>
+              <Link
+                href={ROUTES.settingsAiText}
+                onClick={() => tapLight()}
+                className={buttonClassName({ className: "w-full" })}
+              >
+                {t.chat.addOpenRouterKey}
+              </Link>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              className="w-full"
+              disabled={!providersLoaded || !llmReady}
+              onClick={() => {
+                tapLight();
+                screen.startChat();
+              }}
+            >
+              {t.chat.startChat}
+            </Button>
+          )
         ) : (
           <ChatActionBar
             onSend={screen.send}

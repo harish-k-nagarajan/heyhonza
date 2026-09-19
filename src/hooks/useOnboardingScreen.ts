@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { rememberProviderStatusFromResponse } from "@/hooks/useProviderStatus";
 import { useScreenReady } from "@/hooks/useScreenReady";
 import type { ProviderUiStatus } from "@/hooks/useSettingsScreen";
 import { addContext, persistProfile } from "@/lib/client/context-actions";
@@ -123,9 +124,11 @@ export function useOnboardingScreen(): OnboardingScreen {
       };
       if (data.llm) setLlm(data.llm);
       if (data.tts) setTts(data.tts);
+      rememberProviderStatusFromResponse(data);
     } catch {
       setLlm({ source: "none", connected: false });
       setTts({ source: "none", connected: false });
+      rememberProviderStatusFromResponse({});
     }
   }, []);
 
@@ -138,11 +141,13 @@ export function useOnboardingScreen(): OnboardingScreen {
         if (cancelled) return;
         if (data.llm) setLlm(data.llm);
         if (data.tts) setTts(data.tts);
+        rememberProviderStatusFromResponse(data);
       })
       .catch(() => {
         if (cancelled) return;
         setLlm({ source: "none", connected: false });
         setTts({ source: "none", connected: false });
+        rememberProviderStatusFromResponse({});
       });
     return () => {
       cancelled = true;

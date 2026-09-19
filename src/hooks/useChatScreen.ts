@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useMoodExpression } from "@/hooks/useMoodExpression";
+import { useProviderStatus } from "@/hooks/useProviderStatus";
 import { useScreenReady } from "@/hooks/useScreenReady";
 import {
   endChatSessionAction,
@@ -35,6 +36,10 @@ export type ChatScreen = {
   heroMode: boolean;
   /** No session yet — show Start chat gate instead of composer. */
   showStartGate: boolean;
+  /** OpenRouter BYOK is present (Settings / onboarding). */
+  llmReady: boolean;
+  /** Provider status has been fetched. */
+  providersLoaded: boolean;
   showEmptyState: boolean;
   historyOpen: boolean;
   setHistoryOpen: (open: boolean) => void;
@@ -58,6 +63,7 @@ export function useChatScreen(): ChatScreen {
   const design = useDesignStore((s) => s.design);
   const expression = useMoodExpression();
   const setMood = useMoodStore((s) => s.setMood);
+  const { llmReady, loaded: providersLoaded } = useProviderStatus();
 
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -84,8 +90,9 @@ export function useChatScreen(): ChatScreen {
     !lastError;
 
   const startChat = useCallback(() => {
+    if (!llmReady) return;
     void startChatSession();
-  }, []);
+  }, [llmReady]);
 
   const endChat = useCallback(() => {
     void endChatSessionAction();
@@ -113,6 +120,8 @@ export function useChatScreen(): ChatScreen {
     chatPhase,
     heroMode,
     showStartGate,
+    llmReady,
+    providersLoaded,
     showEmptyState,
     historyOpen,
     setHistoryOpen,

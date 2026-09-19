@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
@@ -9,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
+import { buttonClassName } from "@/lib/design/button";
 import type { CallScreen } from "@/hooks/useCallScreen";
 import { useMoodReactions } from "@/hooks/useMoodReactions";
 import { useReactPop } from "@/hooks/useReactPop";
@@ -22,7 +24,7 @@ import { tapLight, tapMedium } from "@/lib/interaction/haptic";
 export function ClassicCall({ screen }: { screen: CallScreen }) {
   const { t } = useLocale();
   const c = t.call;
-  const { phase, inCall, orbState, caption, captionWho, error, listening, supported } =
+  const { phase, inCall, orbState, caption, captionWho, error, listening, supported, llmReady, ttsReady, providersLoaded } =
     screen;
   const { stackClassName, triggerPop } = useReactPop();
   const wasInCallRef = useRef(false);
@@ -37,7 +39,7 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
     wasInCallRef.current = inCall;
   }, [inCall, triggerPop]);
 
-  if (!screen.ready) {
+  if (!screen.ready || !providersLoaded) {
     return (
       <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
         <HonzaOrb state="idle" size="avatar" />
@@ -123,18 +125,36 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
 
       <div className="flex shrink-0 flex-col items-center gap-3 pb-2">
         {!inCall ? (
-          <button
-            type="button"
-            onClick={() => {
-              tapMedium();
-              screen.startCall();
-            }}
-            disabled={!supported}
-            aria-label={c.callHonzaCta}
-            className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-accent bg-accent text-accent-foreground transition active:scale-95 disabled:opacity-40"
-          >
-            <HardwareIcon name="call" size={26} emboss={false} />
-          </button>
+          providersLoaded && (!llmReady || !ttsReady) ? (
+            <div className="flex w-full max-w-[340px] flex-col items-center gap-2">
+              <p className="text-center font-sans text-sm font-semibold text-foreground">
+                {!ttsReady ? c.missingElevenLabsTitle : c.missingOpenRouterTitle}
+              </p>
+              <p className="text-center font-sans text-sm text-muted-foreground">
+                {!ttsReady ? c.missingElevenLabs : c.missingOpenRouter}
+              </p>
+              <Link
+                href={!ttsReady ? ROUTES.settingsAiVoice : ROUTES.settingsAiText}
+                onClick={() => tapLight()}
+                className={buttonClassName({ surface: "flat", className: "w-full" })}
+              >
+                {!ttsReady ? c.addElevenLabsKey : t.chat.addOpenRouterKey}
+              </Link>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                tapMedium();
+                screen.startCall();
+              }}
+              disabled={!supported || !providersLoaded || !llmReady || !ttsReady}
+              aria-label={c.callHonzaCta}
+              className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-accent bg-accent text-accent-foreground transition active:scale-95 disabled:opacity-40"
+            >
+              <HardwareIcon name="call" size={26} emboss={false} />
+            </button>
+          )
         ) : (
           <div className="flex items-center gap-4">
             <button

@@ -4,7 +4,46 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-14 (Onboarding restart bug)
+## Current entry — 2026-09-19 (unlinked copy + no CTA flash)
+
+### What changed
+- Empty-state body is **Honza uses OpenRouter/ElevenLabs…**, not "we use".
+- Provider status is cached across Chat ↔ Call. Until it is known, those screens stay on the skeleton so the Call / Start chatting controls never flash first.
+
+---
+
+## Previous — 2026-09-19 (call unlinked empty state)
+
+### What changed
+- Call matches chat: missing ElevenLabs (or OpenRouter) shows **unlinked**, not **ready**. Caption panel is replaced by `callUnlinked` glyph + Inter copy. CTA stays **Add ElevenLabs key** (or OpenRouter if voice is linked). Shared `HmatNeedsKeyEmpty`.
+
+---
+
+## Previous — 2026-09-19 (chat unlinked empty state)
+
+### What changed
+- Missing OpenRouter key no longer shows **ready**. Chip is **unlinked** (muted). The empty thread is a hardware `chatUnlinked` glyph plus Inter copy (`Chats need a key` / OpenRouter explanation). CTA stays **Add OpenRouter key**.
+
+### Decision
+Status chip must match whether chat can actually start. Env fallback still does not count as linked.
+
+---
+
+## Previous — 2026-09-19 (BYOK gate + testhonza DB)
+
+### Database check (`harishnokia+testhonza@gmail.com`)
+- Auth user + `profiles` row created. Onboarding completed: name Jack, A1, topics daily/travel/grammar/work, reminders off (`schedule_enabled: false`), timezone `Europe/Prague`. No context, messages, or provider keys (skipped BYOK — expected).
+- Live schema was missing `profiles.onboarding_step`, `chat_sessions`, and `messages.session_id` (repo migrations never applied). Applied those on Hey Honza. Completed profiles backfilled to `onboarding_step = 6`.
+
+### What changed
+- Chat idle CTA is **Add OpenRouter key** when the user has no pasted OpenRouter key (not Start chatting). Call hides the round call button and shows **Add ElevenLabs key**. Both deep-link to Settings (`#ai-text` / `#ai-voice`). Env fallback does not count as “added” — matches the Settings connected badge.
+
+### Decision
+Skip-keys in onboarding is fine; chat/call stay blocked until that user pastes the matching key.
+
+---
+
+## Previous — 2026-09-14 (Onboarding restart bug)
 
 ### What broke
 - Signed-in users landed on `/onboarding` again. Tonight’s `onboarding_step` work selected/wrote a column that **is not on the live `profiles` table** (migration `0005` never applied). PostgREST then failed the whole profile read, so `/api/state` returned a blank profile with `onboardingCompleted: false` and `ServerSync` overwrote local settings. Finish writes that included `onboardingStep` also failed as a whole, so the completion flag never stuck.
@@ -13,7 +52,7 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 - Load/update profile retries without `onboarding_step` if that column is missing. `finish()` awaits persist again before routing. `ServerSync` backfills `onboarding_completed` when topics + timezone already landed.
 
 ### Still needed
-- Apply `supabase/migrations/0005_onboarding_step.sql` on the Hey Honza project so resume-step can persist.
+- Applied 2026-09-19: `onboarding_step` + `chat_sessions` now exist on Hey Honza.
 
 ---
 

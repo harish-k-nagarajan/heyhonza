@@ -8,12 +8,14 @@ import { TYPE } from "@/lib/design/typography";
 export function HmatSettingsSection({
   label,
   children,
+  id,
 }: {
   label: string;
   children: ReactNode;
+  id?: string;
 }) {
   return (
-    <section className="space-y-2.5">
+    <section id={id} className="scroll-mt-3 space-y-2.5">
       <p className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-[#9c9089]">
         {label}
       </p>

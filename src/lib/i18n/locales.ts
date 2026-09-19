@@ -98,10 +98,17 @@ export type ChatCopy = {
   chipFixing: string;
   chipThrilled: string;
   openerKicker: string;
+  /** Start gate when the learner has no pasted OpenRouter key. */
+  titleUnlinked: string;
+  chipUnlinked: string;
+  missingOpenRouterTitle: string;
+  missingOpenRouter: string;
+  addOpenRouterKey: string;
 };
 
 /** Chat header status — mirrors Call's phase-driven title/chip. */
 export type ChatStatusPhase =
+  | "unlinked"
   | "ready"
   | "waiting"
   | "inChat"
@@ -116,7 +123,12 @@ export function resolveChatStatus(input: {
   showStartGate: boolean;
   heroMode: boolean;
   mood: HonzaOrbState;
+  llmReady?: boolean;
+  providersLoaded?: boolean;
 }): ChatStatusPhase {
+  if (input.providersLoaded && input.llmReady === false && input.showStartGate) {
+    return "unlinked";
+  }
   if (input.lastError) return "fixing";
   if (input.loading) return "thinking";
   if (input.showStartGate) return "ready";
@@ -141,6 +153,8 @@ export function resolveChatStatus(input: {
 
 export function chatTitle(phase: ChatStatusPhase, c: ChatCopy): string {
   switch (phase) {
+    case "unlinked":
+      return c.titleUnlinked;
     case "ready":
       return c.titleReady;
     case "waiting":
@@ -164,6 +178,8 @@ export function chatTitle(phase: ChatStatusPhase, c: ChatCopy): string {
 
 export function chatChip(phase: ChatStatusPhase, c: ChatCopy): string {
   switch (phase) {
+    case "unlinked":
+      return c.chipUnlinked;
     case "ready":
       return c.chipReady;
     case "waiting":
@@ -406,6 +422,11 @@ const en: LocaleStrings = {
     chipFixing: "fix",
     chipThrilled: "yay",
     openerKicker: "// HONZA WROTE",
+    titleUnlinked: "Chat with Honza",
+    chipUnlinked: "unlinked",
+    missingOpenRouterTitle: "Chats need a key",
+    missingOpenRouter: "Honza uses OpenRouter to power chats. Add an API key to continue.",
+    addOpenRouterKey: "Add OpenRouter key",
   },
   settings: {
     appLanguage: "App language",
@@ -632,6 +653,11 @@ const cs: LocaleStrings = {
     chipFixing: "opravuje",
     chipThrilled: "jupí",
     openerKicker: "// HONZA NAPSAL",
+    titleUnlinked: "Chat s Honzou",
+    chipUnlinked: "odpojen",
+    missingOpenRouterTitle: "Chat potřebuje klíč",
+    missingOpenRouter: "Honza používá OpenRouter pro chaty. Přidej API klíč a můžeme pokračovat.",
+    addOpenRouterKey: "Přidat OpenRouter klíč",
   },
   settings: {
     appLanguage: "Jazyk aplikace",
