@@ -31,17 +31,17 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
       };
 
   return (
-    <section className="landing-fold landing-fold-hero relative flex min-h-[min(820px,100dvh)] flex-col">
+    <section className="landing-fold landing-fold-hero relative flex flex-col">
       <div className="relative mx-auto w-full max-w-[880px] flex-1 px-6 md:px-10">
         <div
           ref={morph?.orbitRef}
-          className="relative mx-auto h-[min(420px,max(280px,52vw))] max-h-[480px] w-full"
+          className="relative z-20 mx-auto h-[min(420px,max(280px,52vw))] max-h-[480px] w-full"
         >
           {LANDING_HERO_BUBBLES.map((bubble, index) => (
             <div
               key={bubble.text}
               className={cn(
-                "landing-float-bubble absolute z-[2] hidden md:block",
+                "landing-float-bubble absolute z-[2]",
                 bubble.className,
               )}
               style={{ animationDelay: `${index * -1.75}s` }}
@@ -61,7 +61,7 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
           </div>
         </div>
 
-        <LandingHeroHeadlineScanner className="mt-8 flex flex-col items-center gap-4 pb-10 text-center">
+        <LandingHeroHeadlineScanner className="relative z-[1] mt-8 flex flex-col items-center gap-4 pb-10 text-center">
           <h1
             className={cn(
               TYPE.displayLg,

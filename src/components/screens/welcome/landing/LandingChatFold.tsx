@@ -32,7 +32,6 @@ export function LandingChatFold() {
         className={cn(
           "landing-phone-frame w-full max-w-[390px] rounded-[28px] border border-border",
           "bg-white/80 p-5 shadow-[0_12px_32px_rgba(120,90,70,0.09)] backdrop-blur-[16px]",
-          "md:sticky md:top-[10vh] md:z-[5]",
         )}
       >
         <div className="mb-3 flex items-center justify-between">
