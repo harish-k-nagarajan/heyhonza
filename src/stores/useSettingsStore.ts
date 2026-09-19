@@ -17,6 +17,7 @@ import {
 } from "@/lib/constants";
 import { buildLearnerContextText } from "@/lib/context";
 import { DEFAULT_LOCALE, type UiLocale } from "@/lib/i18n/locales";
+import { asTopicIds } from "@/lib/topic-focus";
 import type { ContextChunk, ContextSource } from "@/types";
 
 export type { FormalityMode };
@@ -27,6 +28,9 @@ export type SettingsState = {
   onboardingComplete: boolean;
   onboardingStep: OnboardingStepNumber;
   selectedTopics: TopicId[];
+  focusTopic: TopicId | null;
+  recentTopics: TopicId[];
+  lastOpeners: string[];
   contextChunks: ContextChunk[];
   preferredModel: ModelId;
   level: LevelId;
@@ -42,6 +46,11 @@ export type SettingsState = {
   setOnboardingComplete: (v: boolean) => void;
   setOnboardingStep: (step: OnboardingStepNumber) => void;
   setTopics: (topics: TopicId[]) => void;
+  setEngineFocus: (state: {
+    focusTopic: TopicId | null;
+    recentTopics: TopicId[];
+    lastOpeners: string[];
+  }) => void;
   setPreferredModel: (m: ModelId) => void;
   setLevel: (l: LevelId) => void;
   setLearnerName: (name: string) => void;
@@ -72,6 +81,9 @@ const initial = {
   onboardingComplete: false,
   onboardingStep: 1 as OnboardingStepNumber,
   selectedTopics: [] as TopicId[],
+  focusTopic: null as TopicId | null,
+  recentTopics: [] as TopicId[],
+  lastOpeners: [] as string[],
   contextChunks: [] as ContextChunk[],
   preferredModel: DEFAULT_MODEL_ID as ModelId,
   level: DEFAULT_LEVEL_ID as LevelId,
@@ -93,6 +105,12 @@ export const useSettingsStore = create<SettingsState>()(
       setOnboardingComplete: (v) => set({ onboardingComplete: v }),
       setOnboardingStep: (step) => set({ onboardingStep: clampOnboardingStep(step) }),
       setTopics: (topics) => set({ selectedTopics: topics }),
+      setEngineFocus: ({ focusTopic, recentTopics, lastOpeners }) =>
+        set({
+          focusTopic: asTopicIds(focusTopic ? [focusTopic] : [])[0] ?? null,
+          recentTopics: asTopicIds(recentTopics),
+          lastOpeners,
+        }),
       setPreferredModel: (m) => set({ preferredModel: m }),
       setLevel: (l) => set({ level: l }),
       setLearnerName: (learnerName) => set({ learnerName }),

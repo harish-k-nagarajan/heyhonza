@@ -4,7 +4,21 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-19 (schedule fold mobile)
+## Current entry — 2026-09-19 (live notes + topic rotation)
+
+### What changed
+- Public Google Docs refresh on chat/call/check-in when the snapshot is older than 15 minutes (`src/lib/server/learner-notes.ts`). Last good text is kept if Google fails.
+- Notes are distilled from the **tail** plus vocab-looking lines, not clipped from the start (`src/lib/context.ts`). Prompt tells Honza he complements the teacher and must not invent a syllabus.
+- One **focus topic** per new chat, call, or check-in; last 3–5 topic ids skipped. Last 3 opening questions stored so the same food question cannot loop. Thread sent to the model is capped at 12 turns.
+- Safety refuse in the system prompt (18+, sexual abuse, harm, terrorism, racism/hate) plus steer-back to the session topic.
+- Migration `0006_engine_focus.sql`: `profiles.focus_topic`, `recent_topics`, `last_openers`, and `user_context` UPDATE RLS. Applied on live Hey Honza.
+
+### Decision
+No extra model call to pick a topic or summarize the Doc. No conversation memory / embeddings. Private Docs stay out (no OAuth).
+
+---
+
+## Previous — 2026-09-19 (schedule fold mobile)
 
 ### What changed
 - Schedule fold pin / 3D layer scrub is **md-only** (`min-width: 768px`). Below that: no pin, no blur/`rotateY`/`translateZ`, toast sits open, settings + phone stack with a small gap.

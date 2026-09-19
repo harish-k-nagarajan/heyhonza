@@ -32,6 +32,9 @@ export type ServerState = {
     scheduleMode?: "specific" | "random";
     firstMessageTime?: string;
     timezone?: string | null;
+    focusTopic?: string | null;
+    recentTopics?: string[];
+    lastOpeners?: string[];
   };
   contextChunks?: ContextChunk[];
   activeSessionId?: string | null;
