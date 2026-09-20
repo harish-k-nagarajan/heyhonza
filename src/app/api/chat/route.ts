@@ -133,9 +133,11 @@ export async function POST(req: Request) {
       topics,
       learnerContext: prepared.contextText,
       level: serverContext?.level ?? (typeof body.level === "string" ? body.level : undefined),
-      learnerName:
-        serverContext?.name ??
-        (typeof body.learnerName === "string" ? body.learnerName : undefined),
+      learnerName: persisted
+        ? (serverContext?.name ?? undefined)
+        : typeof body.learnerName === "string"
+          ? body.learnerName
+          : undefined,
       formality:
         serverContext?.formality ??
         (typeof body.formality === "string" ? body.formality : undefined),

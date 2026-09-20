@@ -59,6 +59,7 @@ export type PersistedProfile = {
 
 export type UserState = {
   persisted: true;
+  userId: string;
   profile: PersistedProfile;
   contextChunks: ContextChunk[];
   contextText: string;
@@ -256,6 +257,7 @@ export async function loadUserState(): Promise<UserState | null> {
 
   return {
     persisted: true,
+    userId: user.id,
     profile,
     contextChunks,
     contextText: buildLearnerContextText(contextChunks),
