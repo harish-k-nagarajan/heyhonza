@@ -36,6 +36,7 @@ import {
 } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
+import { clearLocalUserState } from "@/lib/client/local-user-state";
 import type { SettingsScreen } from "@/hooks/useSettingsScreen";
 import { useLocale } from "@/lib/i18n/useLocale";
 
@@ -633,7 +634,14 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
 
       <HmatSettingsSection label={s.sections.deviceData}>
         <div className="space-y-2.5">
-          <form action="/auth/signout" method="post" className="w-full">
+          <form
+            action="/auth/signout"
+            method="post"
+            className="w-full"
+            onSubmit={() => {
+              clearLocalUserState();
+            }}
+          >
             <button
               type="submit"
               className="flex h-12 w-full items-center justify-center rounded-2xl border border-black/10 bg-white font-display text-sm font-bold text-[#243D2C] transition active:scale-[0.99]"

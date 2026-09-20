@@ -3,6 +3,12 @@
 import { useEffect } from "react";
 
 import { persistProfile } from "@/lib/client/context-actions";
+import {
+  clearLocalUserState,
+  getLocalOwnerId,
+  setLocalOwnerId,
+  waitForLocalUserState,
+} from "@/lib/client/local-user-state";
 import { fetchServerState } from "@/lib/client/state-sync";
 import { useChatStore } from "@/stores/useChatStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
@@ -23,10 +29,15 @@ export function ServerSync() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
+      await waitForLocalUserState();
       const data = await fetchServerState();
       if (cancelled) return;
 
       if (data.persisted && data.profile) {
+        if (data.userId && getLocalOwnerId() !== data.userId) {
+          clearLocalUserState();
+          setLocalOwnerId(data.userId);
+        }
         const settings = useSettingsStore.getState();
         settings.setLevel(data.profile.level as LevelId);
         settings.setTopics(data.profile.topics as TopicId[]);
@@ -49,7 +60,7 @@ export function ServerSync() {
         if (!onboardingDone && typeof data.profile.onboardingStep === "number") {
           settings.setOnboardingStep(data.profile.onboardingStep as 1 | 2 | 3 | 4 | 5 | 6);
         }
-        if (data.profile.name) settings.setLearnerName(data.profile.name);
+        settings.setLearnerName(data.profile.name ?? "");
         if (data.profile.formality) settings.setFormality(data.profile.formality);
         if (typeof data.profile.scheduleEnabled === "boolean") {
           settings.setScheduleEnabled(data.profile.scheduleEnabled);

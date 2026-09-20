@@ -19,6 +19,7 @@ export function isDbMode(): boolean {
 
 export type ServerState = {
   persisted: boolean;
+  userId?: string;
   profile?: {
     name: string | null;
     level: string;

@@ -4,7 +4,21 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-20 (call captions lock to audio)
+## Current entry — 2026-09-20 (account switch local leak)
+
+### What broke
+- `harishnokia@gmail.com` showed the name **Jack** from `harishnokia+testhonza@gmail.com`. **Not a DB leak.** Live rows are separate: Gmail `name` is `null`, testhonza is `Jack`, different UUIDs, own-row RLS on every user table.
+- Zustand persist keys (`honza-settings`, `honza-chat`) are global. Sign-out did not clear them. `ServerSync` only called `setLearnerName` when the DB name was truthy, so Jack stayed. `/api/chat` then used `serverContext.name ?? body.learnerName`, so a null DB name also fell through to the leftover client name.
+
+### What changed
+- Clear local stores on sign-out and when `/api/state` returns a different `userId`. Always apply `profile.name` (including empty). Signed-in chat turns ignore client-sent `learnerName`.
+
+### Decision
+Do not merge the previous account's localStorage over a signed-in profile. Gmail account still has no name in Postgres — set it on Account if you want Harish.
+
+---
+
+## Previous — 2026-09-20 (call captions lock to audio)
 
 ### What changed
 - Call captions now appear when TTS **playback starts**, not when the LLM reply arrives. `/api/tts` is prefetched during the ring (and during thinking after a user turn) via `prepareSpeech`.
