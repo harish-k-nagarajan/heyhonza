@@ -24,7 +24,12 @@ import {
   stopDialSound,
   stopPickupSound,
 } from "@/lib/client/call-sfx";
-import { speak, stopSpeaking, reapplyAudioRoute } from "@/lib/client/tts-actions";
+import {
+  prepareSpeech,
+  stopSpeaking,
+  reapplyAudioRoute,
+  type PreparedSpeech,
+} from "@/lib/client/tts-actions";
 import { ROUTES } from "@/lib/constants";
 import { DESIGNS } from "@/lib/design/registry";
 import type { DesignFamily, DesignId } from "@/lib/design/registry";
@@ -155,15 +160,24 @@ export function useCallScreen(): CallScreen {
 
   /** Speak one of Honza's lines, then hand the turn back to the learner. */
   const speakThenListen = useCallback(
-    async (text: string) => {
-      setCaption(text);
-      setCaptionWho("honza");
-      setPhase("speaking");
+    async (text: string, preparedSpeech?: PreparedSpeech | null) => {
       const controller = new AbortController();
       abortRef.current = controller;
       try {
-        await speak(text, { signal: controller.signal });
+        const prepared =
+          preparedSpeech ?? (await prepareSpeech(text, { signal: controller.signal }));
+        if (!prepared || !activeRef.current || controller.signal.aborted) return;
+        await prepared.play({
+          signal: controller.signal,
+          onStart: () => {
+            if (!activeRef.current) return;
+            setCaption(text);
+            setCaptionWho("honza");
+            setPhase("speaking");
+          },
+        });
       } catch (e) {
+        if (controller.signal.aborted || !activeRef.current) return;
         setError(
           localizeClientError(
             e instanceof Error ? e.message : t.errors.unknownError,
@@ -238,10 +252,23 @@ export function useCallScreen(): CallScreen {
     activeRef.current = true;
     setPhase("connecting");
     void (async () => {
+      const controller = new AbortController();
+      abortRef.current = controller;
       const openerPromise = startCallOpener();
+      const speechPromise = openerPromise.then(async (opener) => {
+        if (!opener || !activeRef.current || controller.signal.aborted) {
+          return { opener, prepared: null as PreparedSpeech | null };
+        }
+        try {
+          const prepared = await prepareSpeech(opener, { signal: controller.signal });
+          return { opener, prepared };
+        } catch {
+          return { opener, prepared: null as PreparedSpeech | null };
+        }
+      });
       await playDialSound();
       if (!activeRef.current) return;
-      const opener = await openerPromise;
+      const { opener, prepared } = await speechPromise;
       if (!activeRef.current) return;
       if (!opener) {
         setError(
@@ -256,7 +283,7 @@ export function useCallScreen(): CallScreen {
       }
       await playPickupSound();
       if (!activeRef.current) return;
-      await speakThenListen(opener);
+      await speakThenListen(opener, prepared);
     })();
   }, [llmReady, ttsReady, speakThenListen, t.errors]);
 

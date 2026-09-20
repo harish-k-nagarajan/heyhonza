@@ -4,7 +4,18 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-19 (live notes + topic rotation)
+## Current entry — 2026-09-20 (call captions lock to audio)
+
+### What changed
+- Call captions now appear when TTS **playback starts**, not when the LLM reply arrives. `/api/tts` is prefetched during the ring (and during thinking after a user turn) via `prepareSpeech`.
+- Connecting / thinking shows `DotmCircular3` (comet ring from the same dot-matrix family as chat's `Dotm3x3_11` typing glyphs) in the empty space above the call buttons.
+
+### Decision
+Do not put the new line in the caption well until `audio.play()` resolves. Last Honza caption stays on screen while he thinks. Do not reuse the three-across 3×3 glyph row on Call.
+
+---
+
+## Previous — 2026-09-19 (live notes + topic rotation)
 
 ### What changed
 - Public Google Docs refresh on chat/call/check-in when the snapshot is older than 15 minutes (`src/lib/server/learner-notes.ts`). Last good text is kept if Google fails.

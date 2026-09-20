@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
+import { CallThinkingGlyph } from "@/components/call/CallThinkingGlyph";
 import { HonzaOrb } from "@/components/honza/HonzaOrb";
 import { MoodOrbStrip } from "@/components/honza/MoodOrbStrip";
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
@@ -98,6 +99,13 @@ export function ClassicCall({ screen }: { screen: CallScreen }) {
         >
           {screen.statusLine}
         </p>
+
+        {phase === "connecting" || phase === "thinking" ? (
+          <CallThinkingGlyph
+            className="flex-none"
+            label={phase === "connecting" ? c.titleConnecting : c.titleThinking}
+          />
+        ) : null}
 
         {caption ? (
           <Card className="w-full max-w-[340px] p-3 motion-safe:animate-message-in motion-reduce:animate-none">
