@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { CaptionTextReveal } from "@/components/call/CaptionTextReveal";
+import { CallThinkingGlyph } from "@/components/call/CallThinkingGlyph";
 import { CallControlCluster } from "@/components/screens/call/CallControlCluster";
 import { ROUTES } from "@/lib/constants";
 import {
@@ -129,7 +130,13 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
         </p>
       ) : null}
 
-      {needsKey ? null : <div className="flex-1" />}
+      {needsKey ? null : orbLoading ? (
+        <CallThinkingGlyph
+          label={phase === "connecting" ? c.titleConnecting : c.titleThinking}
+        />
+      ) : (
+        <div className="flex-1" />
+      )}
 
       <div className="flex shrink-0 flex-col items-center pb-1">
         {needsKey ? (
