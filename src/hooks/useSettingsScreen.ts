@@ -28,6 +28,7 @@ import type { DesignFamily, DesignId } from "@/lib/design/registry";
 import type { MoodExpression } from "@/lib/mood/expression";
 import {
   pushSupport,
+  sendTestPush as requestTestPush,
   subscribeToPush,
   unsubscribeFromPush,
   type PushSupport,
@@ -69,6 +70,8 @@ export type SettingsScreen = {
   setFirstMessageTime: (time: string) => void;
   pushHint: string | null;
   pushSupport: PushSupport;
+  sendTestPush: () => void;
+  testPushBusy: boolean;
 
   formality: FormalityMode;
   setFormality: (mode: FormalityMode) => void;
@@ -149,6 +152,7 @@ export function useSettingsScreen(): SettingsScreen {
   const [providerBusy, setProviderBusy] = useState(false);
   const [accountEmail, setAccountEmail] = useState("");
   const [pushHint, setPushHint] = useState<string | null>(null);
+  const [testPushBusy, setTestPushBusy] = useState(false);
   const [support] = useState<PushSupport>(() =>
     typeof window === "undefined" ? "unsupported" : pushSupport(),
   );
@@ -303,6 +307,23 @@ export function useSettingsScreen(): SettingsScreen {
     })();
   };
 
+  const sendTestPush = () => {
+    void (async () => {
+      setTestPushBusy(true);
+      setPushHint(null);
+      try {
+        const result = await requestTestPush();
+        setPushHint(
+          result.ok
+            ? "Test sent — you should see a Honza alert on this device."
+            : (result.reason ?? "Could not send a test alert."),
+        );
+      } finally {
+        setTestPushBusy(false);
+      }
+    })();
+  };
+
   const importGoogleDoc = () => {
     void (async () => {
       setDocError(null);
@@ -425,6 +446,8 @@ export function useSettingsScreen(): SettingsScreen {
     setFirstMessageTime,
     pushHint,
     pushSupport: support,
+    sendTestPush,
+    testPushBusy,
     formality,
     setFormality,
     contextChunks,

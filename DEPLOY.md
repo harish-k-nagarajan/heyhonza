@@ -20,18 +20,13 @@ Preview). Names only are documented in [`.env.example`](.env.example).
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public | ✅ (for auth) | Supabase anon/publishable key. Public-safe (RLS protects data). |
 | `ELEVENLABS_API_KEY` | **Server only** | ✅ (for voice) | Honza's voice (Phase 8). From elevenlabs.io → Profile → API Keys. Never `NEXT_PUBLIC_`. Read only by `src/lib/server/tts.ts`; the browser only ever receives audio bytes from `/api/tts`. Without it `/call` still loads but Honza is mute and `/api/health` reports `ttsConfigured:false`. |
 | `ELEVENLABS_VOICE_ID` | Server | optional | Defaults to a free-tier-safe premade voice. **Free tier can't use library voices via the API** — see §5's accent note. |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Public | ✅ (for phone alerts) | Public half of `npx web-push generate-vapid-keys`. Must be present **at build time** so the client bundle can subscribe. |
+| `VAPID_PRIVATE_KEY` | **Server only** | ✅ (for phone alerts) | Private half of the same pair. Never `NEXT_PUBLIC_`. |
+| `VAPID_SUBJECT` | Server | recommended | `mailto:` or `https:` contact. Default `mailto:honza@localhost`. |
+| `CRON_SECRET` | **Server only** | ✅ (for check-ins) | Bearer token for `GET`/`POST /api/cron/check-ins`. Vercel Cron sends it automatically when the var is named `CRON_SECRET`. Also set it as a GitHub Actions secret so the 15-minute workflow can tick (Hobby Vercel cron is once a day and misses most slots). |
+| `SECRETS_ENCRYPTION_KEY` | **Server only** | ✅ (for BYOK keys) | Encrypts per-user provider keys at rest. |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Server only** | ✅ (for check-ins) | Used by `/api/cron/check-ins` to write messages for every scheduled learner (RLS would hide other users' rows). Also used locally by `scripts/dev-signin.mjs`. **Never `NEXT_PUBLIC_`.** |
 
-That table is the complete set. Anything not listed above does not belong in Vercel —
-in particular:
-
-> ### ⚠️ `SUPABASE_SERVICE_ROLE_KEY` must **never** be a Vercel env var
->
-> It is **local-dev-only**. The service-role key **bypasses RLS entirely**, so a copy
-> of it in a deployed environment defeats the per-user isolation the whole data layer
-> rests on. Nothing under `src/` imports it; its only consumer is
-> [`scripts/dev-signin.mjs`](scripts/dev-signin.mjs), which never runs in production.
-> Keep it in `.env.local` (gitignored) and nowhere else. See CLAUDE.md Hard Rule 1.
->
 > Note the voice key **is** in the table above as of 2026-07-15 (Phase 8 shipped), but
 > `ELEVENLABS_API_KEY` is **server-only** — never `NEXT_PUBLIC_`. Verified: it appears
 > in no client bundle file and in no browser network request.
@@ -67,8 +62,9 @@ npm run dev                  # PWA/service worker disabled in dev by next-pwa
    cannot sign up.
 7. Deploy.
 
-No `vercel.json` is required — Next.js is zero-config on Vercel, and `next-pwa`
-emits `public/sw.js` + `public/workbox-*.js` during `next build`.
+`vercel.json` registers a once-daily Hobby cron at `0 8 * * *` UTC. That is a
+backup only — see §6. `next-pwa` emits `public/sw.js` + `public/workbox-*.js`
+during `next build`.
 
 ---
 
@@ -78,7 +74,8 @@ Run against the **deployed URL** (the sandbox can reach openrouter.ai, but the l
 green-check belongs on prod with the real key in place).
 
 - [ ] `npm run build` is green (also runs in CI on Vercel).
-- [ ] `GET /api/health` → `{ ok: true, provider: "openrouter", llmConfigured: true }`.
+- [ ] `GET /api/health` → `{ ok: true, llmConfigured: true, vapidConfigured: true, cronConfigured: true, adminConfigured: true }`.
+- [ ] **Push:** install the PWA, turn Daily check-ins on, tap **Send a test alert**. A Honza notification appears. Check-ins also land in Chat after the GitHub Action ticks.
 - [ ] **Chat round-trip:** open `/chat`, send a Czech message, Honza replies in Czech
       with a correction/continuation. (This is the Phase-3 "live end-to-end" item.)
 - [ ] **Google-Doc route:** in `/onboarding` or `/settings`, import a public Google
@@ -212,7 +209,23 @@ reason is in the server log.
 
 ---
 
-## 6. Regenerating icons
+## 6. Daily check-ins + Web Push
+
+Phone alerts only fire when **all** of these are true:
+
+1. The learner is signed in, daily check-ins are on, and they allowed notifications **from an installed PWA** (iPhone: Add to Home Screen, then open that icon). `next dev` has no service worker — use production or `npm run build && npm start`.
+2. `NEXT_PUBLIC_VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` are set, and the public key was present when that deployment was **built**.
+3. `SUPABASE_SERVICE_ROLE_KEY` + `CRON_SECRET` are set on the server so `/api/cron/check-ins` can run.
+4. Something actually hits that route near the learner's slot. Vercel Hobby only allows **one daily cron** (`0 8 * * *` UTC in `vercel.json`), which cannot cover a 09:00 slot. Ship the GitHub Action in `.github/workflows/check-ins.yml` and set repo secret `CRON_SECRET` (same value as Vercel). Optional `CHECK_INS_URL` if production is not `https://heyhonza.vercel.app`.
+5. `/api/health` reports `vapidConfigured`, `cronConfigured`, and `adminConfigured` all `true`. Settings → Daily check-ins → **Send a test alert** should ping the device immediately.
+
+If the production host is `*.vercel.app` with **Deployment Protection / SSO** on, phones and GitHub Actions will see a Vercel login wall. Turn that off for production, or use a custom domain (this project’s protection setting excludes custom domains).
+
+`GET /api/health` is public booleans only — it never echoes keys.
+
+---
+
+## 7. Regenerating icons
 
 Icons are generated from the idle `HonzaOrb` face — keep them in sync if the face
 or palette changes:

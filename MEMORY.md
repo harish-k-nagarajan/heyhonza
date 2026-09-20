@@ -4,7 +4,32 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-20 (dock slide between tabs)
+## Current entry — 2026-09-20 (push / check-ins actually deliver)
+
+### What broke
+- Live Hey Honza had **0** `push_subscriptions` and **0** `scheduled_deliveries`. Vercel env already had VAPID + `CRON_SECRET` + service role. Production `sw.js` already imported the custom push worker.
+- Vercel Hobby cron is `0 8 * * *` UTC. Default slot is **09:00**. `dueSlots` only accepted a 2-hour window, so 09:00 UTC is always still in the future at 08:00 UTC — **the default schedule can never fire**. Afternoon slots never fire on a morning-only cron either.
+- Accounts with `timezone` set (Europe/Prague) had `schedule_enabled=false` (likely turned off after a failed test). Enabled rows had `timezone` null → UTC.
+- `DEPLOY.md` / `README.md` said never put `SUPABASE_SERVICE_ROLE_KEY` on Vercel; the cron cannot run without it. CLAUDE.md already listed it as a cron secret.
+- Copy still said “until scheduling ships.” `next dev` has no service worker, so local tests always fail subscribe.
+
+### What changed
+- Catch-up includes yesterday’s slots with a 26-hour window. Failed LLM after claiming a slot releases the claim. 2×/3× can send more than one slot per tick.
+- GitHub Action `.github/workflows/check-ins.yml` every 15 minutes (`CRON_SECRET` repo secret). POST alias on the cron route.
+- `/api/push/test` + Settings “Send a test alert.” `/api/health` booleans: `vapidConfigured`, `cronConfigured`, `adminConfigured`.
+- iOS subscribe is refused unless the app is opened from Home Screen.
+
+### Still blocked (Harish)
+- Add GitHub secret `CRON_SECRET` (same value as Vercel). Optional `CHECK_INS_URL`.
+- Walk the test alert on an **installed** production PWA after this branch deploys. Do not test in `next dev`.
+- Production has Vercel **SSO protection** on `*.vercel.app`. If the phone hits a Vercel login wall, turn Deployment Protection off for production or put the app on a custom domain (those are excluded). Cron/GitHub ticks can 401 the same way.
+
+### Decision
+Keep the Hobby daily Vercel cron as a backup. The 15-minute GitHub Action is what makes chosen times real. Do not claim phone push ✅ until Harish sees a test notification.
+
+---
+
+## Previous — 2026-09-20 (dock slide between tabs)
 
 ### What changed
 - `HmatDock` is a scrubbable segmented control, not tap-only. Finger drag tracks the pill 1:1 with rubber-banding past the ends; a light haptic fires as the selection crosses Chat / Call / Settings; the route commits on release. Taps still work.

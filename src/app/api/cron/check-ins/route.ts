@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { runCheckIns } from "@/lib/server/check-ins";
+import { isVapidConfigured } from "@/lib/server/push-send";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -16,7 +17,7 @@ function authorized(req: Request): boolean {
   return bearer === secret || query === secret;
 }
 
-export async function GET(req: Request) {
+async function handle(req: Request) {
   if (!authorized(req)) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
@@ -30,5 +31,17 @@ export async function GET(req: Request) {
   }
 
   const result = await runCheckIns(admin);
-  return NextResponse.json({ ok: true, ...result });
+  return NextResponse.json({
+    ok: true,
+    vapidConfigured: isVapidConfigured(),
+    ...result,
+  });
+}
+
+export async function GET(req: Request) {
+  return handle(req);
+}
+
+export async function POST(req: Request) {
+  return handle(req);
 }

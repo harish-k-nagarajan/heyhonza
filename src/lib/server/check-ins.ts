@@ -9,7 +9,7 @@ import {
 import { prepareEngineTurn } from "@/lib/server/engine-turn";
 import { resolveProviderKey } from "@/lib/server/provider-keys";
 import { sendPushToUser } from "@/lib/server/push-send";
-import { dueSlots, slotsForLocalDay } from "@/lib/server/schedule";
+import { slotsDueForCheckIn } from "@/lib/server/schedule";
 import {
   LAST_OPENER_LIMIT,
   asStringList,
@@ -57,7 +57,7 @@ function chunkFromRow(row: {
 export async function runCheckIns(
   supabase: SupabaseClient,
   now = new Date(),
-): Promise<{ sent: number; skipped: number; errors: number }> {
+): Promise<{ sent: number; skipped: number; errors: number; pushed: number }> {
   const selects = [
     "id, name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone, focus_topic, recent_topics, last_openers",
     "id, name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
@@ -74,60 +74,77 @@ export async function runCheckIns(
     }
   }
 
-  if (!profiles) return { sent: 0, skipped: 0, errors: 1 };
+  if (!profiles) return { sent: 0, skipped: 0, errors: 1, pushed: 0 };
 
   let sent = 0;
   let skipped = 0;
   let errors = 0;
+  let pushed = 0;
 
   for (const raw of profiles) {
     const profile = raw as ProfileRow;
     try {
-      const did = await deliverForUser(supabase, profile, now);
-      if (did) sent += 1;
+      const result = await deliverForUser(supabase, profile, now);
+      if (result.delivered) sent += 1;
       else skipped += 1;
+      pushed += result.pushed;
     } catch (e) {
       errors += 1;
       console.error("[check-ins]", profile.id, e);
     }
   }
 
-  return { sent, skipped, errors };
+  return { sent, skipped, errors, pushed };
+}
+
+async function releaseClaim(
+  supabase: SupabaseClient,
+  userId: string,
+  slotAt: string,
+): Promise<void> {
+  await supabase
+    .from("scheduled_deliveries")
+    .delete()
+    .eq("user_id", userId)
+    .eq("slot_at", slotAt);
 }
 
 async function deliverForUser(
   supabase: SupabaseClient,
   profile: ProfileRow,
   now: Date,
-): Promise<boolean> {
+): Promise<{ delivered: boolean; pushed: number }> {
   const tz = profile.timezone?.trim() || "UTC";
   const count = profile.daily_message_count === 2 || profile.daily_message_count === 3
     ? profile.daily_message_count
     : 1;
   const mode = profile.schedule_mode === "random" ? "random" : "specific";
-  const slots = slotsForLocalDay({
+  const due = slotsDueForCheckIn({
     userId: profile.id,
     timeZone: tz,
     now,
     count,
     mode,
     firstMessageTime: profile.first_message_time || "09:00",
-  });
-  const due = dueSlots(slots, now);
-  if (due.length === 0) return false;
+  }, now);
+  if (due.length === 0) return { delivered: false, pushed: 0 };
+
+  let delivered = false;
+  let pushed = 0;
 
   for (const slot of due) {
+    const slotAt = slot.toISOString();
     const { data: existing } = await supabase
       .from("scheduled_deliveries")
       .select("id")
       .eq("user_id", profile.id)
-      .eq("slot_at", slot.toISOString())
+      .eq("slot_at", slotAt)
       .maybeSingle();
     if (existing) continue;
 
     const { error: claimErr } = await supabase.from("scheduled_deliveries").insert({
       user_id: profile.id,
-      slot_at: slot.toISOString(),
+      slot_at: slotAt,
     });
     if (claimErr) continue;
 
@@ -135,7 +152,10 @@ async function deliverForUser(
       client: supabase,
       userId: profile.id,
     });
-    if (!llm.key) continue;
+    if (!llm.key) {
+      await releaseClaim(supabase, profile.id, slotAt);
+      continue;
+    }
 
     const [contextRes, lastRes, sessionRes] = await Promise.all([
       supabase
@@ -200,20 +220,26 @@ async function deliverForUser(
       lastOpeners: prepared.lastOpeners,
     });
 
-    const { text } = await generateReply({
-      requestedModel: profile.preferred_model ?? undefined,
-      topics: profile.topics ?? [],
-      learnerContext: prepared.contextText,
-      level: profile.level ?? undefined,
-      learnerName: profile.name,
-      formality: profile.formality ?? undefined,
-      apiKey: llm.key,
-      messages: [{ role: "user", content: opener }],
-      mode: "chat",
-      focusTopic: prepared.focus,
-      recentTopics: prepared.recent,
-      lastOpeners: prepared.lastOpeners,
-    });
+    let text: string;
+    try {
+      ({ text } = await generateReply({
+        requestedModel: profile.preferred_model ?? undefined,
+        topics: profile.topics ?? [],
+        learnerContext: prepared.contextText,
+        level: profile.level ?? undefined,
+        learnerName: profile.name,
+        formality: profile.formality ?? undefined,
+        apiKey: llm.key,
+        messages: [{ role: "user", content: opener }],
+        mode: "chat",
+        focusTopic: prepared.focus,
+        recentTopics: prepared.recent,
+        lastOpeners: prepared.lastOpeners,
+      }));
+    } catch (e) {
+      await releaseClaim(supabase, profile.id, slotAt);
+      throw e;
+    }
 
     const nextOpeners = rememberOpener(prepared.lastOpeners, text);
     const engineRow = {
@@ -259,13 +285,14 @@ async function deliverForUser(
     }
 
     const body = text.split("\n")[0]?.slice(0, 140) ?? "Honza napsal.";
-    await sendPushToUser(supabase, profile.id, {
+    const push = await sendPushToUser(supabase, profile.id, {
       title: "Honza",
       body,
       url: "/chat",
     });
-    return true;
+    pushed += push.sent;
+    delivered = true;
   }
 
-  return false;
+  return { delivered, pushed };
 }
