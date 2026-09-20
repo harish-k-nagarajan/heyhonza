@@ -4,7 +4,18 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-20 (account switch local leak)
+## Current entry — 2026-09-20 (dock slide between tabs)
+
+### What changed
+- `HmatDock` is a scrubbable segmented control, not tap-only. Finger drag tracks the pill 1:1 with rubber-banding past the ends; a light haptic fires as the selection crosses Chat / Call / Settings; the route commits on release. Taps still work.
+- Pill motion uses `translate3d` (`--tabs-dur` / `--tabs-ease`). `touch-action: none` on the frost dock so iOS PWA does not steal the horizontal gesture.
+
+### Decision
+Do not wrap dock tab changes in View Transitions. Navigate once on pointerup, not on every tab crossed mid-drag.
+
+---
+
+## Previous — 2026-09-20 (account switch local leak)
 
 ### What broke
 - `harishnokia@gmail.com` showed the name **Jack** from `harishnokia+testhonza@gmail.com`. **Not a DB leak.** Live rows are separate: Gmail `name` is `null`, testhonza is `Jack`, different UUIDs, own-row RLS on every user table.

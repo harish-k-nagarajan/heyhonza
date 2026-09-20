@@ -427,18 +427,34 @@ body {
   box-shadow:
     0 8px 28px rgba(36, 61, 44, 0.07),
     0 1px 0 rgba(255, 255, 255, 0.7);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+.fdock[data-dragging="true"] {
+  cursor: grabbing;
 }
 .fdock-pill {
   position: absolute;
   top: 8px;
+  left: 0;
   bottom: 8px;
   border-radius: 22px;
   background: #4a433c18;
+  transform: translate3d(0, 0, 0);
   transition:
-    left var(--tabs-dur) var(--tabs-ease),
+    transform var(--tabs-dur) var(--tabs-ease),
     width var(--tabs-dur) var(--tabs-ease);
+  will-change: transform, width;
   pointer-events: none;
   z-index: 0;
+}
+.fdock[data-dragging="true"] .fdock-pill {
+  transition: none;
+}
+.fdock[data-dragging="true"] .hmat-tab:active {
+  transform: none;
 }
 .hmat-tab {
   flex: 1;
@@ -460,8 +476,10 @@ body {
 .hmat-tab:active {
   transform: scale(var(--scale-medium));
 }
-.hmat-tab:hover:not(.on) {
-  background: rgba(255, 255, 255, 0.45);
+@media (hover: hover) and (pointer: fine) {
+  .hmat-tab:hover:not(.on) {
+    background: rgba(255, 255, 255, 0.45);
+  }
 }
 .hmat-tab.on {
   color: #4a433c;
