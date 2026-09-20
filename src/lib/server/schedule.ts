@@ -117,10 +117,35 @@ export function slotsForLocalDay(opts: {
   );
 }
 
-/** Slots that should have fired by `now`, within a 2-hour grace window. */
-export function dueSlots(slots: Date[], now: Date, graceMs = 2 * 60 * 60 * 1000): Date[] {
+/** Slots that should have fired by `now`, within a catch-up window. */
+export function dueSlots(slots: Date[], now: Date, graceMs = 26 * 60 * 60 * 1000): Date[] {
   return slots.filter((slot) => {
     const t = slot.getTime();
     return t <= now.getTime() && now.getTime() - t <= graceMs;
   });
+}
+
+/**
+ * Today's slots plus yesterday's, so a once-daily Hobby cron still catches a
+ * 09:00 UTC default that Vercel's 08:00 UTC job would otherwise skip forever.
+ */
+export function slotsDueForCheckIn(
+  opts: Parameters<typeof slotsForLocalDay>[0],
+  now: Date,
+  graceMs = 26 * 60 * 60 * 1000,
+): Date[] {
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const seen = new Set<string>();
+  const candidates = [
+    ...slotsForLocalDay({ ...opts, now: yesterday }),
+    ...slotsForLocalDay({ ...opts, now }),
+  ];
+  const unique: Date[] = [];
+  for (const slot of candidates) {
+    const key = slot.toISOString();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(slot);
+  }
+  return dueSlots(unique, now, graceMs);
 }

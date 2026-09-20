@@ -345,6 +345,14 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
                   </div>
                 ) : null}
               </div>
+              <button
+                type="button"
+                disabled={screen.testPushBusy}
+                onClick={() => screen.sendTestPush()}
+                className="font-sans text-xs font-medium text-accent underline-offset-2 hover:underline disabled:opacity-50"
+              >
+                {s.notificationsTest}
+              </button>
             </>
           ) : null}
         </HmatSettingsCard>

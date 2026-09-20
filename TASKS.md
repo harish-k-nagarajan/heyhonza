@@ -199,6 +199,7 @@ Full spec in `DESIGN.md` § Design Lab; the source of truth is
 - [x] **Classic polish** — accent Honza bubbles, circular send arrow, HardwareIcons on Call mic/hang; deleted dead `Composer`, `HmatComposer`, `HmatWelcome`. `[depends on: Chat alive]`
 - [x] **Push foundation** — `push_subscriptions` migration, `/api/push/subscribe`, Settings toggle (`PushNotificationSettings`); honest copy until scheduled sends ship. `[independent]`
 - [x] **Settings overhaul (2026-08-26)** — `/settings/account` (name/email/password), Daily check-ins + Web Push (cron + VAPID), BYOK OpenRouter/ElevenLabs, live free-model catalog, slot-based context, name/formality in the prompt. Apply `0004_settings_overhaul.sql`. Phone alerts need VAPID + installed PWA + `npm start` (SW off in `next dev`). `[depends on: Push foundation]`
+- [x] **Check-in delivery (2026-09-20)** — catch up yesterday's slots, release claims if the LLM is missing, GitHub Action every 15 min, `/api/push/test`, health booleans. Still needs GitHub secret `CRON_SECRET` and a phone PWA walk. `[depends on: Settings overhaul (2026-08-26)]`
 - [x] **Docs** — DESIGN.md § interaction + 3-tab IA; MEMORY.md entry. `[depends on: all above]`
 
 ---

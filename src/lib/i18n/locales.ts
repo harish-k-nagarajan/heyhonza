@@ -295,6 +295,7 @@ export type SettingsCopy = {
   notificationsReady: string;
   notificationsTurnedOff: string;
   notificationsEnableFailed: string;
+  notificationsTest: string;
   serverStatus: string;
   serverChecking: string;
   serverConfigured: string;
@@ -474,7 +475,7 @@ const en: LocaleStrings = {
     scheduleFirstMessage: "First message",
     scheduleFirstMessageAria: "First message time",
     scheduleHint:
-      "You'll be asked to allow notifications. Add Honza to your home screen first — then check-ins work the same on iPhone and Android.",
+      "You'll be asked to allow notifications. Add Honza to your home screen first — then check-ins ping this device on iPhone and Android.",
     appLanguageHint: "Which language should the app use?",
     aiTextHint: "Paste an OpenRouter key so Honza can reply in chat.",
     aiVoiceHint: "Paste an ElevenLabs key so Honza can speak on calls.",
@@ -518,13 +519,14 @@ const en: LocaleStrings = {
     fileUploadHint: "Tap to choose a file",
     resetChat: "Reset chat",
     notificationsHint:
-      "Get notified when Honza is ready to write first — foundation only until scheduling ships.",
+      "Get notified when Honza writes first. Needs an installed PWA — service workers are off in local next dev.",
     notificationsOn: "Turn on",
     notificationsOff: "Turn off",
     notificationsDenied: "Allow notifications in browser settings.",
-    notificationsReady: "Ready — when scheduling ships, Honza can reach you.",
+    notificationsReady: "This device will ping when Honza writes first.",
     notificationsTurnedOff: "Notifications turned off.",
     notificationsEnableFailed: "Could not enable notifications.",
+    notificationsTest: "Send a test alert",
     serverStatus: "Server status",
     serverChecking: "…",
     serverConfigured: "configured",
@@ -749,13 +751,14 @@ const cs: LocaleStrings = {
     fileUploadHint: "Klepnutím vyber soubor",
     resetChat: "Resetovat chat",
     notificationsHint:
-      "Upozornění, až bude Honza připraven psát ti první — zatím jen příprava.",
+      "Upozornění, když Honza napíše první. Potřebuješ nainstalovanou PWA — v lokálním next dev service worker neběží.",
     notificationsOn: "Zapnout",
     notificationsOff: "Vypnout",
     notificationsDenied: "Povol oznámení v nastavení prohlížeče.",
-    notificationsReady: "Připraveno — až bude plán aktivní, Honza ti napíše.",
+    notificationsReady: "Toto zařízení pípne, až Honza napíše první.",
     notificationsTurnedOff: "Oznámení vypnuta.",
     notificationsEnableFailed: "Oznámení se nepodařilo zapnout.",
+    notificationsTest: "Poslat zkušební upozornění",
     serverStatus: "Stav serveru",
     serverChecking: "…",
     serverConfigured: "připojeno",

@@ -15,6 +15,18 @@ export function pushSupport(): PushSupport {
   return "prompt";
 }
 
+function isIosDevice(): boolean {
+  const ua = window.navigator.userAgent;
+  if (/iPad|iPhone|iPod/.test(ua)) return true;
+  return window.navigator.platform === "MacIntel" && window.navigator.maxTouchPoints > 1;
+}
+
+function isStandaloneDisplay(): boolean {
+  if (window.matchMedia("(display-mode: standalone)").matches) return true;
+  const nav = window.navigator as Navigator & { standalone?: boolean };
+  return Boolean(nav.standalone);
+}
+
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -24,7 +36,12 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return out;
 }
 
-async function registrationOrTimeout(ms = 4000): Promise<ServiceWorkerRegistration> {
+function applicationServerKey(vapidPublic: string): BufferSource {
+  const key = urlBase64ToUint8Array(vapidPublic);
+  return key.buffer.slice(key.byteOffset, key.byteOffset + key.byteLength);
+}
+
+async function registrationOrTimeout(ms = 10000): Promise<ServiceWorkerRegistration> {
   if (!("serviceWorker" in navigator)) {
     throw new Error("no-sw");
   }
@@ -48,6 +65,13 @@ export async function subscribeToPush(): Promise<{ ok: boolean; reason?: string 
   if (support === "denied") {
     return { ok: false, reason: "Notifications are blocked in your browser settings." };
   }
+  if (isIosDevice() && !isStandaloneDisplay()) {
+    return {
+      ok: false,
+      reason:
+        "On iPhone, add Honza to the Home Screen first, then open it from there and turn check-ins on.",
+    };
+  }
 
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   if (!vapidPublic) {
@@ -70,17 +94,27 @@ export async function subscribeToPush(): Promise<{ ok: boolean; reason?: string 
     return {
       ok: false,
       reason:
-        "No service worker yet. Install Honza to the home screen, or use a production build (not local dev).",
+        "No service worker yet. Install Honza to the home screen, or use a production build (not local next dev).",
     };
   }
 
-  const existing = await reg.pushManager.getSubscription();
-  const sub =
-    existing ??
-    (await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublic) as BufferSource,
-    }));
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    try {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: applicationServerKey(vapidPublic),
+      });
+    } catch (e) {
+      return {
+        ok: false,
+        reason:
+          e instanceof Error
+            ? e.message
+            : "This browser refused the push subscription.",
+      };
+    }
+  }
 
   const res = await fetch("/api/push/subscribe", {
     method: "POST",
@@ -92,6 +126,15 @@ export async function subscribeToPush(): Promise<{ ok: boolean; reason?: string 
     return { ok: false, reason: data.reason ?? "Could not save subscription." };
   }
   return { ok: true, reason: data.persisted ? undefined : "Saved locally — sign in to sync." };
+}
+
+export async function sendTestPush(): Promise<{ ok: boolean; reason?: string }> {
+  const res = await fetch("/api/push/test", { method: "POST" });
+  const data = (await res.json()) as { ok?: boolean; reason?: string };
+  if (!res.ok || !data.ok) {
+    return { ok: false, reason: data.reason ?? "Could not send a test alert." };
+  }
+  return { ok: true };
 }
 
 export async function unsubscribeFromPush(): Promise<void> {

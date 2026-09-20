@@ -20,20 +20,33 @@ function configuredWebPush(): boolean {
   return true;
 }
 
+export type PushSendResult = {
+  attempted: number;
+  sent: number;
+  gone: number;
+  failed: number;
+};
+
 export async function sendPushToUser(
   supabase: SupabaseClient,
   userId: string,
   payload: { title: string; body: string; url?: string },
-): Promise<void> {
-  if (!configuredWebPush()) return;
+): Promise<PushSendResult> {
+  const empty: PushSendResult = { attempted: 0, sent: 0, gone: 0, failed: 0 };
+  if (!configuredWebPush()) return empty;
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("push_subscriptions")
     .select("endpoint, p256dh, auth")
     .eq("user_id", userId);
 
+  if (error) {
+    console.error("[push] load subscriptions", userId, error.message);
+    return empty;
+  }
+
   const rows = data ?? [];
-  await Promise.all(
+  const outcomes = await Promise.all(
     rows.map(async (row) => {
       try {
         await webpush.sendNotification(
@@ -47,6 +60,7 @@ export async function sendPushToUser(
             url: payload.url ?? "/chat",
           }),
         );
+        return "sent" as const;
       } catch (e) {
         const status = (e as { statusCode?: number }).statusCode;
         if (status === 404 || status === 410) {
@@ -55,8 +69,18 @@ export async function sendPushToUser(
             .delete()
             .eq("user_id", userId)
             .eq("endpoint", row.endpoint as string);
+          return "gone" as const;
         }
+        console.error("[push] send failed", userId, status, e);
+        return "failed" as const;
       }
     }),
   );
+
+  return {
+    attempted: rows.length,
+    sent: outcomes.filter((o) => o === "sent").length,
+    gone: outcomes.filter((o) => o === "gone").length,
+    failed: outcomes.filter((o) => o === "failed").length,
+  };
 }

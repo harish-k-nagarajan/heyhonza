@@ -1,0 +1,27 @@
+# Vercel Hobby only allows one daily cron, which cannot hit a 09:00 slot
+# from an 08:00 UTC job. This workflow ticks every 15 minutes instead.
+# Add repository secrets: CRON_SECRET (same as Vercel) and optionally
+# CHECK_INS_URL (defaults to the production heyhonza app).
+name: Daily check-ins
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger check-ins
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          CHECK_INS_URL: ${{ secrets.CHECK_INS_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "Set repository secret CRON_SECRET (same value as the Vercel env var)."
+            exit 1
+          fi
+          url="${CHECK_INS_URL:-https://heyhonza.vercel.app/api/cron/check-ins}"
+          curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "$url"

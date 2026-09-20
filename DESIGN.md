@@ -255,6 +255,7 @@ Shared primitives in `src/lib/interaction/haptic.ts` + hooks:
 **Chat layout:** hero recess (`.hmat-recess-hero`) + thread; Honza auto-initiates
 on load (no Start Chat gate).
 
-**Push (foundation):** Settings toggle + `/api/push/subscribe` + Supabase
-`push_subscriptions` table. Scheduled sends not wired — copy stays honest until
-VAPID + cron are provisioned.
+**Push:** Settings daily-check-ins toggle subscribes via `/api/push/subscribe`.
+Cron `/api/cron/check-ins` writes the opener and `sendPushToUser` pings saved
+devices. iOS only delivers after Add to Home Screen. Service worker is off in
+`next dev`.

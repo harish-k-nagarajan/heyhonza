@@ -98,11 +98,11 @@ Leave the Supabase variables blank to run the UI without auth: the middleware fa
 node scripts/dev-signin.mjs <email>
 ```
 
-Prints an `/auth/callback` URL you can open in any browser. It mints the token through Supabase's admin API and **sends no email**, so the built-in mailer's ~2/hour cap doesn't apply. Needs `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` — that key bypasses row-level security, so it's local-dev only: never commit it, and never add it to Vercel.
+Prints an `/auth/callback` URL you can open in any browser. It mints the token through Supabase's admin API and **sends no email**, so the built-in mailer's ~2/hour cap doesn't apply. Needs `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`. The same server-only key is required on Vercel so the check-in cron can write messages for every learner. Never prefix it with `NEXT_PUBLIC_`, and never commit it.
 
 ## Deployment
 
-Deploy to Vercel and set environment variables in the project dashboard. The `next-pwa` plugin generates the service worker automatically at build time.
+Deploy to Vercel and set environment variables in the project dashboard (see `.env.example` and `DEPLOY.md` §1 + §6). The `next-pwa` plugin generates the service worker automatically at build time. For phone alerts, also set GitHub Action secret `CRON_SECRET` so check-ins tick every 15 minutes — Vercel Hobby’s daily cron is not enough.
 
 ## Scope
 

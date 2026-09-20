@@ -60,7 +60,7 @@ Character-led conversational practice: the tutor persona *is* the product. Conti
 
 - Custom SMTP for real learners (pre-launch).
 - Paid ElevenLabs plan if Czech-native library voices are required (free tier limitation).
-- Push: subscribe plumbing exists; scheduled sends not provisioned until VAPID + cron are set.
+- Push: subscribe + scheduled send via `/api/cron/check-ins` and VAPID. Phone alerts need an installed PWA, GitHub Action `CRON_SECRET` (Hobby Vercel is daily-only), and `SUPABASE_SERVICE_ROLE_KEY` on the server.
 
 ## Brand Commitments
 
