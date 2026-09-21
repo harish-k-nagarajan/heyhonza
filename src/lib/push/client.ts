@@ -36,9 +36,10 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return out;
 }
 
-function applicationServerKey(vapidPublic: string): BufferSource {
-  const key = urlBase64ToUint8Array(vapidPublic);
-  return key.buffer.slice(key.byteOffset, key.byteOffset + key.byteLength);
+function applicationServerKey(vapidPublic: string): Uint8Array {
+  // Copy into a standalone Uint8Array so Chrome does not see a view on a
+  // larger buffer, and TypeScript does not widen `.buffer` to SharedArrayBuffer.
+  return new Uint8Array(urlBase64ToUint8Array(vapidPublic));
 }
 
 async function registrationOrTimeout(ms = 10000): Promise<ServiceWorkerRegistration> {
@@ -103,7 +104,7 @@ export async function subscribeToPush(): Promise<{ ok: boolean; reason?: string 
     try {
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: applicationServerKey(vapidPublic),
+        applicationServerKey: applicationServerKey(vapidPublic) as BufferSource,
       });
     } catch (e) {
       return {
