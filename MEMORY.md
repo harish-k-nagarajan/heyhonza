@@ -4,7 +4,23 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-21 (preview bugs: landing, onboarding, PWA)
+## Current entry — 2026-09-22 (landing bubbles + PWA prompt)
+
+### What broke
+- Pinning hero+chat and lifting the inner stack with `translateY` left a cream band (the lift height) between the chat fold and the call fold. Easing the lift off felt like the page scrolling backward; clipping with `max-h-dvh` was reverted. The pin/lift was the gap.
+
+### What changed
+- Landing demo thread shortened and bubble typography tightened (`text-xs`, smaller max-widths) — hero + chat fold share `landing-demo-conversation.ts`.
+- `InstallPrompt` no longer intercepts `beforeinstallprompt` on Chromium/Android. Custom mat card was covering the hero CTA; Chrome’s own install UI is allowed again. iOS Safari / CriOS manual hints unchanged.
+- Chat morph is **not pinned**. Scrub maps onto natural scroll as the chat phone enters view (late settle). Pin + inner `translateY` lift left a cream band — do not bring the pin/lift back.
+- Landing nav: CS/EN **toggle → compact dropdown** (current locale + chevron). More gap before Log in (`gap-4` / `sm:gap-5`). Landing CTAs follow `honza.pen` fills (`#E8432D→#FF6B4A`, white→`#F5EBE3`, border `#E8E2DC`) **without** the 3D lip / drop shadow.
+
+### Decision
+Keep the mobile chat morph. Do not reintroduce a GSAP pin or inner lift to bring the phone into view.
+
+---
+
+## Previous — 2026-09-21 (preview bugs: landing, onboarding, PWA)
 
 ### What broke
 - Welcome hero on phone: demo bubbles sat **behind** the orb (`z-[2]` vs `z-[10]`), oversized for the orbit, and the chat morph used a **190vh** pin on mobile (call/schedule already skip pin ≤767px). iPhone Chrome showed a **black strip** at max scroll — unpainted `html` plus a transparent sticky-CTA gradient, not `theme-color`.

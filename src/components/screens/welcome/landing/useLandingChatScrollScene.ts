@@ -59,21 +59,63 @@ function controlsForPath(from: Point, to: Point, wanderX: number): { c1: Point; 
   };
 }
 
-function bubbleMorphT(raw: number, index: number): number {
-  if (raw >= 0.97) return 1;
-  if (raw < 0.015) return 0;
+function bubbleMorphT(morphP: number, index: number): number {
+  if (morphP >= 0.97) return 1;
+  if (morphP < 0.015) return 0;
   const cfg = MORPH_PATHS[index] ?? MORPH_PATHS[0];
-  const local = (raw - cfg.staggerStart) / cfg.staggerSpan;
+  const local = (morphP - cfg.staggerStart) / cfg.staggerSpan;
   return Math.min(1, Math.max(0, local));
 }
 
 const MORPH_END = 0.97;
 
+function smoothstep(edge0: number, edge1: number, x: number) {
+  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * Scroll (0–1) → morph progress. Early scroll keeps bubbles in the hero;
+ * most travel + settle happen once the chat fold is scrolling into view.
+ */
+function scrollProgressToMorph(scrollP: number): number {
+  const narrow = window.innerWidth < 768;
+  const lead = narrow ? 0.04 : 0.03;
+  if (scrollP <= lead) return 0;
+  const t = (scrollP - lead) / (1 - lead);
+  const split = narrow ? 0.4 : 0.36;
+  if (t < split) {
+    return smoothstep(0, split, t) * 0.26;
+  }
+  return 0.26 + smoothstep(split, 1, t) * 0.74;
+}
+
+function measurePhoneTopInBridge(bridge: HTMLElement, phone: HTMLElement): number {
+  return phone.getBoundingClientRect().top - bridge.getBoundingClientRect().top;
+}
+
+/**
+ * Natural scroll to bring the chat phone into view. No pin — extra distance
+ * here only stretches the morph, it does not insert a blank spacer.
+ */
+function landingChatMorphScrollPx(
+  bridge: HTMLElement,
+  phone: HTMLElement | null,
+  phoneTopInBridge: number,
+): number {
+  const vh = window.innerHeight;
+  const narrow = window.innerWidth < 768;
+  if (!phone) return Math.round(vh * (narrow ? 0.85 : 1.1));
+  const targetTop = vh * (narrow ? 0.22 : 0.16);
+  const travel = Math.max(0, phoneTopInBridge - targetTop);
+  return Math.round(travel + vh * 0.06);
+}
+
 /** Tighter scrub on narrow viewports — morph keeps pace with shorter mobile runway. */
 function landingChatScrub(): number {
   const w = window.innerWidth;
   if (w >= 768) return 1.85;
-  return gsap.utils.clamp(0.8, 1.2, gsap.utils.mapRange(320, 767, 0.8, 1.2, w));
+  return gsap.utils.clamp(1, 1.45, gsap.utils.mapRange(320, 767, 1, 1.45, w));
 }
 
 export function useLandingChatScrollScene(
@@ -85,9 +127,8 @@ export function useLandingChatScrollScene(
       if (!enabled || !bridgeRef.current) return;
 
       const bridge = bridgeRef.current;
-      const pin = bridge.querySelector<HTMLElement>("[data-landing-pin]");
       const layer = document.querySelector<HTMLElement>("[data-landing-morph-layer]");
-      if (!pin || !layer) return;
+      if (!layer) return;
 
       ScrollTrigger.config({ ignoreMobileResize: true });
 
@@ -103,6 +144,9 @@ export function useLandingChatScrollScene(
       const wanderScale = () =>
         Math.min(1, Math.max(0.4, window.innerWidth / 900));
 
+      const phone = bridge.querySelector<HTMLElement>("[data-landing-phone]");
+      let phoneTopInBridge = phone ? measurePhoneTopInBridge(bridge, phone) : 0;
+
       const applyGhostStyle = (ghost: HTMLElement, point: Point, opacity: number) => {
         ghost.style.transform = `translate3d(${point.x}px, ${point.y}px, 0)`;
         ghost.style.width = "";
@@ -110,20 +154,21 @@ export function useLandingChatScrollScene(
         ghost.style.opacity = String(opacity);
       };
 
-      const setMorphProgress = (raw: number) => {
+      const setMorphProgress = (scrollP: number) => {
+        const morphP = scrollProgressToMorph(scrollP);
         const heroes = heroEls();
         const chats = chatBubbleEls();
         const slots = slotEls();
         const ghosts = ghostEls();
-        const showInFlow = raw >= MORPH_END;
+        const showInFlow = morphP >= MORPH_END;
         const scale = wanderScale();
 
         layer.style.pointerEvents = "none";
         layer.style.opacity = showInFlow ? "0" : "1";
 
         heroes.forEach((hero, i) => {
-          const morphT = bubbleMorphT(raw, i);
-          hero.classList.toggle("landing-float-paused", raw > 0.01);
+          const morphT = bubbleMorphT(morphP, i);
+          hero.classList.toggle("landing-float-paused", morphP > 0.01);
           hero.style.visibility = morphT > 0.001 ? "hidden" : "visible";
         });
 
@@ -140,7 +185,7 @@ export function useLandingChatScrollScene(
             ghost.style.opacity = "0";
             return;
           }
-          const morphT = bubbleMorphT(raw, i);
+          const morphT = bubbleMorphT(morphP, i);
           if (morphT <= 0) {
             ghost.style.opacity = "0";
             return;
@@ -154,17 +199,16 @@ export function useLandingChatScrollScene(
       };
 
       const proxy = { p: 0 };
+
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: bridge,
           start: "top top",
-          end: "bottom bottom",
-          pin,
-          pinSpacing: true,
+          end: () => `+=${landingChatMorphScrollPx(bridge, phone, phoneTopInBridge)}`,
           scrub: landingChatScrub(),
           invalidateOnRefresh: true,
-          anticipatePin: 0,
           onRefresh() {
+            if (phone) phoneTopInBridge = measurePhoneTopInBridge(bridge, phone);
             setMorphProgress(proxy.p);
           },
         },
@@ -180,6 +224,7 @@ export function useLandingChatScrollScene(
       });
 
       const remeasureMorph = () => {
+        if (phone) phoneTopInBridge = measurePhoneTopInBridge(bridge, phone);
         setMorphProgress(proxy.p);
       };
 
@@ -188,7 +233,6 @@ export function useLandingChatScrollScene(
         requestAnimationFrame(remeasureMorph);
       });
       resizeObserver.observe(bridge);
-      resizeObserver.observe(pin);
 
       setMorphProgress(0);
       ScrollTrigger.refresh();

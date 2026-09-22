@@ -73,14 +73,9 @@ export function LandingBubbleMorphProvider({ children }: { children: ReactNode }
     <LandingBubbleMorphContext.Provider value={contextValue}>
       <div
         ref={bridgeRef}
-        className={cn(
-          "landing-bubble-bridge relative",
-          sceneEnabled && "min-h-[120vh] md:min-h-[260vh]",
-        )}
+        className="landing-bubble-bridge relative"
       >
-        <div data-landing-pin className="relative w-full">
-          {children}
-        </div>
+        {children}
         {morphLayer}
       </div>
     </LandingBubbleMorphContext.Provider>

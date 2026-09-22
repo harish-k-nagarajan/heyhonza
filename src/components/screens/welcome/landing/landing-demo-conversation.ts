@@ -2,7 +2,7 @@
 export const LANDING_DEMO_CONVERSATION = [
   {
     role: "honza" as const,
-    text: "Ahoj! Dneska bych si chtěl popovídat o jídle.",
+    text: "Ahoj! Dneska o jídle.",
   },
   {
     role: "user" as const,
@@ -10,11 +10,11 @@ export const LANDING_DEMO_CONVERSATION = [
   },
   {
     role: "honza" as const,
-    text: "Skoro! Správně: Mám rád knedlíky s omáčkou.",
+    text: "Skoro! S omáčkou to sedí.",
   },
   {
     role: "user" as const,
-    text: "A jaká omáčka je nejlepší?",
+    text: "Která je nejlepší?",
   },
 ] as const;
 
@@ -23,10 +23,10 @@ export const LANDING_DEMO_CONVERSATION = [
  * all use the same cap so line breaks never change at handoff or on resize.
  */
 export const LANDING_BUBBLE_MAX_BY_INDEX = [
-  "max-w-[min(168px,36vw)] md:max-w-[min(240px,42vw)]",
-  "max-w-[min(140px,32vw)] md:max-w-[min(200px,38vw)]",
-  "max-w-[min(175px,38vw)] md:max-w-[min(250px,44vw)]",
-  "max-w-[min(148px,34vw)] md:max-w-[min(210px,40vw)]",
+  "max-w-[min(132px,30vw)] md:max-w-[min(200px,38vw)]",
+  "max-w-[min(112px,26vw)] md:max-w-[min(168px,34vw)]",
+  "max-w-[min(136px,30vw)] md:max-w-[min(208px,38vw)]",
+  "max-w-[min(120px,28vw)] md:max-w-[min(176px,36vw)]",
 ] as const;
 
 /** Absolute placement in the hero orbit. Position only — width lives on `LandingChatBubble`. */

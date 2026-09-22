@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 import { LANDING_BUBBLE_MAX_BY_INDEX } from "@/components/screens/welcome/landing/landing-demo-conversation";
 import { cn } from "@/lib/cn";
-import { TYPE } from "@/lib/design/typography";
 
 export function LandingChatBubble({
   role,
@@ -29,9 +28,7 @@ export function LandingChatBubble({
       data-landing-chat-bubble={morphAnchor === "chat" ? true : undefined}
       className={cn(
         maxClass,
-        "rounded-[18px] px-4 py-2.5 text-left text-wrap",
-        TYPE.bodySm,
-        "leading-snug",
+        "rounded-[14px] px-3 py-2 text-left text-wrap text-xs leading-snug tracking-normal md:rounded-[16px] md:px-3.5 md:py-2 md:text-[13px]",
         isUser
           ? "bg-gradient-to-r from-[#3a7bd5] to-[#5a94e8] text-white shadow-[0_2px_8px_rgba(58,123,213,0.18)]"
           : "border border-border bg-white/90 text-foreground",
