@@ -164,8 +164,7 @@ export function useLandingChatScrollScene(
           scrub: landingChatScrub(),
           invalidateOnRefresh: true,
           anticipatePin: 0,
-          onRefresh(self) {
-            self.scrub = landingChatScrub();
+          onRefresh() {
             setMorphProgress(proxy.p);
           },
         },
