@@ -15,6 +15,7 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ### What changed
 - Below `md` the schedule notification stays hidden until the **banner** (not the top of the phone) crosses ~78% of the viewport, then pops in on the lock screen. Triggering on the phone top played the tween while the banner was still below the fold, so it looked static. Copy is the short line `Ahoj, co dnes vaříš?`.
+- Preview deploy `dpl_8NVtihKZaGwvokrbyU1rpMLxQtsc` failed typecheck: `ScrollTrigger` has no `scrub` property (`useLandingChatScrollScene` `onRefresh`). `npx vercel` locally exits `Not authorized` because the CLI is not logged in; the GitHub check’s `npx vercel inspect … --logs` is only for reading logs. Scrub is chosen once when the scene is created.
 - `ServerSync` rehydrates on `SIGNED_IN` / `TOKEN_REFRESHED` (`resetChecked` so screens wait). `SIGNED_OUT` marks `dbMode: false` immediately without treating the user as a new learner.
 - Chat/call/settings only send you to onboarding when a **signed-in** DB profile is incomplete (or local pass-through with no Supabase).
 - CriOS/FxiOS/etc. get a “open in Safari → Share → Add to Home Screen” card. Manifest `start_url` is `/welcome`. `DEPLOY.md` documents the platform + protection limits.
