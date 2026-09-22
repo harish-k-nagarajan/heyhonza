@@ -205,6 +205,7 @@
 
 html {
   color-scheme: light;
+  background-color: #f5f2ee;
 }
 
 body {
@@ -501,8 +502,14 @@ body {
 }
 
 /* ===== Landing-only utilities (welcome / marketing surface) ===== */
+html:has(.landing-page),
+body:has(.landing-page) {
+  background-color: #fff8f5;
+  overscroll-behavior-y: none;
+}
 .landing-page {
   color: #2a2420;
+  overscroll-behavior-y: none;
 }
 .landing-ios-ui {
   font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text",
@@ -533,15 +540,6 @@ body {
 .landing-fold-schedule .t-toast.landing-schedule-notify-driven {
   transition: none !important;
 }
-/* Mobile has no pin scene — toast stays in the open rest pose */
-@media (max-width: 767px) {
-  .landing-fold-schedule .t-toast {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-    will-change: auto;
-  }
-}
 .landing-fold-hero {
   background: linear-gradient(180deg, #fff8f5 0%, #fff4ee 100%);
 }
@@ -553,6 +551,39 @@ body {
 }
 .landing-fold-schedule {
   background: linear-gradient(180deg, #fff4ee 0%, #fff8f5 100%);
+  --schedule-phone-w: 128px;
+}
+/* Small screens: both pieces stay whole. Short viewports sit them side by
+   side; tall ones stack. The phone is the smaller piece either way. */
+@media (max-width: 767px) {
+  .landing-fold-schedule [data-landing-schedule-stage] {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .landing-fold-schedule [data-landing-schedule-settings] {
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    flex: 1 1 auto;
+    margin-bottom: 0;
+  }
+  .landing-fold-schedule [data-landing-schedule-phone] {
+    width: var(--schedule-phone-w);
+    max-width: none;
+    margin: 0;
+  }
+  .landing-fold-schedule[data-schedule-layout="stack"] [data-landing-schedule-stage] {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .landing-fold-schedule[data-schedule-layout="stack"] [data-landing-schedule-settings] {
+    flex: none;
+    width: 100%;
+    max-width: 360px;
+  }
 }
 @media (min-width: 768px) {
   .landing-fold-schedule [data-landing-schedule-settings],
@@ -700,7 +731,8 @@ body {
   bottom: 0;
   z-index: 30;
   padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, transparent, rgba(233, 228, 221, 0.92) 28%, #e9e4dd);
+  background: #fff8f5;
+  border-top: 1px solid rgba(232, 226, 220, 0.85);
   pointer-events: none;
 }
 .landing-sticky-cta > * {

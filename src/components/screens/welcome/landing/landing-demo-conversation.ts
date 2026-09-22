@@ -23,16 +23,16 @@ export const LANDING_DEMO_CONVERSATION = [
  * all use the same cap so line breaks never change at handoff or on resize.
  */
 export const LANDING_BUBBLE_MAX_BY_INDEX = [
-  "max-w-[min(240px,42vw)]",
-  "max-w-[min(200px,38vw)]",
-  "max-w-[min(250px,44vw)]",
-  "max-w-[min(210px,40vw)]",
+  "max-w-[min(168px,36vw)] md:max-w-[min(240px,42vw)]",
+  "max-w-[min(140px,32vw)] md:max-w-[min(200px,38vw)]",
+  "max-w-[min(175px,38vw)] md:max-w-[min(250px,44vw)]",
+  "max-w-[min(148px,34vw)] md:max-w-[min(210px,40vw)]",
 ] as const;
 
-/** Absolute placement in the hero orbit (md+). Position only — width lives on `LandingChatBubble`. */
+/** Absolute placement in the hero orbit. Position only — width lives on `LandingChatBubble`. */
 export const LANDING_HERO_BUBBLE_LAYOUT = [
-  "left-[2%] top-[8%]",
-  "right-[4%] top-[6%]",
-  "left-[1%] top-[62%]",
-  "right-[4%] top-[58%]",
+  "left-[4%] top-[12%] md:left-[2%] md:top-[8%]",
+  "right-[2%] top-[10%] md:right-[4%] md:top-[6%]",
+  "left-[2%] top-[52%] md:left-[1%] md:top-[62%]",
+  "right-[2%] top-[48%] md:right-[4%] md:top-[58%]",
 ] as const;

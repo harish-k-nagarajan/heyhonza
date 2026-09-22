@@ -50,26 +50,36 @@ function isStandalone(): boolean {
   );
 }
 
-function isIosSafari(): boolean {
+function isIosDevice(): boolean {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
-  const iOS = /iPad|iPhone|iPod/.test(ua) ||
+  return (
+    /iPad|iPhone|iPod/.test(ua) ||
     // iPadOS 13+ reports as Mac; disambiguate by touch
-    (/Macintosh/.test(ua) && "ontouchend" in document);
-  // Non-Safari iOS browsers can't add to home screen from the share sheet.
-  const otherBrowser = /CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
-  return iOS && !otherBrowser;
+    (/Macintosh/.test(ua) && "ontouchend" in document)
+  );
+}
+
+/** Chrome, Firefox, Edge, Opera on iOS — no beforeinstallprompt, no reliable A2HS. */
+function isIosNonSafari(): boolean {
+  if (!isIosDevice()) return false;
+  return /CriOS|FxiOS|EdgiOS|OPiOS/.test(navigator.userAgent);
+}
+
+function isIosSafari(): boolean {
+  return isIosDevice() && !isIosNonSafari();
 }
 
 export function InstallPrompt() {
   const design = useDesignStore((s) => s.design);
   const isHmat = DESIGNS[design].family === "hmat";
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
   const c = t.install;
 
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
   const [iosHint, setIosHint] = useState(false);
+  const [iosOtherBrowserHint, setIosOtherBrowserHint] = useState(false);
 
   useEffect(() => {
     if (isStandalone() || recentlyDismissed()) return;
@@ -87,6 +97,7 @@ export function InstallPrompt() {
       // Installed (any path) — clear UI and stop future nags.
       setVisible(false);
       setIosHint(false);
+      setIosOtherBrowserHint(false);
       setDeferred(null);
       rememberDismissal();
     };
@@ -94,8 +105,13 @@ export function InstallPrompt() {
     window.addEventListener("beforeinstallprompt", onBip);
     window.addEventListener("appinstalled", onInstalled);
 
-    // iOS Safari never fires beforeinstallprompt — offer a manual hint instead.
-    if (isIosSafari()) {
+    // iOS never fires beforeinstallprompt — manual A2HS hints by browser.
+    if (isIosNonSafari()) {
+      revealTimer = window.setTimeout(
+        () => setIosOtherBrowserHint(true),
+        REVEAL_DELAY_MS,
+      );
+    } else if (isIosSafari()) {
       revealTimer = window.setTimeout(() => setIosHint(true), REVEAL_DELAY_MS);
     }
 
@@ -109,6 +125,7 @@ export function InstallPrompt() {
   const dismiss = useCallback(() => {
     setVisible(false);
     setIosHint(false);
+    setIosOtherBrowserHint(false);
     rememberDismissal();
   }, []);
 
@@ -126,7 +143,10 @@ export function InstallPrompt() {
     rememberDismissal();
   }, [deferred]);
 
-  if (!visible && !iosHint) return null;
+  if (!visible && !iosHint && !iosOtherBrowserHint) return null;
+
+  const iosManualHint = iosHint || iosOtherBrowserHint;
+  const iosLead = iosOtherBrowserHint ? c.iosOtherLead : c.iosLead;
 
   return (
     <div className="fixed inset-x-0 bottom-24 z-50 flex justify-center px-4">
@@ -156,11 +176,12 @@ export function InstallPrompt() {
           </button>
         </div>
 
-        {iosHint ? (
+        {iosManualHint ? (
           <p className={cn("mt-2", TYPE.bodySm, "text-foreground")}>
-            {c.iosLead}{" "}
+            {iosLead}{" "}
             <span className="text-accent">{c.iosShare}</span>
-            {locale === "cs" ? ", pak " : ", then "}
+            {", "}
+            {c.iosThen}{" "}
             <span className="text-accent">{c.iosAdd}</span>
             {c.iosTail}
           </p>

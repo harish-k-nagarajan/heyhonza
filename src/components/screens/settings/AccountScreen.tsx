@@ -18,7 +18,7 @@ import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import { useMoodExpression } from "@/hooks/useMoodExpression";
-import { useScreenReady } from "@/hooks/useScreenReady";
+import { useNeedsOnboarding, useScreenReady } from "@/hooks/useScreenReady";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -29,6 +29,7 @@ const MIN_PASSWORD = 6;
 export function AccountScreen() {
   const router = useRouter();
   const ready = useScreenReady();
+  const needsOnboarding = useNeedsOnboarding();
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
   const expression = useMoodExpression();
   const { t } = useLocale();
@@ -46,8 +47,8 @@ export function AccountScreen() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (ready && !onboardingComplete) router.replace(ROUTES.onboarding);
-  }, [ready, onboardingComplete, router]);
+    if (needsOnboarding) router.replace(ROUTES.onboarding);
+  }, [needsOnboarding, router]);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;

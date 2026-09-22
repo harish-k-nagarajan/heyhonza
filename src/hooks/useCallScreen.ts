@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { useProviderStatus } from "@/hooks/useProviderStatus";
-import { useScreenReady } from "@/hooks/useScreenReady";
+import { useNeedsOnboarding, useScreenReady } from "@/hooks/useScreenReady";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { callStatusLine, localizeClientError } from "@/lib/i18n/extended";
@@ -103,6 +103,7 @@ export function useCallScreen(): CallScreen {
   const router = useRouter();
   const ready = useScreenReady();
   const { t } = useLocale();
+  const needsOnboarding = useNeedsOnboarding();
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
 
   const design = useDesignStore((s) => s.design);
@@ -130,8 +131,8 @@ export function useCallScreen(): CallScreen {
   }, [phase, setMood]);
 
   useEffect(() => {
-    if (ready && !onboardingComplete) router.replace(ROUTES.onboarding);
-  }, [ready, onboardingComplete, router]);
+    if (needsOnboarding) router.replace(ROUTES.onboarding);
+  }, [needsOnboarding, router]);
 
   // Call duration — the single strongest "this is a call, not a chat" signal.
   useEffect(() => {

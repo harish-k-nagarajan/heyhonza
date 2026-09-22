@@ -9,11 +9,21 @@ import { create } from "zustand";
 type SyncState = {
   checked: boolean;
   dbMode: boolean;
+  /** True once sign-out starts, until the next full page load. */
+  signingOut: boolean;
+  resetChecked: () => void;
   markChecked: (dbMode: boolean) => void;
+  beginSignOut: () => void;
 };
 
 export const useSyncStore = create<SyncState>((set) => ({
   checked: false,
   dbMode: false,
-  markChecked: (dbMode) => set({ checked: true, dbMode }),
+  signingOut: false,
+  resetChecked: () => set({ checked: false, dbMode: false }),
+  markChecked: (dbMode) =>
+    set((state) =>
+      state.signingOut ? { checked: true, dbMode: false } : { checked: true, dbMode },
+    ),
+  beginSignOut: () => set({ signingOut: true, checked: true, dbMode: false }),
 }));

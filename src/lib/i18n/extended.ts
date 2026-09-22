@@ -103,6 +103,8 @@ export type InstallCopy = {
   iosAdd: string;
   iosLead: string;
   iosTail: string;
+  iosOtherLead: string;
+  iosThen: string;
 };
 
 export type WelcomeCopy = {
@@ -307,6 +309,9 @@ const enExtended: ExtendedCopy = {
     iosAdd: "Add to Home Screen",
     iosLead: "Add Honza to your home screen: tap",
     iosTail: ".",
+    iosOtherLead:
+      "This browser can't install Honza on iPhone. Open this site in Safari, then tap",
+    iosThen: "then",
   },
   welcome: {
     logIn: "Log in",
@@ -330,7 +335,7 @@ const enExtended: ExtendedCopy = {
     sectionScheduleKicker: "DAILY CHECK-INS",
     sectionScheduleTitle: "Pick when Honza writes",
     sectionScheduleLead: "One to three Czech messages a day",
-    schedulePreviewMessage: "Ahoj! Co dnes vaříš? Napiš mi česky, klidně blbě",
+    schedulePreviewMessage: "Ahoj, co dnes vaříš?",
     schedulePreviewHint: "Add Honza to your home screen so it works on iPhone and Android",
     schedulePreviewAria: "Settings preview and iPhone notification preview",
     scheduleNotificationAppName: "HONZA",
@@ -534,6 +539,9 @@ const csExtended: ExtendedCopy = {
     iosAdd: "Přidat na plochu",
     iosLead: "Přidej Honzu na plochu: klepni na",
     iosTail: ".",
+    iosOtherLead:
+      "V tomto prohlížeči na iPhonu Honzu nenainstaluješ. Otevři stránku v Safari a klepni na",
+    iosThen: "pak",
   },
   welcome: {
     logIn: "Přihlásit se",
@@ -557,7 +565,7 @@ const csExtended: ExtendedCopy = {
     sectionScheduleKicker: "DENNÍ ZPRÁVY",
     sectionScheduleTitle: "Vyber, kdy Honza píše",
     sectionScheduleLead: "Jedna až tři české zprávy denně",
-    schedulePreviewMessage: "Ahoj! Co dnes vaříš? Napiš mi česky, klidně blbě",
+    schedulePreviewMessage: "Ahoj, co dnes vaříš?",
     schedulePreviewHint: "Přidej Honzu na plochu, ať to funguje na iPhonu i Androidu",
     schedulePreviewAria: "Náhled nastavení a oznámení na iPhonu",
     scheduleNotificationAppName: "HONZA",

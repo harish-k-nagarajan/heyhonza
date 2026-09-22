@@ -221,20 +221,44 @@ export function useLandingScheduleScrollScene(
         return createPinnedScene(section, settings, phone, notify, "+=145%", true);
       });
 
-      // Stacked layout is taller than the phone viewport — do not pin.
+      // No pin on a short screen — the fold has to stay readable — but the
+      // notification still pops in once the phone scrolls into view.
       mm.add("(max-width: 767px)", () => {
         resetLayers(settings, phone);
-        if (notify) {
-          notify.classList.remove("landing-schedule-notify-driven");
-          setNotifyResting(notify, true);
-        }
-        return () => {
-          resetLayers(settings, phone);
+        if (!notify || !enabled) {
           if (notify) {
-            gsap.killTweensOf(notify);
             notify.classList.remove("landing-schedule-notify-driven");
-            setNotifyResting(notify, false);
+            setNotifyResting(notify, true);
           }
+          return () => {
+            resetLayers(settings, phone);
+            if (notify) gsap.killTweensOf(notify);
+          };
+        }
+
+        notify.classList.add("landing-schedule-notify-driven");
+        setNotifyResting(notify, false);
+
+        // The banner sits near the bottom of the phone. Triggering on the
+        // phone's top edge plays the pop while the banner is still below
+        // the fold, so it looks like it was never animated.
+        const st = ScrollTrigger.create({
+          trigger: notify,
+          start: "top 78%",
+          invalidateOnRefresh: true,
+          onEnter: () => playNotifyIn(notify),
+          onEnterBack: () => playNotifyIn(notify),
+          onLeaveBack: () => playNotifyOut(notify),
+        });
+
+        if (st.isActive) playNotifyIn(notify);
+
+        return () => {
+          st.kill();
+          resetLayers(settings, phone);
+          gsap.killTweensOf(notify);
+          notify.classList.remove("landing-schedule-notify-driven");
+          setNotifyResting(notify, false);
         };
       });
 

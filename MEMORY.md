@@ -4,7 +4,27 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-20 (push / check-ins actually deliver)
+## Current entry — 2026-09-21 (preview bugs: landing, onboarding, PWA)
+
+### What broke
+- Welcome hero on phone: demo bubbles sat **behind** the orb (`z-[2]` vs `z-[10]`), oversized for the orbit, and the chat morph used a **190vh** pin on mobile (call/schedule already skip pin ≤767px). iPhone Chrome showed a **black strip** at max scroll — unpainted `html` plus a transparent sticky-CTA gradient, not `theme-color`.
+- Password login via `router.replace` did **not remount** AppShell. `ServerSync` ran once; a signed-out `/api/state` had already set `checked: true`. After sign-out cleared localStorage, `/chat` sent **harishnokia@gmail.com** through onboarding even though Postgres `onboarding_completed` was already true. Same account.
+- Follow-up: sign-out `clearLocalUserState()` flipped `onboardingComplete` to false while Settings was still mounted, so the same client redirect sent people to `/onboarding` instead of `/welcome`. The form then unmounted (`screen.ready` requires the flag), so the POST never ran and the session stayed signed in.
+- Fix: sign-out latches `signingOut` (blocks the onboarding redirect and late `/api/state` hydration), POSTs `/auth/signout`, then hard-navigates to `/welcome?signedOut=1`.
+- iPhone **Chrome** cannot install PWAs (`beforeinstallprompt` never fires). `InstallPrompt` also hid the Safari hint for CriOS. Preview `*.vercel.app` is **403** under Deployment Protection, so install fails there even in Safari. Manifest/SW on Vercel production builds were fine.
+
+### What changed
+- Below `md` the schedule notification stays hidden until the **banner** (not the top of the phone) crosses ~78% of the viewport, then pops in on the lock screen. Triggering on the phone top played the tween while the banner was still below the fold, so it looked static. Copy is the short line `Ahoj, co dnes vaříš?`.
+- `ServerSync` rehydrates on `SIGNED_IN` / `TOKEN_REFRESHED` (`resetChecked` so screens wait). `SIGNED_OUT` marks `dbMode: false` immediately without treating the user as a new learner.
+- Chat/call/settings only send you to onboarding when a **signed-in** DB profile is incomplete (or local pass-through with no Supabase).
+- CriOS/FxiOS/etc. get a “open in Safari → Share → Add to Home Screen” card. Manifest `start_url` is `/welcome`. `DEPLOY.md` documents the platform + protection limits.
+
+### Decision
+Keep the mobile chat morph (do not disable pin). Do not turn off Vercel Deployment Protection in code. iOS install is Safari-only.
+
+---
+
+## Previous — 2026-09-20 (push / check-ins actually deliver)
 
 ### What broke
 - Live Hey Honza had **0** `push_subscriptions` and **0** `scheduled_deliveries`. Vercel env already had VAPID + `CRON_SECRET` + service role. Production `sw.js` already imported the custom push worker.

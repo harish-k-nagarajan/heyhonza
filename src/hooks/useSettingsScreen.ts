@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { rememberProviderStatusFromResponse } from "@/hooks/useProviderStatus";
-import { useScreenReady } from "@/hooks/useScreenReady";
+import { useNeedsOnboarding, useScreenReady } from "@/hooks/useScreenReady";
 import { isLikelyGoogleDocUrl } from "@/lib/validators";
 import {
   persistProfile,
@@ -117,6 +117,7 @@ function detectTimezone(): string {
 export function useSettingsScreen(): SettingsScreen {
   const router = useRouter();
   const ready = useScreenReady();
+  const needsOnboarding = useNeedsOnboarding();
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
 
   const design = useDesignStore((s) => s.design);
@@ -180,8 +181,8 @@ export function useSettingsScreen(): SettingsScreen {
   };
 
   useEffect(() => {
-    if (ready && !onboardingComplete) router.replace(ROUTES.onboarding);
-  }, [ready, onboardingComplete, router]);
+    if (needsOnboarding) router.replace(ROUTES.onboarding);
+  }, [needsOnboarding, router]);
 
   const refreshProviders = useCallback(async () => {
     try {

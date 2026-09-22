@@ -4,9 +4,8 @@ import { useReducedMotion } from "motion/react";
 import {
   createContext,
   useContext,
-  useEffect,
   useRef,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -33,12 +32,12 @@ export function LandingBubbleMorphProvider({ children }: { children: ReactNode }
   const reducedMotion = useReducedMotion();
   const bridgeRef = useRef<HTMLDivElement | null>(null);
   const orbitRef = useRef<HTMLDivElement | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const sceneEnabled = !reducedMotion;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useLandingChatScrollScene(bridgeRef, sceneEnabled && mounted);
 
@@ -76,7 +75,7 @@ export function LandingBubbleMorphProvider({ children }: { children: ReactNode }
         ref={bridgeRef}
         className={cn(
           "landing-bubble-bridge relative",
-          sceneEnabled && "min-h-[190vh] md:min-h-[260vh]",
+          sceneEnabled && "min-h-[120vh] md:min-h-[260vh]",
         )}
       >
         <div data-landing-pin className="relative w-full">

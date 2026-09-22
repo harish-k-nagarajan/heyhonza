@@ -83,6 +83,13 @@ green-check belongs on prod with the real key in place).
 - [ ] **Install:** on Android Chrome the install prompt appears (after ~4s, once);
       "Not now" suppresses it for 14 days; installing hides it and it doesn't return.
 - [ ] **iOS Safari:** the "Add to Home Screen" hint shows (no `beforeinstallprompt` on iOS).
+      Test on a **public or custom domain**, or a Vercel **Deployment Protection bypass
+      URL** — `*.vercel.app` preview URLs return **403** when Deployment Protection is
+      on, so Safari can't load the app to add it. Do **not** disable protection in code.
+- [ ] **iOS Chrome / Firefox / Edge / Opera:** these browsers never fire
+      `beforeinstallprompt` and cannot install a PWA from the in-app browser. The app
+      shows a card telling the user to **open the site in Safari**, then Share → Add to
+      Home Screen. Do not expect an install button in Chrome on iPhone.
 - [ ] **Icons:** installed app shows the dot-matrix Honza face; maskable icon isn't
       cropped on Android adaptive-icon shapes.
 - [ ] **Service worker:** registers at scope `/`; a new deploy activates without a
