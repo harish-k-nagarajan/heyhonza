@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { useProviderStatus } from "@/hooks/useProviderStatus";
-import { useScreenReady } from "@/hooks/useScreenReady";
+import { useNeedsOnboarding, useScreenReady } from "@/hooks/useScreenReady";
 import {
   endChatSessionAction,
   sendUserTurn,
@@ -52,6 +52,7 @@ export type ChatScreen = {
 export function useChatScreen(): ChatScreen {
   const router = useRouter();
   const ready = useScreenReady();
+  const needsOnboarding = useNeedsOnboarding();
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
 
   const messages = useChatStore((s) => s.messages);
@@ -68,8 +69,8 @@ export function useChatScreen(): ChatScreen {
   const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
-    if (ready && !onboardingComplete) router.replace(ROUTES.onboarding);
-  }, [ready, onboardingComplete, router]);
+    if (needsOnboarding) router.replace(ROUTES.onboarding);
+  }, [needsOnboarding, router]);
 
   useEffect(() => {
     return () => setMood("idle");

@@ -41,7 +41,7 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
             <div
               key={bubble.text}
               className={cn(
-                "landing-float-bubble absolute z-[2]",
+                "landing-float-bubble absolute z-[12]",
                 bubble.className,
               )}
               style={{ animationDelay: `${index * -1.75}s` }}

@@ -82,14 +82,14 @@ export function LandingScheduleSettingsMock({
   return (
     <div
       className={cn(
-        "flex w-full flex-col gap-3 rounded-[28px] border border-border bg-white p-5",
+        "flex w-full flex-col gap-2 rounded-[28px] border border-border bg-white p-3.5 md:gap-3 md:p-5",
         "shadow-[0_16px_40px_rgba(120,90,70,0.08)]",
         className,
       )}
     >
-      <p className={cn(TYPE.helper, "leading-[1.45] text-[#5C534D]")}>{hint}</p>
+      <p className={cn(TYPE.helper, "hidden leading-[1.45] text-[#5C534D] md:block")}>{hint}</p>
 
-      <div className="space-y-4 rounded-[20px] border border-[#E8E2DC] bg-[#FFFBF9] p-4">
+      <div className="space-y-3 rounded-[20px] border border-[#E8E2DC] bg-[#FFFBF9] p-3 md:space-y-4 md:p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
             <div

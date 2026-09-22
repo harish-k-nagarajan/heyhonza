@@ -2,7 +2,7 @@
   "name": "Honza — learn Czech",
   "short_name": "Honza",
   "description": "Learn Czech with Honza, a friendly AI tutor. Short daily conversations, real corrections.",
-  "start_url": "/",
+  "start_url": "/welcome",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f5f2ee",

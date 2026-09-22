@@ -69,6 +69,13 @@ function bubbleMorphT(raw: number, index: number): number {
 
 const MORPH_END = 0.97;
 
+/** Tighter scrub on narrow viewports — morph keeps pace with shorter mobile runway. */
+function landingChatScrub(): number {
+  const w = window.innerWidth;
+  if (w >= 768) return 1.85;
+  return gsap.utils.clamp(0.8, 1.2, gsap.utils.mapRange(320, 767, 0.8, 1.2, w));
+}
+
 export function useLandingChatScrollScene(
   bridgeRef: RefObject<HTMLDivElement | null>,
   enabled: boolean,
@@ -154,10 +161,11 @@ export function useLandingChatScrollScene(
           end: "bottom bottom",
           pin,
           pinSpacing: true,
-          scrub: 1.85,
+          scrub: landingChatScrub(),
           invalidateOnRefresh: true,
           anticipatePin: 0,
-          onRefresh: () => {
+          onRefresh(self) {
+            self.scrub = landingChatScrub();
             setMorphProgress(proxy.p);
           },
         },
@@ -172,6 +180,17 @@ export function useLandingChatScrollScene(
         },
       });
 
+      const remeasureMorph = () => {
+        setMorphProgress(proxy.p);
+      };
+
+      const resizeObserver = new ResizeObserver(() => {
+        ScrollTrigger.refresh();
+        requestAnimationFrame(remeasureMorph);
+      });
+      resizeObserver.observe(bridge);
+      resizeObserver.observe(pin);
+
       setMorphProgress(0);
       ScrollTrigger.refresh();
       requestAnimationFrame(() => {
@@ -179,6 +198,7 @@ export function useLandingChatScrollScene(
       });
 
       return () => {
+        resizeObserver.disconnect();
         heroEls().forEach((hero) => {
           hero.style.visibility = "";
           hero.classList.remove("landing-float-paused");
