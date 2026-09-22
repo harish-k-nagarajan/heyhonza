@@ -2,18 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/Button";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { cn } from "@/lib/cn";
 import { DESIGNS } from "@/lib/design/registry";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { useDesignStore } from "@/stores/useDesignStore";
-
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
 
 const DISMISS_KEY = "honza-install-dismissed-at";
 /** Don't nag again for this long after a dismissal. */
@@ -70,14 +64,17 @@ function isIosSafari(): boolean {
   return isIosDevice() && !isIosNonSafari();
 }
 
+/**
+ * iOS-only install hints. Chromium/Android get the browser's own install UI —
+ * we never call `preventDefault()` on `beforeinstallprompt`, so Chrome can show
+ * its default banner / menu item instead of our in-app card over the CTA.
+ */
 export function InstallPrompt() {
   const design = useDesignStore((s) => s.design);
   const isHmat = DESIGNS[design].family === "hmat";
   const { t } = useLocale();
   const c = t.install;
 
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [visible, setVisible] = useState(false);
   const [iosHint, setIosHint] = useState(false);
   const [iosOtherBrowserHint, setIosOtherBrowserHint] = useState(false);
 
@@ -86,26 +83,14 @@ export function InstallPrompt() {
 
     let revealTimer: number | undefined;
 
-    const onBip = (e: Event) => {
-      // Chromium: stash the event and reveal after a short delay.
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
-      revealTimer = window.setTimeout(() => setVisible(true), REVEAL_DELAY_MS);
-    };
-
     const onInstalled = () => {
-      // Installed (any path) — clear UI and stop future nags.
-      setVisible(false);
       setIosHint(false);
       setIosOtherBrowserHint(false);
-      setDeferred(null);
       rememberDismissal();
     };
 
-    window.addEventListener("beforeinstallprompt", onBip);
     window.addEventListener("appinstalled", onInstalled);
 
-    // iOS never fires beforeinstallprompt — manual A2HS hints by browser.
     if (isIosNonSafari()) {
       revealTimer = window.setTimeout(
         () => setIosOtherBrowserHint(true),
@@ -116,36 +101,19 @@ export function InstallPrompt() {
     }
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", onBip);
       window.removeEventListener("appinstalled", onInstalled);
       if (revealTimer) window.clearTimeout(revealTimer);
     };
   }, []);
 
   const dismiss = useCallback(() => {
-    setVisible(false);
     setIosHint(false);
     setIosOtherBrowserHint(false);
     rememberDismissal();
   }, []);
 
-  const install = useCallback(async () => {
-    if (!deferred) return;
-    await deferred.prompt();
-    try {
-      await deferred.userChoice;
-    } catch {
-      /* ignore */
-    }
-    // The event is single-use; drop it either way.
-    setVisible(false);
-    setDeferred(null);
-    rememberDismissal();
-  }, [deferred]);
+  if (!iosHint && !iosOtherBrowserHint) return null;
 
-  if (!visible && !iosHint && !iosOtherBrowserHint) return null;
-
-  const iosManualHint = iosHint || iosOtherBrowserHint;
   const iosLead = iosOtherBrowserHint ? c.iosOtherLead : c.iosLead;
 
   return (
@@ -176,36 +144,14 @@ export function InstallPrompt() {
           </button>
         </div>
 
-        {iosManualHint ? (
-          <p className={cn("mt-2", TYPE.bodySm, "text-foreground")}>
-            {iosLead}{" "}
-            <span className="text-accent">{c.iosShare}</span>
-            {", "}
-            {c.iosThen}{" "}
-            <span className="text-accent">{c.iosAdd}</span>
-            {c.iosTail}
-          </p>
-        ) : (
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <p className={cn(TYPE.bodySm, "text-foreground")}>{c.body}</p>
-            {isHmat ? (
-              <Button
-                type="button"
-                surface="mat-key"
-                shape="pill"
-                size="sm"
-                className="shrink-0"
-                onClick={install}
-              >
-                {c.install}
-              </Button>
-            ) : (
-              <Button type="button" className="shrink-0" onClick={install}>
-                {c.install}
-              </Button>
-            )}
-          </div>
-        )}
+        <p className={cn("mt-2", TYPE.bodySm, "text-foreground")}>
+          {iosLead}{" "}
+          <span className="text-accent">{c.iosShare}</span>
+          {", "}
+          {c.iosThen}{" "}
+          <span className="text-accent">{c.iosAdd}</span>
+          {c.iosTail}
+        </p>
       </div>
     </div>
   );

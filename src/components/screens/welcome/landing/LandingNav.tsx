@@ -20,7 +20,7 @@ export function LandingNav() {
         >
           Honza
         </Link>
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center gap-4 sm:gap-5">
           <LanguageSwitcher variant="nav" />
           <Link
             href={ROUTES.login}

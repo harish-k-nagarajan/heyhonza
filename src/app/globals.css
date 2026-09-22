@@ -159,6 +159,12 @@
   --toast-blur: var(--blur-small);
   --toast-scale: var(--scale-medium);
   --toast-ease: var(--ease-smooth-out);
+  /* Menu dropdown — language switcher (transitions-dev #05) */
+  --dropdown-open-dur: var(--duration-fast);
+  --dropdown-close-dur: var(--duration-quick);
+  --dropdown-pre-scale: var(--scale-medium);
+  --dropdown-closing-scale: var(--scale-tiny);
+  --dropdown-ease: var(--ease-smooth-out);
 }
 
 /*
@@ -610,51 +616,51 @@ body:has(.landing-page) {
   border: none;
   background: linear-gradient(90deg, #e8432d, #ff6b4a);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(232, 67, 45, 0.28);
-  transition: transform 0.09s ease, box-shadow 0.09s ease, opacity 0.09s ease;
+  box-shadow: none;
+  transition:
+    transform var(--duration-press) var(--ease-smooth-out),
+    opacity var(--duration-press) var(--ease-smooth-out);
 }
 .auth-cta-primary:hover {
-  box-shadow: 0 6px 18px rgba(232, 67, 45, 0.34);
+  opacity: 0.94;
 }
 .auth-cta-primary:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 8px rgba(232, 67, 45, 0.24);
+  transform: scale(var(--scale-small));
 }
 .auth-cta-secondary {
   appearance: none;
-  border: none;
-  background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--bg) 48%, #f0e8df));
-  box-shadow:
-    0 6px 0 color-mix(in srgb, var(--bg) 26%, var(--mat-key-lip, #b3a496)),
-    0 10px 16px rgba(90, 60, 45, 0.2),
-    inset 0 1px 0 #fff;
-  color: var(--accent);
-  transition: transform 0.09s ease, box-shadow 0.09s ease;
+  border: 1px solid #e8e2dc;
+  background: linear-gradient(180deg, #ffffff, #f5ebe3);
+  box-shadow: none;
+  color: #e8432d;
+  transition:
+    transform var(--duration-press) var(--ease-smooth-out),
+    opacity var(--duration-press) var(--ease-smooth-out);
+}
+.auth-cta-secondary:hover {
+  opacity: 0.94;
 }
 .auth-cta-secondary:active {
-  transform: translateY(5px);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, var(--bg) 26%, var(--mat-key-lip, #b3a496)),
-    0 3px 8px rgba(90, 60, 45, 0.22),
-    inset 0 1px 0 #fff;
+  transform: scale(var(--scale-small));
 }
 .auth-cta-outline {
   border: 1px solid #e8e2dc;
   background: #ffffff;
-  color: var(--accent);
+  color: #e8432d;
 }
 .landing-cta-primary {
   background: linear-gradient(90deg, #e8432d, #ff6b4a);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(232, 67, 45, 0.28);
-  transition: transform 0.09s ease, box-shadow 0.09s ease;
+  box-shadow: none;
+  transition:
+    transform var(--duration-press) var(--ease-smooth-out),
+    opacity var(--duration-press) var(--ease-smooth-out);
 }
 .landing-cta-primary:hover {
-  box-shadow: 0 6px 18px rgba(232, 67, 45, 0.34);
+  opacity: 0.94;
 }
 .landing-cta-primary:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 8px rgba(232, 67, 45, 0.24);
+  transform: scale(var(--scale-small));
 }
 .landing-float-bubble {
   animation: landing-float 9s cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
@@ -2073,6 +2079,35 @@ body:has(.landing-page) {
   pointer-events: auto;
 }
 
+.t-dropdown {
+  transform-origin: top left;
+  transform: scale(var(--dropdown-pre-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--dropdown-open-dur) var(--dropdown-ease),
+    opacity var(--dropdown-open-dur) var(--dropdown-ease);
+  will-change: transform, opacity;
+}
+.t-dropdown[data-origin="top-right"] { transform-origin: top right; }
+.t-dropdown[data-origin="top-center"] { transform-origin: top center; }
+.t-dropdown[data-origin="bottom-left"] { transform-origin: bottom left; }
+.t-dropdown[data-origin="bottom-center"] { transform-origin: bottom center; }
+.t-dropdown[data-origin="bottom-right"] { transform-origin: bottom right; }
+.t-dropdown.is-open {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+.t-dropdown.is-closing {
+  transform: scale(var(--dropdown-closing-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--dropdown-close-dur) var(--dropdown-ease),
+    opacity var(--dropdown-close-dur) var(--dropdown-ease);
+}
+
 .hmat-chat-skel-title {
   height: 1.25rem;
   width: 8.5rem;
@@ -2104,6 +2139,7 @@ body:has(.landing-page) {
   .t-acc-panel, .t-acc-panel-inner, .t-acc-chevron {
     transition: none !important;
   }
+  .t-dropdown { transition: none !important; }
   .t-think-text { transition: none !important; transform: none !important; filter: none !important; }
   .t-think-text::before { display: none !important; }
   .hmat-orb-presence {
