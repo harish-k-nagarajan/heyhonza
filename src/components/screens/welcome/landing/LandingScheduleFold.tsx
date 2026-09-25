@@ -53,7 +53,7 @@ export function LandingScheduleFold() {
           data-landing-schedule-settings
           className={cn(
             "relative z-30 w-full max-w-[360px]",
-            "md:absolute md:left-0 md:top-12 md:[transform-style:preserve-3d] md:will-change-[transform,filter,opacity]",
+            "md:absolute md:left-0 md:top-12 md:[transform-style:preserve-3d] md:will-change-transform",
           )}
         >
           <LandingScheduleSettingsMock

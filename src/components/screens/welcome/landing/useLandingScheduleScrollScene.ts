@@ -48,7 +48,6 @@ function applyLayerDepth(
   const depth = smoothstep(0.22, 0.88, t);
   const fade = smoothstep(0.28, 0.72, t);
   const scale = 1 - depth * 0.045;
-  const blurPx = fade * 3.2;
   const opacity = 1 - fade * 0.28;
 
   if (settings) {
@@ -59,7 +58,6 @@ function applyLayerDepth(
       `scale(${scale})`,
     ].join(" ");
     settings.style.opacity = String(opacity);
-    settings.style.filter = blurPx > 0.08 ? `blur(${blurPx}px)` : "none";
   }
 
   if (phone) {
@@ -92,7 +90,6 @@ function setNotifyResting(notify: HTMLElement | null, visible: boolean) {
     y: visible ? 0 : 22,
     opacity: visible ? 1 : 0,
     scale: visible ? 1 : 0.97,
-    filter: visible ? "blur(0px)" : "blur(2px)",
     force3D: true,
   });
   notify.classList.toggle("is-open", visible);
@@ -107,13 +104,11 @@ function playNotifyIn(notify: HTMLElement) {
       y: 28,
       opacity: 0,
       scale: 0.96,
-      filter: "blur(3px)",
     },
     {
       y: 0,
       opacity: 1,
       scale: 1,
-      filter: "blur(0px)",
       duration: 0.92,
       ease: "power3.out",
       overwrite: "auto",
@@ -128,7 +123,6 @@ function playNotifyOut(notify: HTMLElement) {
     y: 22,
     opacity: 0,
     scale: 0.97,
-    filter: "blur(2px)",
     duration: 0.35,
     ease: "power2.in",
     overwrite: "auto",

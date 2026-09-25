@@ -51,6 +51,7 @@ function longestChipLabel(c: ChatCopy): string {
     c.chipThinking,
     c.chipReplying,
     c.chipFixing,
+    c.chipSnag,
     c.chipThrilled,
   ].reduce((a, b) => (a.length >= b.length ? a : b));
 }
@@ -153,10 +154,11 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   }, []);
 
   useEffect(() => {
-    if (!mounted || !screen.ready || !providersLoaded) return;
+    if (!mounted) return;
     const skipCeremony = chatBootCeremonyDone;
     chatBootCeremonyDone = true;
-    const id = window.requestAnimationFrame(() => {
+
+    const reveal = () => {
       setRevealed(true);
       if (skipCeremony) {
         setPresenceShown(true);
@@ -167,8 +169,15 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
         setPresenceShown(true);
         setCopyShown(true);
       });
-    });
-    return () => window.cancelAnimationFrame(id);
+    };
+
+    if (screen.ready && providersLoaded) {
+      const id = window.requestAnimationFrame(reveal);
+      return () => window.cancelAnimationFrame(id);
+    }
+
+    const timeout = window.setTimeout(reveal, 240);
+    return () => window.clearTimeout(timeout);
   }, [mounted, screen.ready, providersLoaded]);
 
   const composerMode = heroMode ? "idle" : "ongoing";
@@ -201,7 +210,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   }, [draft, composerDisabled, screen, triggerPop]);
 
   const chatBody = (
-    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+    <div className="flex h-full min-h-0 flex-1 flex-col gap-3 overflow-hidden">
       <div className="flex shrink-0 flex-col gap-3">
         <HmatPresenceRecess
           className={cn("hmat-orb-presence", presenceShown && "is-shown")}

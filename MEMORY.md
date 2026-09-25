@@ -4,7 +4,26 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-22 (landing bubbles + PWA prompt)
+## Current entry — 2026-09-25 (welcome lag, tab switch, call fit)
+
+### What broke
+- Welcome scroll felt like it trailed the wheel: Lenis `lerp: 0.085` plus scroll-linked `filter: blur` on the schedule fold.
+- Dock tabs called `router.push` and waited on the App Router RSC flight, so Chat/Call/Settings kept showing the previous screen.
+- Call controls sat behind the dock on short phones — 196px glass slab + 76px button + 48px thinking glyph overflowed `h-dvh`. Caption used `outline`, which clipped on `overflow-hidden`.
+- Start Chat stayed hidden while the chat skeleton waited on `providersLoaded`, and `llmReady` only counted a pasted BYOK key (server `OPENROUTER_API_KEY` did not unlock the CTA).
+
+### What changed
+- Landing: snappier Lenis (`lerp: 0.22`), skip Lenis on coarse pointers, drop scroll-linked blur, tighter morph scrub.
+- Dock writes an optimistic `pendingHref`; `HmatTabStage` paints that tab immediately. Screen enter is 160ms, no blur.
+- Call: compact recess, 60px (52px on short viewports) controls, smaller glyph, caption inset with a real border.
+- Chat: reveal the gate CTA without waiting on providers; env or BYOK counts as ready.
+
+### Decision
+Tab switches must not wait on RSC to paint. Do not bring back Lenis `lerp` under ~0.2 or screen-enter blur.
+
+---
+
+## Previous — 2026-09-22 (landing bubbles + PWA prompt)
 
 ### What broke
 - Pinning hero+chat and lifting the inner stack with `translateY` left a cream band (the lift height) between the chat fold and the call fold. Easing the lift off felt like the page scrolling backward; clipping with `max-h-dvh` was reverted. The pin/lift was the gap.

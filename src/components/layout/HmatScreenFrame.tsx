@@ -19,8 +19,16 @@ function getReducedMotion() {
  * Soft enter for Chat / Call / Settings on dock tab change.
  * CSS-only — View Transitions around tab pushes hung App Router navigations.
  */
-export function HmatScreenFrame({ children }: { children: ReactNode }) {
+export function HmatScreenFrame({
+  children,
+  frameKey,
+}: {
+  children: ReactNode;
+  /** Optimistic tab href so the enter animation starts on tap, not after RSC. */
+  frameKey?: string;
+}) {
   const pathname = usePathname();
+  const key = frameKey ?? pathname;
   const reducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
     getReducedMotion,
@@ -35,9 +43,9 @@ export function HmatScreenFrame({ children }: { children: ReactNode }) {
       document
         .querySelector(".hmat-screen-frame--enter")
         ?.classList.remove("hmat-screen-frame--enter");
-    }, 350);
+    }, 220);
     return () => window.clearTimeout(id);
-  }, [pathname, motionOk]);
+  }, [key, motionOk]);
 
   const onAnimationEnd = (e: AnimationEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget) return;
@@ -47,7 +55,7 @@ export function HmatScreenFrame({ children }: { children: ReactNode }) {
 
   return (
     <div
-      key={pathname}
+      key={key}
       className={cn(
         "hmat-screen-frame flex min-h-0 flex-1 flex-col overflow-hidden",
         motionOk && "hmat-screen-frame--enter",

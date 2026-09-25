@@ -32,6 +32,11 @@ export function hasUserProviderKey(status: ProviderUiStatus | null): boolean {
   return status?.source === "user";
 }
 
+/** Env or BYOK — enough to start a chat / call. */
+export function isProviderConnected(status: ProviderUiStatus | null): boolean {
+  return Boolean(status?.connected);
+}
+
 export function useProviderStatus() {
   const [llm, setLlm] = useState<ProviderUiStatus | null>(() => snapshot?.llm ?? null);
   const [tts, setTts] = useState<ProviderUiStatus | null>(() => snapshot?.tts ?? null);
@@ -65,7 +70,7 @@ export function useProviderStatus() {
     llm,
     tts,
     loaded,
-    llmReady: hasUserProviderKey(llm),
-    ttsReady: hasUserProviderKey(tts),
+    llmReady: isProviderConnected(llm),
+    ttsReady: isProviderConnected(tts),
   };
 }

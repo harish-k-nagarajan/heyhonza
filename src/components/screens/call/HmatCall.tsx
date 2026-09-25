@@ -14,7 +14,6 @@ import {
   HmatScreenTitle,
   HmatStatusChip,
 } from "@/components/screens/hmat/HmatUi";
-import { HmatScreenLoading } from "@/components/screens/hmat/HmatChrome";
 import type { CallScreen } from "@/hooks/useCallScreen";
 import { useMoodReactions } from "@/hooks/useMoodReactions";
 import { useReactPop } from "@/hooks/useReactPop";
@@ -64,8 +63,6 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
     wasInCallRef.current = inCall;
   }, [inCall, triggerPop]);
 
-  if (!screen.ready || !providersLoaded) return <HmatScreenLoading />;
-
   const showLiveCaption = inCall && caption;
   const needsKey = providersLoaded && !inCall && (!llmReady || !ttsReady);
   const missingVoice = !ttsReady;
@@ -76,8 +73,10 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
   const keyHref = missingVoice ? ROUTES.settingsAiVoice : ROUTES.settingsAiText;
   const keyCta = missingVoice ? c.addElevenLabsKey : t.chat.addOpenRouterKey;
 
+  const hydrating = !screen.ready || !providersLoaded;
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
+    <div className="hmat-call-layout flex min-h-0 flex-1 flex-col gap-2">
       {inCall ? (
         <div className="flex shrink-0 justify-center">
           <span className="hmat-frost-action rounded-full px-4 py-1.5">
@@ -91,6 +90,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
         stackClassName={stackClassName}
         loading={orbLoading}
         onOrbTap={triggerPop}
+        compact
       />
 
       <div className="flex shrink-0 flex-col items-center gap-1.5">
@@ -132,13 +132,12 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
 
       {needsKey ? null : orbLoading ? (
         <CallThinkingGlyph
+          className="min-h-0 max-h-[72px]"
           label={phase === "connecting" ? c.titleConnecting : c.titleThinking}
         />
-      ) : (
-        <div className="flex-1" />
-      )}
+      ) : null}
 
-      <div className="flex shrink-0 flex-col items-center pb-1">
+      <div className="mt-auto flex shrink-0 flex-col items-center pb-1">
         {needsKey ? (
           <Link
             href={keyHref}
@@ -150,7 +149,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
         ) : (
           <CallControlCluster
             inCall={inCall}
-            disabled={!supported}
+            disabled={!supported || hydrating}
             speakerOn={speakerOn}
             callLabel={c.callCta}
             endLabel={c.endCall}
