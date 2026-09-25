@@ -111,11 +111,11 @@ function landingChatMorphScrollPx(
   return Math.round(travel + vh * 0.06);
 }
 
-/** Tighter scrub on narrow viewports — morph keeps pace with shorter mobile runway. */
+/** Tighter scrub so the morph keeps pace with scroll instead of trailing. */
 function landingChatScrub(): number {
   const w = window.innerWidth;
-  if (w >= 768) return 1.85;
-  return gsap.utils.clamp(1, 1.45, gsap.utils.mapRange(320, 767, 1, 1.45, w));
+  if (w >= 768) return 0.7;
+  return gsap.utils.clamp(0.4, 0.65, gsap.utils.mapRange(320, 767, 0.4, 0.65, w));
 }
 
 export function useLandingChatScrollScene(

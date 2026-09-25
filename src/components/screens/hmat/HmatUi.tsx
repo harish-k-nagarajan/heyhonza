@@ -53,6 +53,7 @@ export function HmatPresenceRecess({
   breathe = true,
   /** `display` = compact rectangular recess + orb for the landing hero. */
   variant = "presence",
+  compact = false,
 }: {
   orbState: HonzaOrbState;
   size?: number;
@@ -63,11 +64,14 @@ export function HmatPresenceRecess({
   className?: string;
   breathe?: boolean;
   variant?: "presence" | "display";
+  /** Smaller orb + bezel so Call fits above the dock on short phones. */
+  compact?: boolean;
 }) {
   const { t } = useLocale();
   const moodLabel = recessMoodLabel(orbState, loading, t);
   const prevOrbState = useRef(orbState);
   const [speakFlash, setSpeakFlash] = useState(false);
+  const faceSize = compact ? Math.min(size, 88) : size;
 
   useLayoutEffect(() => {
     if (orbState === "speaking" && prevOrbState.current !== "speaking") {
@@ -90,7 +94,7 @@ export function HmatPresenceRecess({
   const recessMood: HonzaOrbState = loading || orbState === "thinking" ? "thinking" : orbState;
   const isDisplay = variant === "display";
   const orb = (
-    <HmatOrb state={orbState} size={size} breathe={breathe} stackClassName={stackClassName} />
+    <HmatOrb state={orbState} size={faceSize} breathe={breathe} stackClassName={stackClassName} />
   );
 
   return (
@@ -99,6 +103,7 @@ export function HmatPresenceRecess({
         "hmat-recess-hero",
         recessHeroModifier(recessMood),
         isDisplay && "hmat-recess-hero--display",
+        compact && "hmat-recess-hero--compact",
         className,
       )}
     >

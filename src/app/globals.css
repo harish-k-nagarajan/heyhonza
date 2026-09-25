@@ -99,7 +99,7 @@
   /* Authored presence beat — speak dust + Honza bubble share this */
   --duration-presence-beat: 680ms;
   --duration-presence-wave: 120ms;
-  --duration-screen-in: var(--duration-fast);
+  --duration-screen-in: 160ms;
   --duration-screen-out: 260ms;
   --duration-drawer-in: 280ms;
   --duration-drawer-out: 200ms;
@@ -931,6 +931,48 @@ body:has(.landing-page) {
   padding: 0;
 }
 
+/* Call screen — smaller glass slab so controls stay above the dock. */
+.hmat-recess-hero--compact {
+  padding: 10px 12px 8px;
+  gap: 6px;
+}
+.hmat-recess-hero--compact .hmat-display-module {
+  padding: 8px;
+  margin: -4px -4px 0;
+}
+.hmat-recess-hero--compact .hmat-display-bezel {
+  width: 148px;
+  height: 148px;
+  padding: 14px;
+  border-radius: 22px;
+}
+.hmat-recess-hero--compact .hmat-display-screen {
+  padding: 10px;
+  border-radius: 14px;
+}
+.hmat-recess-hero--compact .mat-channel {
+  width: 148px;
+}
+
+@media (max-height: 700px) {
+  .hmat-recess-hero--compact {
+    padding: 8px 10px 6px;
+    gap: 4px;
+  }
+  .hmat-recess-hero--compact .hmat-display-bezel {
+    width: 128px;
+    height: 128px;
+    padding: 12px;
+    border-radius: 20px;
+  }
+  .hmat-recess-hero--compact .hmat-display-screen {
+    padding: 8px;
+  }
+  .hmat-call-layout {
+    gap: 0.4rem;
+  }
+}
+
 /*
  * Liquid-glass orb slab — thick translucent rim so mood/waveform glow can
  * read through the frame. No white stroke borders. Face stays 120 inside.
@@ -1422,8 +1464,12 @@ body:has(.landing-page) {
 
 .hmat-caption-panel {
   background: rgba(255, 255, 255, 0.6);
-  outline: 1px solid rgba(0, 0, 0, 0.06);
-  height: 100px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  height: 118px;
+  width: calc(100% - 16px);
+  max-width: 100%;
+  margin-inline: auto;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -1528,6 +1574,23 @@ body:has(.landing-page) {
   background: #c46b6b;
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 6px 16px rgba(196, 107, 107, 0.25);
+}
+
+.hmat-call-btn {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+@media (max-height: 700px) {
+  .hmat-call-btn {
+    width: 52px;
+    height: 52px;
+  }
+  .call-control-stage {
+    min-height: 52px;
+    min-width: 180px;
+  }
 }
 
 /* Call control cluster — droplet split stage */
@@ -1638,13 +1701,11 @@ body:has(.landing-page) {
 @keyframes hmat-screen-enter {
   from {
     opacity: 0;
-    transform: translateY(var(--distance-base));
-    filter: blur(var(--blur-medium));
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
@@ -1972,11 +2033,21 @@ body:has(.landing-page) {
   --think-highlight: #ffffff;
 }
 
-.hmat-chat-skel,
-.hmat-chat-skel-layer {
-  display: flex;
+.hmat-chat-skel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   min-height: 0;
-  flex: 1;
+  flex: 1 1 0%;
+  overflow: hidden;
+}
+.hmat-chat-skel > .hmat-chat-skel-layer {
+  position: relative;
+  inset: auto;
+  grid-area: 1 / 1;
+  display: flex;
+  height: 100%;
+  min-height: 0;
   flex-direction: column;
   gap: 0.75rem;
   overflow: hidden;
@@ -2077,6 +2148,7 @@ body:has(.landing-page) {
 .hmat-chat-action-face.is-front {
   opacity: 1;
   pointer-events: auto;
+  z-index: 1;
 }
 
 .t-dropdown {

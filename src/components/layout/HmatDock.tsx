@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -16,6 +17,8 @@ import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { tapLight } from "@/lib/interaction/haptic";
 import { useLocale } from "@/lib/i18n/useLocale";
+import { isHmatMainTab } from "@/lib/hmat-tabs";
+import { useTabNavStore } from "@/stores/useTabNavStore";
 
 /**
  * O4 frost dock — Chat · Hovor · Nastavení. Horizontal icon+label tabs on frosted
@@ -55,6 +58,8 @@ export function HmatDock() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
+  const setPendingHref = useTabNavStore((s) => s.setPendingHref);
+  const pendingHref = useTabNavStore((s) => s.pendingHref);
   const navRef = useRef<HTMLElement>(null);
   const tabRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const [pill, setPill] = useState({ left: 0, width: 0 });
@@ -78,7 +83,12 @@ export function HmatDock() {
   const activeIndex = TABS.findIndex(
     (tab) => pathname === tab.href || pathname.startsWith(`${tab.href}/`),
   );
-  const highlightIndex = previewIndex ?? (activeIndex >= 0 ? activeIndex : 0);
+  const pendingIndex = pendingHref
+    ? TABS.findIndex((tab) => tab.href === pendingHref)
+    : -1;
+  const highlightIndex =
+    previewIndex ??
+    (pendingIndex >= 0 ? pendingIndex : activeIndex >= 0 ? activeIndex : 0);
 
   const measureTabs = useCallback((): TabMetrics[] => {
     const nav = navRef.current;
@@ -103,20 +113,26 @@ export function HmatDock() {
 
   useLayoutEffect(() => {
     if (dragRef.current.active) return;
-    snapPillToIndex(activeIndex >= 0 ? activeIndex : 0);
-    const onResize = () => snapPillToIndex(activeIndex >= 0 ? activeIndex : 0);
+    const index = pendingIndex >= 0 ? pendingIndex : activeIndex >= 0 ? activeIndex : 0;
+    snapPillToIndex(index);
+    const onResize = () => snapPillToIndex(index);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [activeIndex, pathname, snapPillToIndex]);
+  }, [activeIndex, pendingIndex, pathname, snapPillToIndex]);
 
   const goToHref = useCallback(
     (href: string, haptic: boolean) => {
       if (pathname === href || pathname.startsWith(`${href}/`)) return;
       if (haptic) tapLight();
+      if (isHmatMainTab(href)) setPendingHref(href);
       router.push(href);
     },
-    [pathname, router],
+    [pathname, router, setPendingHref],
   );
+
+  useEffect(() => {
+    for (const tab of TABS) router.prefetch(tab.href);
+  }, [router]);
 
   const onPointerDown = useCallback(
     (e: PointerEvent<HTMLElement>) => {
@@ -234,9 +250,11 @@ export function HmatDock() {
         return;
       }
       e.preventDefault();
+      const index = TABS.findIndex((tab) => tab.href === href);
+      if (index >= 0) snapPillToIndex(index);
       goToHref(href, true);
     },
-    [goToHref],
+    [goToHref, snapPillToIndex],
   );
 
   return (

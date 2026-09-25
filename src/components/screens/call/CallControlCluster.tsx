@@ -19,7 +19,7 @@ function VolumeIcon({ active }: { active: boolean }) {
 
 function HangIcon() {
   return (
-    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path d="M12 3a9 9 0 0 0-9 9v3l2-2v-1a7 7 0 0 1 14 0v1l2 2v-3a9 9 0 0 0-9-9zm-5 11 2.3 2.3a3 3 0 0 0 4.2 0L16 14l-1.4-1.4-2.3 2.3a1 1 0 0 1-1.4 0L8.6 12.6 7.2 14z" />
     </svg>
   );
@@ -53,7 +53,7 @@ export function CallControlCluster({
   const reducedMotion = useReducedMotion();
 
   return (
-    <div className="call-control-stage relative flex min-h-[76px] min-w-[220px] items-center justify-center">
+    <div className="call-control-stage relative flex min-h-[60px] min-w-[200px] items-center justify-center">
       <AnimatePresence mode="wait" initial={false}>
         {!inCall ? (
           <motion.div
@@ -77,9 +77,9 @@ export function CallControlCluster({
               onClick={onStartCall}
               disabled={disabled}
               aria-label={callLabel}
-              className="hmat-call-start flex h-[76px] w-[76px] items-center justify-center rounded-full text-white disabled:opacity-40"
+              className="hmat-call-start hmat-call-btn flex items-center justify-center rounded-full text-white disabled:opacity-40"
             >
-              <HardwareIcon name="call" size={30} emboss={false} />
+              <HardwareIcon name="call" size={24} emboss={false} />
             </button>
           </motion.div>
         ) : (
@@ -91,7 +91,7 @@ export function CallControlCluster({
             exit={reducedMotion ? { opacity: 0 } : { opacity: 0, transition: { duration: 0.15 } }}
           >
             <motion.div
-              className="flex h-[76px] items-center justify-center"
+              className="flex items-center justify-center"
               initial={
                 reducedMotion ? false : { x: 34, scale: 0.45, opacity: 0 }
               }
@@ -107,7 +107,7 @@ export function CallControlCluster({
                 aria-pressed={speakerOn}
                 aria-label={speakerOn ? speakerOnAria : speakerOffAria}
                 className={cn(
-                  "flex h-[76px] w-[76px] items-center justify-center rounded-full border transition",
+                  "hmat-call-btn flex items-center justify-center rounded-full border transition",
                   speakerOn
                     ? "hmat-call-start border-white/25 text-white"
                     : "hmat-frost-action border-black/10 text-[#6E8A74]",
@@ -118,7 +118,7 @@ export function CallControlCluster({
             </motion.div>
 
             <motion.div
-              className="flex h-[76px] items-center justify-center"
+              className="flex items-center justify-center"
               initial={
                 reducedMotion ? false : { x: -34, scale: 0.45, opacity: 0 }
               }
@@ -132,7 +132,7 @@ export function CallControlCluster({
                   onEndCall();
                 }}
                 aria-label={endLabel}
-                className="hmat-call-end flex h-[76px] w-[76px] items-center justify-center rounded-full text-white"
+                className="hmat-call-end hmat-call-btn flex items-center justify-center rounded-full text-white"
               >
                 <HangIcon />
               </button>

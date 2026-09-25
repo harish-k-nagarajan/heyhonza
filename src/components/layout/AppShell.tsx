@@ -9,11 +9,14 @@ import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { DESIGNS } from "@/lib/design/registry";
+import { displayTabHref, isHmatMainTab } from "@/lib/hmat-tabs";
 import { useDesignStore } from "@/stores/useDesignStore";
+import { useTabNavStore } from "@/stores/useTabNavStore";
 
 import { BottomNav } from "./BottomNav";
 import { HmatDock } from "./HmatDock";
 import { HmatScreenFrame } from "./HmatScreenFrame";
+import { HmatTabStage } from "./HmatTabStage";
 import { ServerSync } from "./ServerSync";
 
 /** Hmat landing runs at excited-level energy so the channel and orb feel alive. */
@@ -21,10 +24,13 @@ const LANDING_ENERGY = 0.85;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const pendingHref = useTabNavStore((s) => s.pendingHref);
   const expression = useMoodExpression();
   const design = useDesignStore((s) => s.design);
   const designHydrated = useDesignHydrated();
   const family = DESIGNS[design].family;
+  const tabHref = displayTabHref(pathname, pendingHref);
+  const useTabStage = isHmatMainTab(tabHref);
 
   const isWelcome = pathname.startsWith(ROUTES.welcome);
   const isHmat = family === "hmat" && designHydrated;
@@ -77,7 +83,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               paddingBottom: hideNav ? welcomeBottomPad : "calc(96px + env(safe-area-inset-bottom))",
             }}
           >
-            {hideNav || isWelcome ? children : <HmatScreenFrame>{children}</HmatScreenFrame>}
+            {hideNav || isWelcome ? (
+              children
+            ) : (
+              <HmatScreenFrame frameKey={useTabStage ? tabHref : pathname}>
+                {useTabStage ? <HmatTabStage /> : children}
+              </HmatScreenFrame>
+            )}
           </div>
         </div>
         {!hideNav ? <HmatDock /> : null}
