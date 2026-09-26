@@ -205,17 +205,19 @@ export const useChatStore = create<ChatState>()(
           });
         }
       },
-      hydrateSessions: ({ activeSessionId, endedSessions, messages, archivedMessages }) =>
+      hydrateSessions: ({ activeSessionId, endedSessions, messages, archivedMessages }) => {
+        const hasThread = messages.length > 0;
         set({
-          activeSessionId,
+          activeSessionId: hasThread ? activeSessionId : null,
           endedSessions,
           messages,
           archivedMessages: archivedMessages ?? get().archivedMessages,
-          chatPhase: activeSessionId ? "active" : "idle",
+          chatPhase: hasThread ? "active" : "idle",
           lastError: null,
           typingPreview: null,
           status: "idle",
-        }),
+        });
+      },
       setArchivedSessionMessages: (sessionId, messages) =>
         set((s) => ({
           archivedMessages: { ...s.archivedMessages, [sessionId]: messages },
@@ -250,8 +252,7 @@ export const useChatStore = create<ChatState>()(
       }),
       merge: (persisted, current) => {
         const migrated = migrateLegacyState(persisted);
-        const chatPhase: ChatPhase =
-          migrated.activeSessionId && migrated.messages.length > 0 ? "active" : "idle";
+        const chatPhase: ChatPhase = migrated.messages.length > 0 ? "active" : "idle";
         return {
           ...current,
           ...migrated,

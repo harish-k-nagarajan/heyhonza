@@ -90,7 +90,6 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
         stackClassName={stackClassName}
         loading={orbLoading}
         onOrbTap={triggerPop}
-        compact
       />
 
       <div className="flex shrink-0 flex-col items-center gap-1.5">
