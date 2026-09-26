@@ -63,8 +63,9 @@ export const LANDING_TOPIC_IDS = TOPIC_OPTIONS.map((t) => t.id);
 export const DEMO_CHAT_BEATS = [
   {
     honza: "Ahoj! Dneska bych si chtěl popovídat o jídle. Co máš nejradši k obědu?",
-    user: "Mám rád knedlíky s omáčkou.",
-    honzaFix: 'Skoro! Správně: „Mám rád knedlíky s omáčkou." — výborně, pokračuj!',
+    user: "Mám rád knedlík s omáčkou.",
+    honzaFix:
+      'Skoro! Řekni „knedlíky" (množné číslo): „Mám rád knedlíky s omáčkou." Jinak super, pokračuj!',
   },
   {
     honza: "Super! A co piješ k obědu — vodu, nebo radši kávu?",

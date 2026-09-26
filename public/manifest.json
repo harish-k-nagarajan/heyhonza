@@ -1,7 +1,7 @@
 {
   "name": "Honza — learn Czech",
   "short_name": "Honza",
-  "description": "Learn Czech with Honza, a friendly AI tutor. Short daily conversations, real corrections.",
+  "description": "Text Honza in Czech every day — he writes first, you reply, he keeps the chat going.",
   "start_url": "/welcome",
   "scope": "/",
   "display": "standalone",
