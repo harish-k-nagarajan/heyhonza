@@ -34,8 +34,6 @@ export type CallCopy = {
   captionOffConnecting: string;
   callCta: string;
   endCall: string;
-  speakerOnAria: string;
-  speakerOffAria: string;
   liveCall: string;
   callHonza: string;
   callDurationAria: string;
@@ -176,6 +174,10 @@ export type ErrorsCopy = {
   fileType: string;
   fileEmpty: string;
   pastedTextLabel: string;
+  modelNotConfigured: string;
+  replyTimeout: string;
+  modelBusy: string;
+  modelAuth: string;
 };
 
 export type FileInputCopy = {
@@ -214,7 +216,7 @@ const enExtended: ExtendedCopy = {
       idle: "WAITING",
       thinking: "THINKING",
       speaking: "SPEAKING",
-      oops: "ERROR",
+      oops: "OOPS",
       excited: "GREAT",
     },
     recessThinking: "THINKING",
@@ -237,8 +239,6 @@ const enExtended: ExtendedCopy = {
     captionOffConnecting: "Calling… Honza's words will appear here.",
     callCta: "Call",
     endCall: "End",
-    speakerOnAria: "Using phone speaker — switch to earpiece",
-    speakerOffAria: "Using earpiece — switch to phone speaker",
     liveCall: "Live call",
     callHonza: "Call Honza",
     callDurationAria: "Call duration",
@@ -258,10 +258,12 @@ const enExtended: ExtendedCopy = {
     statusThinking: "Honza is thinking…",
     titleUnlinked: "Call with Honza",
     chipUnlinked: "unlinked",
-    missingElevenLabsTitle: "Calls need a key",
-    missingElevenLabs: "Honza uses ElevenLabs to power calls. Add an API key to continue.",
-    missingOpenRouterTitle: "Calls need a key",
-    missingOpenRouter: "Honza uses OpenRouter to power replies. Add an API key to continue.",
+    missingElevenLabsTitle: "I need a voice key for calls",
+    missingElevenLabs:
+      "ElevenLabs lets me speak on calls. Add a key in Settings, then tap Call again.",
+    missingOpenRouterTitle: "I need a key to write back",
+    missingOpenRouter:
+      "Paste your OpenRouter key here, or skip and add it in Settings when you're ready.",
     addElevenLabsKey: "Add ElevenLabs key",
   },
   onboarding: {
@@ -281,9 +283,9 @@ const enExtended: ExtendedCopy = {
     step4Title: "When should Honza write?",
     step4Body:
       "One to three Czech messages a day, pick a time or keep it random",
-    step5Title: "Your AI keys",
+    step5Title: "So I can reply (and talk)",
     step5Body:
-      "Paste OpenRouter for chat and ElevenLabs for voice, or skip and add keys in Settings later",
+      "Paste keys for chat and voice, or skip — you can add them in Settings anytime.",
     step6Title: "Teach Honza about you",
     step6Body:
       "Google Doc, file, or pasted text helps Honza know you, or skip and add it later",
@@ -303,7 +305,8 @@ const enExtended: ExtendedCopy = {
   install: {
     label: "INSTALL",
     dismiss: "Not now",
-    body: "Install Honza for quicker daily practice.",
+    body:
+      "Add Honza to your home screen — open the app and your Czech message is already waiting.",
     install: "Install",
     iosShare: "Share",
     iosAdd: "Add to Home Screen",
@@ -419,6 +422,11 @@ const enExtended: ExtendedCopy = {
     fileType: "Only .txt and .md files are supported.",
     fileEmpty: "File is empty.",
     pastedTextLabel: "Pasted text",
+    modelNotConfigured:
+      "Honza can't reply right now. Check Settings or try again in a bit.",
+    replyTimeout: "Honza took too long to reply. Try again.",
+    modelBusy: "The model is busy right now. Try again in a moment.",
+    modelAuth: "Server auth error contacting the model.",
   },
   fileInput: {
     chooseFile: "Choose file",
@@ -444,7 +452,7 @@ const csExtended: ExtendedCopy = {
       idle: "ČEKÁ",
       thinking: "PŘEMÝŠLÍ",
       speaking: "MLUVÍ",
-      oops: "CHYBA",
+      oops: "UPS",
       excited: "SKVĚLE",
     },
     recessThinking: "PŘEMÝŠLÍ",
@@ -467,8 +475,6 @@ const csExtended: ExtendedCopy = {
     captionOffConnecting: "Volá se… Honzovy slova se objeví zde.",
     callCta: "Zavolat",
     endCall: "Ukončit",
-    speakerOnAria: "Reproduktor telefonu — přepnout na sluchátko",
-    speakerOffAria: "Sluchátko — přepnout na reproduktor telefonu",
     liveCall: "Probíhající hovor",
     callHonza: "Zavolat Honzovi",
     callDurationAria: "Délka hovoru",
@@ -488,10 +494,12 @@ const csExtended: ExtendedCopy = {
     statusThinking: "Honza přemýšlí…",
     titleUnlinked: "Hovor s Honzou",
     chipUnlinked: "odpojen",
-    missingElevenLabsTitle: "Hovor potřebuje klíč",
-    missingElevenLabs: "Honza používá ElevenLabs pro hovory. Přidej API klíč a můžeme pokračovat.",
-    missingOpenRouterTitle: "Hovor potřebuje klíč",
-    missingOpenRouter: "Honza používá OpenRouter pro odpovědi. Přidej API klíč a můžeme pokračovat.",
+    missingElevenLabsTitle: "Na hovory potřebuju hlasový klíč",
+    missingElevenLabs:
+      "ElevenLabs mi dá hlas v hovorech. Přidej klíč v nastavení a klepni znovu na Hovor.",
+    missingOpenRouterTitle: "Potřebuju klíč, abych ti mohl psát",
+    missingOpenRouter:
+      "Vlož sem OpenRouter klíč, nebo přeskoč a doplň ho v nastavení, až budeš připravený.",
     addElevenLabsKey: "Přidat ElevenLabs klíč",
   },
   onboarding: {
@@ -511,9 +519,9 @@ const csExtended: ExtendedCopy = {
     step4Title: "Kdy má Honza psát?",
     step4Body:
       "Jedna až tři české zprávy denně, vyber čas nebo nech náhodu",
-    step5Title: "Tvoje AI klíče",
+    step5Title: "Abych mohl odpovídat (a mluvit)",
     step5Body:
-      "OpenRouter pro chat a ElevenLabs pro hovory, nebo přeskoč a klíče doplníš v nastavení",
+      "Vlož klíče pro chat a hlas, nebo přeskoč — doplníš je v nastavení kdykoli.",
     step6Title: "Řekni Honzovi něco o sobě",
     step6Body:
       "Google Doc, soubor nebo vložený text, nebo přeskoč a doplníš to později",
@@ -533,7 +541,8 @@ const csExtended: ExtendedCopy = {
   install: {
     label: "Instalace",
     dismiss: "Teď ne",
-    body: "Nainstaluj Honzu pro rychlejší každodenní procvičování.",
+    body:
+      "Přidej Honzu na plochu — otevřeš appku a česká zpráva už na tebe čeká.",
     install: "Instalovat",
     iosShare: "Sdílet",
     iosAdd: "Přidat na plochu",
@@ -649,6 +658,11 @@ const csExtended: ExtendedCopy = {
     fileType: "Podporované jsou jen soubory .txt a .md.",
     fileEmpty: "Soubor je prázdný.",
     pastedTextLabel: "Vložený text",
+    modelNotConfigured:
+      "Honza teď nemůže odpovědět. Zkontroluj nastavení nebo zkus později.",
+    replyTimeout: "Honza odpovídal moc dlouho. Zkus to znovu.",
+    modelBusy: "Model je teď vytížený. Zkus to za chvíli znovu.",
+    modelAuth: "Chyba přihlášení serveru k modelu.",
   },
   fileInput: {
     chooseFile: "Vybrat soubor",
@@ -740,6 +754,13 @@ export function localizeClientError(message: string | null, errors: ErrorsCopy):
     "Only .txt and .md files are supported.": errors.fileType,
     "File is empty.": errors.fileEmpty,
     "Pasted text": errors.pastedTextLabel,
+    "Honza can't reply right now. Check Settings or try again in a bit.":
+      errors.modelNotConfigured,
+    "OPENROUTER_API_KEY is missing on the server (e.g. Vercel env).":
+      errors.modelNotConfigured,
+    "Honza took too long to reply. Try again.": errors.replyTimeout,
+    "The model is busy right now. Try again in a moment.": errors.modelBusy,
+    "Server auth error contacting the model.": errors.modelAuth,
     Error: errors.importFailed,
   };
   return map[message] ?? message;

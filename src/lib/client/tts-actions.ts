@@ -32,11 +32,6 @@ export function stopSpeaking() {
   teardown();
 }
 
-/** Re-apply earpiece/speaker routing to audio currently playing (mid-call toggle). */
-export async function reapplyAudioRoute(): Promise<void> {
-  if (current) await applyRouteToAudioElement(current);
-}
-
 export class SpeechPlaybackError extends Error {}
 
 export type SpeakOptions = {
