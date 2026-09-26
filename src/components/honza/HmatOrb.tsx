@@ -1,129 +1,124 @@
 "use client";
 
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 
 import { cn } from "@/lib/cn";
-import { moodExpression } from "@/lib/mood/expression";
+import {
+  CERAMIC_FACE_CONFIG,
+  CERAMIC_FACES,
+  CERAMIC_PIXEL,
+  CERAMIC_VIEW,
+  ORB_LED,
+  moodToCeramicFace,
+  type CeramicFace,
+  type CeramicPixel,
+} from "./ceramic-faces";
 import type { HonzaOrbState } from "./theme";
 
 /**
- * The Hmat orb — the same 15×15 dot-matrix DNA as Classic's `HonzaOrb`, evolved
- * for the tactile world: a backlight glow, an emissive drop-shadow, and a
- * specular dome, all scaled by the mood's `--energy` (dim/calm at idle,
- * bright/lively at excited — the idle-vs-excited fix, never a re-hue). A blink
- * loop collapses the eyes ~every 5s (faster with energy), and a press/answer
- * `react-pop` can be triggered on real events.
- *
- * The pixel maps are the RE-AUTHORED round-4 set (MLUVÍ = open-mouth "O", MYSLÍ =
- * eyes-up + thought bubble, every state a readable 2×2 eye pair + distinct
- * mouth). Classic keeps its original maps in `HonzaOrb`; these are Hmat-only.
+ * Ceramic Honza — one porcelain body with an inset LED matrix, seated in the
+ * recess. Faces swap from the pen atlas; glow / rays / particles follow the
+ * face config. Compact sizes skip stage effects. `react-pop` plays the
+ * surprised beat (~280ms via useReactPop), then the real mood returns.
  */
 
-const GRID = 15;
-const VIEW = 90;
-const CELL = VIEW / GRID;
-const DOT = CELL * 0.82;
-const PAD = (CELL - DOT) / 2;
-const BG_A = 0.1;
-const FAINT = 0.42;
+const HERO_MIN = 100;
 
-const k = (x: number, y: number) => `${x},${y}`;
-const EL = [k(4, 5), k(5, 5), k(4, 6), k(5, 6)];
-const ER = [k(9, 5), k(10, 5), k(9, 6), k(10, 6)];
-const EL_LINE = [k(4, 6), k(5, 6)];
-const ER_LINE = [k(9, 6), k(10, 6)];
+const RAYS = [
+  { className: "hmat-orb-ray hmat-orb-ray--lu", style: { left: "5%", top: "24%", transform: "rotate(-30deg)" } },
+  { className: "hmat-orb-ray hmat-orb-ray--ll", style: { left: "3.5%", top: "37%", transform: "rotate(-6deg)" } },
+  { className: "hmat-orb-ray hmat-orb-ray--ru", style: { right: "5%", top: "28%", transform: "rotate(30deg)" } },
+  { className: "hmat-orb-ray hmat-orb-ray--rl", style: { right: "3.5%", top: "36%", transform: "rotate(6deg)" } },
+] as const;
 
-type FaceMap = { a: string[]; f: string[]; blink: string[] };
+const PARTICLES = [
+  { left: "12.5%", top: "16%", size: 5, delay: "0s", opacity: 1 },
+  { left: "85.5%", top: "12%", size: 4, delay: "0.4s", opacity: 0.7 },
+  { left: "6.5%", top: "56%", size: 4, delay: "0.9s", opacity: 0.6 },
+  { left: "92.5%", top: "49%", size: 6, delay: "1.3s", opacity: 0.85 },
+  { left: "18%", top: "78%", size: 3, delay: "1.8s", opacity: 0.5 },
+  { left: "80.5%", top: "77%", size: 4, delay: "2.2s", opacity: 0.65 },
+] as const;
 
-const MAPS: Record<HonzaOrbState, FaceMap> = {
-  // calm, content — 2×2 eyes, gentle U smile, faint cheeks
-  idle: {
-    a: [...EL, ...ER, k(4, 9), k(10, 9), k(5, 10), k(6, 10), k(7, 10), k(8, 10), k(9, 10)],
-    f: [k(2, 8), k(12, 8)],
-    blink: [...EL_LINE, ...ER_LINE, k(4, 9), k(10, 9), k(5, 10), k(6, 10), k(7, 10), k(8, 10), k(9, 10)],
-  },
-  // pondering — eyes up + neutral mouth + thought bubble top-right
-  thinking: {
-    a: [k(4, 4), k(5, 4), k(4, 5), k(5, 5), k(9, 4), k(10, 4), k(9, 5), k(10, 5), k(6, 10), k(7, 10), k(8, 10), k(12, 1), k(13, 1), k(12, 2), k(13, 2)],
-    f: [k(11, 3)],
-    blink: [k(4, 5), k(5, 5), k(9, 5), k(10, 5), k(6, 10), k(7, 10), k(8, 10), k(12, 1), k(13, 1), k(12, 2), k(13, 2)],
-  },
-  // talking — eyes + hollow open mouth "O"
-  speaking: {
-    a: [...EL, ...ER, k(6, 9), k(7, 9), k(8, 9), k(5, 10), k(9, 10), k(6, 11), k(7, 11), k(8, 11)],
-    f: [k(12, 6), k(13, 7)],
-    blink: [...EL_LINE, ...ER_LINE, k(6, 9), k(7, 9), k(8, 9), k(5, 10), k(9, 10), k(6, 11), k(7, 11), k(8, 11)],
-  },
-  // gentle correction — worried raised-inner brows + small eyes + shallow frown
-  oops: {
-    a: [k(3, 3), k(4, 4), k(11, 3), k(10, 4), k(4, 5), k(5, 5), k(9, 5), k(10, 5), k(5, 11), k(6, 10), k(7, 10), k(8, 10), k(9, 11)],
-    f: [],
-    blink: [k(3, 3), k(4, 4), k(11, 3), k(10, 4), k(4, 6), k(5, 6), k(9, 6), k(10, 6), k(5, 11), k(6, 10), k(7, 10), k(8, 10), k(9, 11)],
-  },
-  // delighted — wide eyes + big grin + cheeks
-  excited: {
-    a: [k(3, 4), k(4, 4), k(5, 4), k(3, 5), k(4, 5), k(5, 5), k(9, 4), k(10, 4), k(11, 4), k(9, 5), k(10, 5), k(11, 5), k(3, 9), k(11, 9), k(4, 10), k(10, 10), k(5, 11), k(6, 11), k(7, 11), k(8, 11), k(9, 11)],
-    f: [k(2, 7), k(12, 7)],
-    blink: [k(3, 5), k(4, 5), k(5, 5), k(9, 5), k(10, 5), k(11, 5), k(3, 9), k(11, 9), k(4, 10), k(10, 10), k(5, 11), k(6, 11), k(7, 11), k(8, 11), k(9, 11)],
-  },
-};
-
-type Cell = { x: number; y: number; mode: "accent" | "faint" | "bg" };
-
-function cellsFor(accent: string[], faint: string[]): Cell[] {
-  const A = new Set(accent);
-  const F = new Set(faint);
-  const out: Cell[] = [];
-  for (let y = 0; y < GRID; y++) {
-    for (let x = 0; x < GRID; x++) {
-      const id = k(x, y);
-      out.push({ x, y, mode: A.has(id) ? "accent" : F.has(id) ? "faint" : "bg" });
-    }
-  }
-  return out;
+function PixelLayer({
+  pixels,
+  className,
+  fill,
+}: {
+  pixels: CeramicPixel[];
+  className?: string;
+  fill: string;
+}) {
+  return (
+    <svg
+      className={className}
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${CERAMIC_VIEW} ${CERAMIC_VIEW}`}
+      aria-hidden
+    >
+      {pixels.map((px, i) => (
+        <rect
+          key={`${px.x}-${px.y}-${i}`}
+          x={px.x}
+          y={px.y}
+          width={CERAMIC_PIXEL}
+          height={CERAMIC_PIXEL}
+          rx={1.08}
+          fill={fill}
+          opacity={px.o ?? 1}
+        />
+      ))}
+    </svg>
+  );
 }
 
-function Face({ cells }: { cells: Cell[] }) {
+function FaceLayers({ face, led }: { face: CeramicFace; led: string }) {
+  const map = CERAMIC_FACES[face];
+  const openEyes = useMemo(() => [...map.eyes, ...map.cheeks], [map]);
+  const blinkEyes = useMemo(() => [...map.blink, ...map.cheeks], [map]);
+  const isSpeaking = face === "speaking";
+
   return (
-    <svg width="100%" height="100%" viewBox={`0 0 ${VIEW} ${VIEW}`} aria-hidden>
-      {cells.map(({ x, y, mode }) => {
-        if (mode === "bg") {
-          const d = DOT * 0.28;
-          const cx = x * CELL + CELL / 2 - d / 2;
-          const cy = y * CELL + CELL / 2 - d / 2;
-          return (
-            <rect key={`${x}-${y}`} x={cx} y={cy} width={d} height={d} rx={d * 0.35} fill={`rgba(0,0,0,${BG_A})`} />
-          );
-        }
-        const xi = x * CELL + PAD;
-        const yi = y * CELL + PAD;
-        const rx = Math.min(DOT * 0.22, CELL * 0.28);
-        return (
-          <rect
-            key={`${x}-${y}`}
-            x={xi}
-            y={yi}
-            width={DOT}
-            height={DOT}
-            rx={rx}
-            fill="var(--accent)"
-            opacity={mode === "faint" ? FAINT : 1}
-          />
-        );
-      })}
-    </svg>
+    <div className="hmat-orb-face" data-face={face}>
+      <div className="hmat-orb-eyes hmat-orb-eyes--open">
+        <PixelLayer pixels={openEyes} fill={led} />
+      </div>
+      <div className="hmat-orb-eyes hmat-orb-eyes--blink">
+        <PixelLayer pixels={blinkEyes} fill={led} />
+      </div>
+      {isSpeaking ? (
+        <>
+          <div className="hmat-orb-mouth hmat-orb-mouth--open">
+            <PixelLayer pixels={map.mouth} fill={led} />
+          </div>
+          <div className="hmat-orb-mouth hmat-orb-mouth--mid">
+            <PixelLayer pixels={map.mouthMid ?? map.mouth} fill={led} />
+          </div>
+          <div className="hmat-orb-mouth hmat-orb-mouth--wide">
+            <PixelLayer pixels={map.mouthWide ?? map.mouth} fill={led} />
+          </div>
+        </>
+      ) : (
+        <div className="hmat-orb-mouth hmat-orb-mouth--static">
+          <PixelLayer pixels={map.mouth} fill={led} />
+        </div>
+      )}
+    </div>
   );
 }
 
 export type HmatOrbProps = {
   state?: HonzaOrbState;
-  /** Pixel size of the square orb. */
+  /** Pixel size of the square orb body. */
   size?: number;
-  /** Slow breathing scale. On by default; off for small inline avatars. */
+  /** Slow floating / breathing. On by default; off for small inline avatars. */
   breathe?: boolean;
   className?: string;
-  /** Extra class on the .stack — used to trigger the react-pop keyframe. */
+  /** Extra class on the stage — used to trigger the react-pop / surprised beat. */
   stackClassName?: string;
+  /** Composer focus / call listening — lean in, pause blinks. */
+  attentive?: boolean;
 };
 
 export function HmatOrb({
@@ -132,31 +127,95 @@ export function HmatOrb({
   breathe = true,
   className,
   stackClassName,
+  attentive = false,
 }: HmatOrbProps) {
-  const map = MAPS[state] ?? MAPS.idle;
-  const openCells = useMemo(() => cellsFor(map.a, map.f), [map]);
-  const blinkCells = useMemo(() => cellsFor(map.blink, map.f), [map]);
-  // Self-tinting: each orb carries its own state's accent + energy, so a face
-  // shown out of the app flow (a specimen, an inline avatar) reads correctly.
-  const expr = moodExpression(state);
+  const hero = size >= HERO_MIN;
+  const popping = stackClassName === "react-pop";
+  const face: CeramicFace = popping ? "surprised" : moodToCeramicFace(state);
+  const config = CERAMIC_FACE_CONFIG[face];
+  const uid = useId();
+  const blinkDelay = useMemo(() => {
+    let h = 0;
+    for (let i = 0; i < uid.length; i++) h = (h * 31 + uid.charCodeAt(i)) | 0;
+    return `${-((Math.abs(h) % 450) / 100).toFixed(2)}s`;
+  }, [uid]);
+
+  const showRays = hero && config.rays;
+  const showParticles = hero && config.particles;
+  const floatOn = hero && breathe;
 
   return (
     <div
-      className={cn("hmat-orb", className)}
+      className={cn("hmat-orb", hero ? "hmat-orb--hero" : "hmat-orb--compact", className)}
       data-orb={state}
+      data-face={face}
+      data-attentive={attentive ? "true" : undefined}
       style={{
         width: size,
         height: size,
-        ["--accent" as string]: expr.accent,
-        ["--energy" as string]: expr.energy,
+        ["--orb-glow" as string]: config.glow,
+        ["--orb-led" as string]: ORB_LED,
+        ["--orb-rotation" as string]: `${config.rotation}deg`,
+        ["--orb-intensity" as string]: String(config.intensity),
+        ["--orb-blink-delay" as string]: blinkDelay,
       }}
     >
-      <div className={cn("stack", breathe && "breathe", stackClassName)}>
-        <div className="open-layer" style={{ position: "absolute", inset: 0, opacity: 1 }}>
-          <Face cells={openCells} />
-        </div>
-        <div className="blink-layer" style={{ position: "absolute", inset: 0, opacity: 0 }}>
-          <Face cells={blinkCells} />
+      <div
+        className={cn(
+          "hmat-orb-stage",
+          floatOn && "hmat-orb-stage--float",
+          popping && "react-pop",
+        )}
+      >
+        {hero ? (
+          <>
+            <div className="hmat-orb-aura" aria-hidden />
+            <div className="hmat-orb-spill" aria-hidden />
+            <div className="hmat-orb-shadow" aria-hidden />
+            <div className="hmat-orb-contact" aria-hidden />
+          </>
+        ) : null}
+
+        {showRays ? (
+          <div className="hmat-orb-rays" aria-hidden>
+            {RAYS.map((ray) => (
+              <span key={ray.className} className={ray.className} style={ray.style} />
+            ))}
+          </div>
+        ) : null}
+
+        {showParticles ? (
+          <div className="hmat-orb-particles" aria-hidden>
+            {PARTICLES.map((pt, i) => (
+              <span
+                key={i}
+                className="hmat-orb-particle"
+                style={{
+                  left: pt.left,
+                  top: pt.top,
+                  width: pt.size,
+                  height: pt.size,
+                  opacity: pt.opacity,
+                  animationDelay: pt.delay,
+                }}
+              />
+            ))}
+          </div>
+        ) : null}
+
+        <div className="hmat-orb-body">
+          <div className="hmat-orb-porcelain" aria-hidden />
+          <div className="hmat-orb-ceramic" aria-hidden />
+          <div className="hmat-orb-sheen" aria-hidden />
+          <div className="hmat-orb-specular" aria-hidden />
+          <div className="hmat-orb-rim-right" aria-hidden />
+          <div className="hmat-orb-rim-bottom" aria-hidden />
+          <div className="hmat-orb-bezel" aria-hidden />
+          <div className="hmat-orb-matrix">
+            <div className="hmat-orb-matrix-dots" aria-hidden />
+            <FaceLayers face={face} led={`var(--orb-led, ${ORB_LED})`} />
+            <div className="hmat-orb-glass" aria-hidden />
+          </div>
         </div>
       </div>
     </div>
