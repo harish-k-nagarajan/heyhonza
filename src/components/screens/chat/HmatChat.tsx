@@ -313,7 +313,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
                   tapLight();
                   screen.startChat();
                 }}
-                disabled={!providersLoaded || !llmReady}
+                disabled={providersLoaded && !llmReady}
                 className="hmat-ink-action flex h-[52px] w-full items-center justify-center rounded-2xl text-white disabled:opacity-40"
               >
                 <span className={cn(TYPE.bodySm, "font-display font-semibold")}>
