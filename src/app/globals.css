@@ -973,6 +973,21 @@ body:has(.landing-page) {
   }
 }
 
+/* Call tab — same recess as chat; caption flexes so controls stay in view. */
+.hmat-call-layout .hmat-caption-panel {
+  flex: 1 1 0;
+  min-height: 72px;
+  max-height: 118px;
+  height: auto;
+  flex-shrink: 1;
+}
+@media (max-height: 700px) {
+  .hmat-call-layout .hmat-caption-panel {
+    min-height: 64px;
+    max-height: 96px;
+  }
+}
+
 /*
  * Liquid-glass orb slab — thick translucent rim so mood/waveform glow can
  * read through the frame. No white stroke borders. Face stays 120 inside.
@@ -1593,10 +1608,13 @@ body:has(.landing-page) {
   }
 }
 
-/* Call control cluster — droplet split stage */
+/* Call control cluster — room for end-button shadow; no overflow clip */
 .call-control-stage {
   isolation: isolate;
-  overflow: hidden;
+  overflow: visible;
+  box-sizing: content-box;
+  min-height: 60px;
+  padding-bottom: 10px;
 }
 
 /* Chat thread — frosted top edge only (last message stays clear) */

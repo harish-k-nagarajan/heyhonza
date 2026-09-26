@@ -13,14 +13,14 @@ export function CallThinkingGlyph({
 }) {
   return (
     <div
-      className={cn("flex min-h-0 flex-1 items-center justify-center", className)}
+      className={cn("flex min-h-0 items-center justify-center py-1", className)}
       role="status"
       aria-live="polite"
       aria-label={label}
     >
       <DotmCircular3
-        size={28}
-        dotSize={4}
+        size={22}
+        dotSize={3}
         color="var(--accent)"
         dotShape="square"
         ariaLabel=""

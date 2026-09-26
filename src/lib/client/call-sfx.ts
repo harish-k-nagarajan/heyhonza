@@ -107,9 +107,3 @@ export function stopAllCallSfx(): void {
   }
 }
 
-/** Re-route dial / pickup / hangup SFX when the learner toggles speaker mid-call. */
-export async function reapplyCallSfxRoute(): Promise<void> {
-  if (dialAudio) await applyRouteToAudioElement(dialAudio);
-  if (pickupAudio) await applyRouteToAudioElement(pickupAudio);
-  if (hangupAudio) await applyRouteToAudioElement(hangupAudio);
-}

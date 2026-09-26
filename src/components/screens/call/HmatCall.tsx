@@ -45,7 +45,6 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
     error,
     listening,
     supported,
-    speakerOn,
     llmReady,
     ttsReady,
     providersLoaded,
@@ -76,67 +75,77 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
   const hydrating = !screen.ready || !providersLoaded;
 
   return (
-    <div className="hmat-call-layout flex min-h-0 flex-1 flex-col gap-2">
-      {inCall ? (
-        <div className="flex shrink-0 justify-center">
-          <span className="hmat-frost-action rounded-full px-4 py-1.5">
-            <span className={cn(TYPE.meta, "tabular-nums text-accent")}>{screen.durationLabel}</span>
-          </span>
+    <div className="hmat-call-layout flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+      <div className="flex shrink-0 flex-col gap-3">
+        <div className="relative">
+          {inCall ? (
+            <span
+              className="absolute right-3 top-3 z-10 hmat-frost-action rounded-full px-3 py-1"
+              aria-label={c.callDurationAria}
+            >
+              <span className={cn(TYPE.meta, "tabular-nums text-accent")}>
+                {screen.durationLabel}
+              </span>
+            </span>
+          ) : null}
+          <HmatPresenceRecess
+            className="hmat-orb-presence is-shown shrink-0"
+            orbState={orbState}
+            stackClassName={stackClassName}
+            loading={orbLoading}
+            onOrbTap={triggerPop}
+            breathe
+          />
         </div>
-      ) : null}
 
-      <HmatPresenceRecess
-        orbState={orbState}
-        stackClassName={stackClassName}
-        loading={orbLoading}
-        onOrbTap={triggerPop}
-      />
-
-      <div className="flex shrink-0 flex-col items-center gap-1.5">
-        <HmatScreenTitle>{statusTitle}</HmatScreenTitle>
-        <HmatStatusChip label={statusLabel} muted={needsKey} />
+        <div className="flex shrink-0 flex-col items-center gap-1.5">
+          <HmatScreenTitle>{statusTitle}</HmatScreenTitle>
+          <HmatStatusChip label={statusLabel} muted={needsKey} />
+        </div>
       </div>
 
-      {needsKey ? (
-        <HmatNeedsKeyEmpty title={emptyTitle} body={emptyBody} icon="callUnlinked" />
-      ) : (
-        <HmatCaptionPanel
-          kicker={c.captionKicker}
-          muted={!showLiveCaption}
-          live={Boolean(showLiveCaption)}
-        >
-          {showLiveCaption ? (
-            <CaptionTextReveal key={caption} className="absolute inset-0" text={caption!} />
-          ) : (
-            captionPlaceholder(phase, inCall, c)
-          )}
-        </HmatCaptionPanel>
-      )}
+      <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-hidden">
+        {needsKey ? (
+          <HmatNeedsKeyEmpty title={emptyTitle} body={emptyBody} icon="callUnlinked" />
+        ) : (
+          <HmatCaptionPanel
+            kicker={c.captionKicker}
+            muted={!showLiveCaption}
+            live={Boolean(showLiveCaption)}
+          >
+            {showLiveCaption ? (
+              <CaptionTextReveal key={caption} className="absolute inset-0" text={caption!} />
+            ) : (
+              captionPlaceholder(phase, inCall, c)
+            )}
+          </HmatCaptionPanel>
+        )}
 
-      {error ? (
-        <p className={cn(TYPE.helper, "text-center text-accent")} role="alert">
-          {error}
-        </p>
-      ) : null}
+        {error ? (
+          <p className={cn(TYPE.helper, "shrink-0 text-center text-accent")} role="alert">
+            {error}
+          </p>
+        ) : null}
 
-      {!supported && !inCall ? (
-        <p className={cn(TYPE.helper, "text-center")}>
-          {c.browserUnsupported}{" "}
-          <a href={ROUTES.chat} className="text-accent underline">
-            {t.nav.chat}
-          </a>
-          .
-        </p>
-      ) : null}
+        {!supported && !inCall ? (
+          <p className={cn(TYPE.helper, "shrink-0 text-center")}>
+            {c.browserUnsupported}{" "}
+            <a href={ROUTES.chat} className="text-accent underline">
+              {t.nav.chat}
+            </a>
+            .
+          </p>
+        ) : null}
 
-      {needsKey ? null : orbLoading ? (
-        <CallThinkingGlyph
-          className="min-h-0 max-h-[72px]"
-          label={phase === "connecting" ? c.titleConnecting : c.titleThinking}
-        />
-      ) : null}
+        {needsKey ? null : orbLoading ? (
+          <CallThinkingGlyph
+            className="shrink-0 py-0.5"
+            label={phase === "connecting" ? c.titleConnecting : c.titleThinking}
+          />
+        ) : null}
+      </div>
 
-      <div className="mt-auto flex shrink-0 flex-col items-center pb-1">
+      <div className="flex shrink-0 flex-col items-center pb-2 pt-1">
         {needsKey ? (
           <Link
             href={keyHref}
@@ -149,13 +158,9 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
           <CallControlCluster
             inCall={inCall}
             disabled={!supported || hydrating}
-            speakerOn={speakerOn}
             callLabel={c.callCta}
             endLabel={c.endCall}
-            speakerOnAria={c.speakerOnAria}
-            speakerOffAria={c.speakerOffAria}
             onStartCall={() => screen.startCall()}
-            onToggleSpeaker={() => screen.toggleSpeaker()}
             onEndCall={() => screen.endCall(false)}
           />
         )}

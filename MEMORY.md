@@ -4,7 +4,19 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-25 (welcome lag, tab switch, call fit)
+## Current entry — 2026-09-26 (call speaker toggle removed)
+
+### Decision
+Mobile browsers do not expose reliable earpiece vs loudspeaker routing for `HTMLAudioElement` TTS (no web equivalent of iOS `defaultToSpeaker`). The call screen speaker toggle was misleading — removed; controls are start / end only. `call-audio-route.ts` still sets `play-and-record` for the active call as a best-effort hint.
+
+### What changed
+- `CallControlCluster`: single hang-up button in-call (no split speaker control).
+- Thinking glyph smaller (`22px` ring) with extra padding above controls when visible mid-call.
+- Call recess matches Chat (full `HmatPresenceRecess`, `hmat-orb-presence is-shown`, no `compact`). Duration overlays recess; caption flexes (`min`/`max` height); `.call-control-stage` stays `overflow: visible`.
+
+---
+
+## Previous — 2026-09-25 (welcome lag, tab switch, call fit)
 
 ### What broke
 - Welcome scroll felt like it trailed the wheel: Lenis `lerp: 0.085` plus scroll-linked `filter: blur` on the schedule fold.

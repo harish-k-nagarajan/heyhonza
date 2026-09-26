@@ -3,19 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { HardwareIcon } from "@/components/icons/HardwareIcons";
-import { cn } from "@/lib/cn";
 import { tapLight } from "@/lib/interaction/haptic";
-
-function VolumeIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path
-        d="M11 5 6 9H3v6h3l5 4V5zm4.5 2.5a7 7 0 0 1 0 11 1.5 1.5 0 0 0 2.1 2.1 10 10 0 0 0 0-15.2 1.5 1.5 0 0 0-2.1 2.1zM16 9.5a3.5 3.5 0 0 1 0 5 1.5 1.5 0 0 0 2.1 2.1 6.5 6.5 0 0 0 0-9.2 1.5 1.5 0 0 0-2.1 2.1z"
-        opacity={active ? 1 : 0.85}
-      />
-    </svg>
-  );
-}
 
 function HangIcon() {
   return (
@@ -25,29 +13,19 @@ function HangIcon() {
   );
 }
 
-const SPLIT_SPRING = { type: "spring" as const, stiffness: 420, damping: 26 };
-
 export function CallControlCluster({
   inCall,
   disabled,
-  speakerOn,
   callLabel,
   endLabel,
-  speakerOnAria,
-  speakerOffAria,
   onStartCall,
-  onToggleSpeaker,
   onEndCall,
 }: {
   inCall: boolean;
   disabled?: boolean;
-  speakerOn: boolean;
   callLabel: string;
   endLabel: string;
-  speakerOnAria: string;
-  speakerOffAria: string;
   onStartCall: () => void;
-  onToggleSpeaker: () => void;
   onEndCall: () => void;
 }) {
   const reducedMotion = useReducedMotion();
@@ -85,58 +63,23 @@ export function CallControlCluster({
         ) : (
           <motion.div
             key="in-call"
-            className="grid grid-cols-2 gap-x-7 items-center"
-            initial={reducedMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
+            className="flex items-center justify-center"
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.88 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={reducedMotion ? { opacity: 0 } : { opacity: 0, transition: { duration: 0.15 } }}
+            transition={{ type: "spring", stiffness: 420, damping: 26 }}
           >
-            <motion.div
-              className="flex items-center justify-center"
-              initial={
-                reducedMotion ? false : { x: 34, scale: 0.45, opacity: 0 }
-              }
-              animate={{ x: 0, scale: 1, opacity: 1 }}
-              transition={{ ...SPLIT_SPRING, delay: reducedMotion ? 0 : 0.06 }}
+            <button
+              type="button"
+              onClick={() => {
+                tapLight();
+                onEndCall();
+              }}
+              aria-label={endLabel}
+              className="hmat-call-end hmat-call-btn flex items-center justify-center rounded-full text-white"
             >
-              <button
-                type="button"
-                onClick={() => {
-                  tapLight();
-                  onToggleSpeaker();
-                }}
-                aria-pressed={speakerOn}
-                aria-label={speakerOn ? speakerOnAria : speakerOffAria}
-                className={cn(
-                  "hmat-call-btn flex items-center justify-center rounded-full border transition",
-                  speakerOn
-                    ? "hmat-call-start border-white/25 text-white"
-                    : "hmat-frost-action border-black/10 text-[#6E8A74]",
-                )}
-              >
-                <VolumeIcon active={speakerOn} />
-              </button>
-            </motion.div>
-
-            <motion.div
-              className="flex items-center justify-center"
-              initial={
-                reducedMotion ? false : { x: -34, scale: 0.45, opacity: 0 }
-              }
-              animate={{ x: 0, scale: 1, opacity: 1 }}
-              transition={{ ...SPLIT_SPRING, delay: reducedMotion ? 0 : 0.12 }}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  tapLight();
-                  onEndCall();
-                }}
-                aria-label={endLabel}
-                className="hmat-call-end hmat-call-btn flex items-center justify-center rounded-full text-white"
-              >
-                <HangIcon />
-              </button>
-            </motion.div>
+              <HangIcon />
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
