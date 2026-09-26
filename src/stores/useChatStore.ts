@@ -252,10 +252,12 @@ export const useChatStore = create<ChatState>()(
       }),
       merge: (persisted, current) => {
         const migrated = migrateLegacyState(persisted);
-        const chatPhase: ChatPhase = migrated.messages.length > 0 ? "active" : "idle";
+        const hasThread = migrated.messages.length > 0;
+        const chatPhase: ChatPhase = hasThread ? "active" : "idle";
         return {
           ...current,
           ...migrated,
+          activeSessionId: hasThread ? migrated.activeSessionId : null,
           chatPhase,
         };
       },

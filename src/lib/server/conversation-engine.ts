@@ -120,6 +120,8 @@ const SAFETY_GUIDANCE = `Bezpečnost — tvrdá pravidla:
 - Nevymýšlej zprávy, fakta o studentovi, ani učivo, které v poznámkách učitele není.
 - Když student o zakázané téma požádá, odmítni jednou větou a hned změň téma. Česky: „Tohle není téma, o kterém budu mluvit. Pojďme změnit téma.“ Když píše anglicky, můžeš říct: "This is not a topic I will talk about. Let's change the topic."`;
 
+const SESSION_WRAP_UP_GUIDANCE = `Toto je závěr krátkého chatového sezení. Přátelsky ukonči rozhovor (např. že si to zítra zopakuješ) a neptej se už na další úkol ani otázku.`;
+
 export function buildSystemPrompt(params: {
   topics: string[];
   learnerContext: string;
@@ -130,6 +132,7 @@ export function buildSystemPrompt(params: {
   focusTopic?: string | null;
   recentTopics?: string[];
   lastOpeners?: string[];
+  sessionWrapUp?: boolean;
 }): string {
   const topics =
     params.topics.length > 0 ? params.topics.join(", ") : "běžná konverzace";
@@ -140,6 +143,7 @@ export function buildSystemPrompt(params: {
     ? `\n\nPoznámky od učitele / studentovy materiály (nejnovější část, ne celý sešit). Jsi doplněk k lidskému učiteli, ne autor sylabu. Procvičuj slova a situace z poznámek. Můžeš kolem nich přidat trochu konverzace. NEVYMÝŠLEJ novou látku a nepředstírej, že učitel učil něco, co tu není.\n${ctx}`
     : "";
   const modeBlock = params.mode === "call" ? `\n\n${CALL_GUIDANCE}` : "";
+  const wrapBlock = params.sessionWrapUp ? `\n\n${SESSION_WRAP_UP_GUIDANCE}` : "";
   const name = params.learnerName?.trim();
   const nameLine = name ? `Uživatele jmenuj / oslovuj: ${name}.` : "";
   const formality = formalityGuidance(params.formality ?? DEFAULT_FORMALITY);
@@ -161,7 +165,7 @@ ${focusBlock}${openerBlock}${steerBlock}
 ${levelGuidance(params.level)}
 ${formality}
 
-Jako učitel: když student udělá chybu, nejdřív ho jemně oprav (ukaž správný tvar), pak krátce pokračuj v konverzaci další otázkou, ať rozhovor plyne. Chval pokrok.${ctxBlock}${modeBlock}
+Jako učitel: když student udělá chybu, nejdřív ho jemně oprav (ukaž správný tvar), pak krátce pokračuj v konverzaci další otázkou, ať rozhovor plyne. Chval pokrok.${ctxBlock}${modeBlock}${wrapBlock}
 
 ${SAFETY_GUIDANCE}
 
@@ -271,11 +275,12 @@ export async function generateReply(params: {
   focusTopic?: string | null;
   recentTopics?: string[];
   lastOpeners?: string[];
+  sessionWrapUp?: boolean;
 }): Promise<{ text: string; model: string }> {
   const apiKey = params.apiKey?.trim() || process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new EngineError(
-      "OPENROUTER_API_KEY is missing on the server (e.g. Vercel env).",
+      "Honza can't reply right now. Check Settings or try again in a bit.",
       503,
       "not_configured",
     );
@@ -292,6 +297,7 @@ export async function generateReply(params: {
     focusTopic: params.focusTopic,
     recentTopics: params.recentTopics,
     lastOpeners: params.lastOpeners,
+    sessionWrapUp: params.sessionWrapUp,
   });
 
   const client = new OpenAI({
