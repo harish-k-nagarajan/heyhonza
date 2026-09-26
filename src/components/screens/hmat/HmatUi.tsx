@@ -4,7 +4,6 @@ import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState, 
 
 import { HmatOrb } from "@/components/honza/HmatOrb";
 import { RecessCardLight } from "@/components/honza/RecessCardLight";
-import { RecessReverb, recessMotion } from "@/components/honza/RecessReverb";
 import type { HonzaOrbState } from "@/components/honza/theme";
 import { HardwareIcon, type IconName } from "@/components/icons/HardwareIcons";
 import { cn } from "@/lib/cn";
@@ -43,7 +42,7 @@ export function recessMoodLabel(
 
 export function HmatPresenceRecess({
   orbState,
-  /** Face size inside liquid-glass slab (120 face; rim ~22 around it). */
+  /** Face / body size of the ceramic orb (hero ~120; compact call ~88). */
   size = 120,
   stackClassName,
   loading,
@@ -51,6 +50,8 @@ export function HmatPresenceRecess({
   onOrbTap,
   className,
   breathe = true,
+  /** Composer focus / call listening — lean without changing mood. */
+  attentive = false,
   /** `display` = compact rectangular recess + orb for the landing hero. */
   variant = "presence",
   compact = false,
@@ -63,8 +64,9 @@ export function HmatPresenceRecess({
   onOrbTap?: () => void;
   className?: string;
   breathe?: boolean;
+  attentive?: boolean;
   variant?: "presence" | "display";
-  /** Smaller orb + bezel so Call fits above the dock on short phones. */
+  /** Smaller orb so Call fits above the dock on short phones. */
   compact?: boolean;
 }) {
   const { t } = useLocale();
@@ -76,7 +78,7 @@ export function HmatPresenceRecess({
   useLayoutEffect(() => {
     if (orbState === "speaking" && prevOrbState.current !== "speaking") {
       setSpeakFlash(true);
-      // Match --duration-presence-beat (680ms) + wave delay (120ms) + settle.
+      // Match --duration-presence-beat (680ms) + settle.
       const timer = window.setTimeout(() => setSpeakFlash(false), 820);
       prevOrbState.current = orbState;
       return () => window.clearTimeout(timer);
@@ -84,17 +86,16 @@ export function HmatPresenceRecess({
     prevOrbState.current = orbState;
   }, [orbState]);
 
-  const reverbMotion = recessMotion(
-    orbState,
-    loading,
-    speakFlash,
-    stackClassName === "react-pop",
-  );
-  const bezelActive = loading || orbState === "thinking";
   const recessMood: HonzaOrbState = loading || orbState === "thinking" ? "thinking" : orbState;
   const isDisplay = variant === "display";
   const orb = (
-    <HmatOrb state={orbState} size={faceSize} breathe={breathe} stackClassName={stackClassName} />
+    <HmatOrb
+      state={orbState}
+      size={faceSize}
+      breathe={breathe}
+      stackClassName={stackClassName}
+      attentive={attentive}
+    />
   );
 
   return (
@@ -104,38 +105,30 @@ export function HmatPresenceRecess({
         recessHeroModifier(recessMood),
         isDisplay && "hmat-recess-hero--display",
         compact && "hmat-recess-hero--compact",
+        speakFlash && "hmat-recess-hero--speak-flash",
         className,
       )}
+      data-attentive={attentive ? "true" : undefined}
     >
       {isDisplay ? null : (
         <RecessCardLight mood={recessMood} speakFlash={speakFlash} />
       )}
       <div className="hmat-display-module hmat-presence-shared">
-        {isDisplay ? null : <RecessReverb motion={reverbMotion} />}
-        <div
-          className={cn(
-            "hmat-display-bezel",
-            bezelActive && "hmat-display-bezel--active",
-            speakFlash && "hmat-display-bezel--speak",
-            stackClassName === "react-pop" && "hmat-display-bezel--burst",
-          )}
-        >
-          {isDisplay ? (
-            <div className="hmat-display-screen relative rounded-[18px]">{orb}</div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                tapLight();
-                onOrbTap?.();
-              }}
-              className="hmat-display-screen relative rounded-[18px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              aria-label={t.common.honza}
-            >
-              {orb}
-            </button>
-          )}
-        </div>
+        {isDisplay ? (
+          <div className="hmat-orb-seat relative">{orb}</div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              tapLight();
+              onOrbTap?.();
+            }}
+            className="hmat-orb-seat relative focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            aria-label={t.common.honza}
+          >
+            {orb}
+          </button>
+        )}
       </div>
       {isDisplay ? null : (
         <>
@@ -146,7 +139,7 @@ export function HmatPresenceRecess({
             )}
             aria-hidden
           />
-          {/* honza.pen Bir3A mood label: Doto 13 / 700 / letterSpacing 2 */}
+          {/* Mood label — Doto 13 / 700 / letterSpacing 2; copy from locales, not pen. */}
           <p className="font-display text-[13px] font-bold tracking-[2px] text-accent">
             {moodLabel}
           </p>
@@ -519,6 +512,8 @@ export function HmatChatComposerRow({
   placeholder,
   sendLabel = "Odeslat",
   endLabel = "Ukončit",
+  onFocus,
+  onBlur,
 }: {
   mode: "idle" | "ongoing";
   value: string;
@@ -529,6 +524,8 @@ export function HmatChatComposerRow({
   placeholder: string;
   sendLabel?: string;
   endLabel?: string;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }) {
   const empty = value.trim().length === 0;
   const ongoing = mode === "ongoing";
@@ -540,6 +537,8 @@ export function HmatChatComposerRow({
           <input
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onFocus={onFocus}
+            onBlur={onBlur}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();

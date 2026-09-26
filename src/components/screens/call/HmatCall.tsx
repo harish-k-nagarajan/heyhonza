@@ -95,6 +95,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
             loading={orbLoading}
             onOrbTap={triggerPop}
             breathe
+            attentive={listening && inCall}
           />
         </div>
 

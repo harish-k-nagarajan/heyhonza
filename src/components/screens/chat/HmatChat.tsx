@@ -101,6 +101,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   const [presenceShown, setPresenceShown] = useState(false);
   const [copyShown, setCopyShown] = useState(false);
   const [draft, setDraft] = useState("");
+  const [composerFocused, setComposerFocused] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [stashedMessages, setStashedMessages] = useState<ChatMessage[]>([]);
   const [exitingMessages, setExitingMessages] = useState<ChatMessage[]>([]);
@@ -220,6 +221,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
           stackClassName={stackClassName}
           onOrbTap={triggerPop}
           breathe={presenceShown}
+          attentive={composerFocused && !composerDisabled}
         />
 
         <div className={cn("t-stagger flex flex-col items-center gap-1.5", copyShown && "is-shown")}>
@@ -334,6 +336,8 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
               onSend={send}
               onEndChat={screen.endChat}
               disabled={composerDisabled}
+              onFocus={() => setComposerFocused(true)}
+              onBlur={() => setComposerFocused(false)}
               placeholder={
                 composerMode === "idle" ? t.chat.placeholderIdle : t.chat.placeholderOngoing
               }
@@ -350,10 +354,8 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     <div className="t-skel-skeleton is-pulsing hmat-chat-skel-layer" aria-hidden>
       <div className="hmat-recess-hero hmat-recess-hero--idle">
         <div className="hmat-display-module hmat-presence-shared">
-          <div className="hmat-display-bezel">
-            <div className="hmat-display-screen relative rounded-[18px]">
-              <div className="rounded-[14px] bg-muted/35" style={{ width: 120, height: 120 }} />
-            </div>
+          <div className="hmat-orb-seat relative">
+            <div className="rounded-[34%] bg-muted/35" style={{ width: 120, height: 120 }} />
           </div>
         </div>
         <div className="mat-channel w-[200px]" />
