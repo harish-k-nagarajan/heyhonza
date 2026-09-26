@@ -89,6 +89,8 @@ export type ChatCopy = {
   titleThinking: string;
   titleReplying: string;
   titleFixing: string;
+  /** API / network failure — not a grammar correction. */
+  titleSnag: string;
   titleThrilled: string;
   chipReady: string;
   chipWaiting: string;
@@ -96,6 +98,7 @@ export type ChatCopy = {
   chipThinking: string;
   chipReplying: string;
   chipFixing: string;
+  chipSnag: string;
   chipThrilled: string;
   openerKicker: string;
   /** Start gate when the learner has no pasted OpenRouter key. */
@@ -104,6 +107,10 @@ export type ChatCopy = {
   missingOpenRouterTitle: string;
   missingOpenRouter: string;
   addOpenRouterKey: string;
+  leaveChatTitle: string;
+  leaveChatBody: string;
+  leaveChatContinue: string;
+  leaveChatEnd: string;
 };
 
 /** Chat header status — mirrors Call's phase-driven title/chip. */
@@ -115,6 +122,7 @@ export type ChatStatusPhase =
   | "thinking"
   | "replying"
   | "fixing"
+  | "snag"
   | "thrilled";
 
 export function resolveChatStatus(input: {
@@ -129,7 +137,7 @@ export function resolveChatStatus(input: {
   if (input.providersLoaded && input.llmReady === false && input.showStartGate) {
     return "unlinked";
   }
-  if (input.lastError) return "fixing";
+  if (input.lastError) return "snag";
   if (input.loading) return "thinking";
   if (input.showStartGate) return "ready";
   if (input.heroMode) return "waiting";
@@ -167,6 +175,8 @@ export function chatTitle(phase: ChatStatusPhase, c: ChatCopy): string {
       return c.titleReplying;
     case "fixing":
       return c.titleFixing;
+    case "snag":
+      return c.titleSnag;
     case "thrilled":
       return c.titleThrilled;
     default: {
@@ -192,6 +202,8 @@ export function chatChip(phase: ChatStatusPhase, c: ChatCopy): string {
       return c.chipReplying;
     case "fixing":
       return c.chipFixing;
+    case "snag":
+      return c.chipSnag;
     case "thrilled":
       return c.chipThrilled;
     default: {
@@ -398,7 +410,7 @@ const en: LocaleStrings = {
     endChat: "End chat",
     history: "Chat history",
     historyTitle: "Previous chats",
-    emptyHint: "Send Honza a message to start chatting.",
+    emptyHint: "Honza's listening — write something in Czech, even a short ahoj.",
     thinking: "Thinking…",
     tryAgain: "Try again",
     noHistory: "No ended chats yet.",
@@ -407,13 +419,14 @@ const en: LocaleStrings = {
     transcript: "Chat transcript",
     replyInCzech: "Reply in Czech",
     placeholderIdle: "Write to Honza…",
-    placeholderOngoing: "Write a message…",
+    placeholderOngoing: "Reply in Czech…",
     titleReady: "Chat with Honza",
     titleWaiting: "Honza is waiting",
     titleInChat: "In chat",
     titleThinking: "Honza is thinking",
     titleReplying: "Honza is replying",
     titleFixing: "Honza is fixing",
+    titleSnag: "Honza hit a snag",
     titleThrilled: "Honza is thrilled",
     chipReady: "ready",
     chipWaiting: "waiting",
@@ -421,13 +434,19 @@ const en: LocaleStrings = {
     chipThinking: "thinking",
     chipReplying: "reply",
     chipFixing: "fix",
+    chipSnag: "try again",
     chipThrilled: "yay",
     openerKicker: "// HONZA WROTE",
     titleUnlinked: "Chat with Honza",
     chipUnlinked: "unlinked",
-    missingOpenRouterTitle: "Chats need a key",
-    missingOpenRouter: "Honza uses OpenRouter to power chats. Add an API key to continue.",
+    missingOpenRouterTitle: "I need a key to write back",
+    missingOpenRouter:
+      "Paste your OpenRouter key here, or skip and add it in Settings when you're ready.",
     addOpenRouterKey: "Add OpenRouter key",
+    leaveChatTitle: "Leave chat?",
+    leaveChatBody: "End it now, or keep typing here.",
+    leaveChatContinue: "Keep chatting",
+    leaveChatEnd: "End chat",
   },
   settings: {
     appLanguage: "App language",
@@ -465,7 +484,7 @@ const en: LocaleStrings = {
       deviceData: "DATA & ACCOUNT",
     },
     pushTitle: "Push notifications",
-    pushSubtitle: "Honza will nudge you when he has a tip",
+    pushSubtitle: "Honza writes first — get a ping when it's time for Czech.",
     scheduleTitle: "Daily check-ins",
     scheduleSubtitle: (count) => `Honza writes first, ${count}× a day`,
     scheduleHowOften: "How many per day",
@@ -530,7 +549,7 @@ const en: LocaleStrings = {
     serverStatus: "Server status",
     serverChecking: "…",
     serverConfigured: "configured",
-    serverMissing: "missing OPENROUTER_API_KEY",
+    serverMissing: "Chat replies aren't configured on this server yet.",
     levelHint: "Honza adjusts pace, vocabulary, and difficulty.",
     levelHints: { A1: "Start", A2: "Basics", B1: "Intermediate", B2: "Advanced" },
     topicsHint: "Pick topics you want to talk about with Honza.",
@@ -626,7 +645,7 @@ const cs: LocaleStrings = {
     endChat: "Ukončit",
     history: "Historie chatů",
     historyTitle: "Předchozí chaty",
-    emptyHint: "Napiš Honzovi zprávu a začni chatovat.",
+    emptyHint: "Honza čeká — napiš něco česky, klidně krátké ahoj.",
     thinking: "Přemýšlí…",
     tryAgain: "Zkusit znovu",
     noHistory: "Zatím žádné ukončené chaty.",
@@ -639,13 +658,14 @@ const cs: LocaleStrings = {
     transcript: "Přepis chatu",
     replyInCzech: "Odpověz česky",
     placeholderIdle: "Napiš Honzovi…",
-    placeholderOngoing: "Napiš zprávu…",
+    placeholderOngoing: "Odpověz česky…",
     titleReady: "Chat s Honzou",
     titleWaiting: "Honza čeká",
     titleInChat: "V chatu",
     titleThinking: "Honza přemýšlí",
     titleReplying: "Honza odpovídá",
     titleFixing: "Honza opravuje",
+    titleSnag: "Honza narazil na zádrhel",
     titleThrilled: "Honza jásá",
     chipReady: "připraven",
     chipWaiting: "čeká",
@@ -653,13 +673,19 @@ const cs: LocaleStrings = {
     chipThinking: "přemýšlí",
     chipReplying: "odpovídá",
     chipFixing: "opravuje",
+    chipSnag: "zkus znovu",
     chipThrilled: "jupí",
     openerKicker: "// HONZA NAPSAL",
     titleUnlinked: "Chat s Honzou",
     chipUnlinked: "odpojen",
-    missingOpenRouterTitle: "Chat potřebuje klíč",
-    missingOpenRouter: "Honza používá OpenRouter pro chaty. Přidej API klíč a můžeme pokračovat.",
+    missingOpenRouterTitle: "Potřebuju klíč, abych ti mohl psát",
+    missingOpenRouter:
+      "Vlož sem OpenRouter klíč, nebo přeskoč a doplň ho v nastavení, až budeš připravený.",
     addOpenRouterKey: "Přidat OpenRouter klíč",
+    leaveChatTitle: "Opustit chat?",
+    leaveChatBody: "Ukončit chat, nebo tu zůstat a psát?",
+    leaveChatContinue: "Psát dál",
+    leaveChatEnd: "Ukončit chat",
   },
   settings: {
     appLanguage: "Jazyk aplikace",
@@ -697,7 +723,7 @@ const cs: LocaleStrings = {
       deviceData: "DATA & ÚČET",
     },
     pushTitle: "Push upozornění",
-    pushSubtitle: "Honza ti napíše, když má tip",
+    pushSubtitle: "Honza napíše první — pípne to, až bude čas na češtinu.",
     scheduleTitle: "Denní check-iny",
     scheduleSubtitle: (count) => `Honza napíše první, ${count}× denně`,
     scheduleHowOften: "Kolikrát denně",
@@ -762,7 +788,7 @@ const cs: LocaleStrings = {
     serverStatus: "Stav serveru",
     serverChecking: "…",
     serverConfigured: "připojeno",
-    serverMissing: "chybí OPENROUTER_API_KEY",
+    serverMissing: "Na tomto serveru ještě nejsou nastavené odpovědi v chatu.",
     levelHint: "Honza přizpůsobí tempo, slovní zásobu a obtížnost.",
     levelHints: { A1: "Start", A2: "Základy", B1: "Střední", B2: "Pokročilý" },
     topicsHint: "Vyber témata, o kterých chceš s Honzou mluvit.",

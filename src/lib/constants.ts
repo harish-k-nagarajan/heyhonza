@@ -66,6 +66,9 @@ export type LevelId = (typeof LEVEL_OPTIONS)[number]["id"];
 export type FormalityMode = "ty" | "vy";
 export const DEFAULT_FORMALITY: FormalityMode = "ty";
 
+/** Max user + Honza messages in one typed-chat session before Honza wraps up. */
+export const CHAT_SESSION_MAX_MESSAGES = 15;
+
 /** Onboarding step 4 — how often Honza initiates per day. */
 export const DAILY_MESSAGE_COUNTS = [1, 2, 3] as const;
 export type DailyMessageCount = (typeof DAILY_MESSAGE_COUNTS)[number];

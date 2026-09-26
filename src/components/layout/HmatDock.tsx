@@ -12,12 +12,17 @@ import {
   type PointerEvent,
 } from "react";
 
+import { ChatSessionLeaveDialog } from "@/components/chat/ChatSessionLeaveDialog";
 import { FernDockIcon, type FernDockIconName } from "@/components/icons/FernDockIcons";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { tapLight } from "@/lib/interaction/haptic";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { isHmatMainTab } from "@/lib/hmat-tabs";
+import {
+  endChatSessionAction,
+  isTypedChatActive,
+} from "@/lib/client/chat-actions";
 import { useTabNavStore } from "@/stores/useTabNavStore";
 
 /**
@@ -65,6 +70,7 @@ export function HmatDock() {
   const [pill, setPill] = useState({ left: 0, width: 0 });
   const [dragging, setDragging] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [leaveTarget, setLeaveTarget] = useState<string | null>(null);
 
   const suppressClickUntilRef = useRef(0);
   const pointerIdRef = useRef<number | null>(null);
@@ -120,7 +126,7 @@ export function HmatDock() {
     return () => window.removeEventListener("resize", onResize);
   }, [activeIndex, pendingIndex, pathname, snapPillToIndex]);
 
-  const goToHref = useCallback(
+  const commitHref = useCallback(
     (href: string, haptic: boolean) => {
       if (pathname === href || pathname.startsWith(`${href}/`)) return;
       if (haptic) tapLight();
@@ -128,6 +134,21 @@ export function HmatDock() {
       router.push(href);
     },
     [pathname, router, setPendingHref],
+  );
+
+  const goToHref = useCallback(
+    (href: string, haptic: boolean) => {
+      const onChat =
+        pathname === ROUTES.chat || pathname.startsWith(`${ROUTES.chat}/`);
+      const leavingForMainTab =
+        href === ROUTES.call || href === ROUTES.settings;
+      if (onChat && leavingForMainTab && isTypedChatActive()) {
+        setLeaveTarget(href);
+        return;
+      }
+      commitHref(href, haptic);
+    },
+    [commitHref, pathname],
   );
 
   useEffect(() => {
@@ -258,6 +279,21 @@ export function HmatDock() {
   );
 
   return (
+    <>
+      {leaveTarget ? (
+        <ChatSessionLeaveDialog
+          title={t.chat.leaveChatTitle}
+          body={t.chat.leaveChatBody}
+          continueLabel={t.chat.leaveChatContinue}
+          endLabel={t.chat.leaveChatEnd}
+          onContinue={() => setLeaveTarget(null)}
+          onEnd={() => {
+            const href = leaveTarget;
+            setLeaveTarget(null);
+            void endChatSessionAction().then(() => commitHref(href, true));
+          }}
+        />
+      ) : null}
     <div
       className="pointer-events-none fixed inset-x-0 z-40 mx-auto max-w-app px-4"
       style={{ bottom: "max(14px, env(safe-area-inset-bottom))" }}
@@ -304,5 +340,6 @@ export function HmatDock() {
         })}
       </nav>
     </div>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { CHAT_SESSION_MAX_MESSAGES } from "@/lib/constants";
 import { buildLearnerContextText, DOC_CACHE_MS } from "@/lib/context";
 import {
   clearReplyChoreography,
@@ -19,6 +20,17 @@ import type { MessageKind } from "@/types";
  */
 
 let initiateLock = false;
+
+function threadMessages() {
+  return useChatStore
+    .getState()
+    .messages.filter((m) => m.role === "user" || m.role === "assistant");
+}
+
+/** True when the learner has started a typed chat (composer / thread), not the Start gate. */
+export function isTypedChatActive(): boolean {
+  return useChatStore.getState().chatPhase === "active";
+}
 
 async function refreshLocalGoogleDocIfStale(): Promise<void> {
   if (isDbMode()) return;
@@ -69,6 +81,7 @@ async function callChatApi(
     lastContactAt?: number;
     kind?: MessageKind;
     sessionId?: string;
+    sessionWrapUp?: boolean;
   },
 ): Promise<string> {
   await refreshLocalGoogleDocIfStale();
@@ -88,6 +101,7 @@ async function callChatApi(
       lastOpeners: s.lastOpeners,
       messages,
       bootstrap,
+      sessionWrapUp: extra?.sessionWrapUp,
       ...extra,
     }),
   });
@@ -187,11 +201,18 @@ export async function sendUserTurn(
   kind: MessageKind = "chat",
 ): Promise<string | null> {
   const chat = useChatStore.getState();
+  const prior = threadMessages();
+  if (kind === "chat" && prior.length >= CHAT_SESSION_MAX_MESSAGES) {
+    return null;
+  }
+
   chat.addUserMessage(text, kind);
-  const thread = useChatStore
-    .getState()
-    .messages.filter((m) => m.role === "user" || m.role === "assistant")
-    .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+  const thread = threadMessages().map((m) => ({
+    role: m.role as "user" | "assistant",
+    content: m.content,
+  }));
+  const sessionWrapUp =
+    kind === "chat" && thread.length >= CHAT_SESSION_MAX_MESSAGES - 1;
 
   chat.setStatus("loading");
   chat.setError(null);
@@ -200,8 +221,12 @@ export async function sendUserTurn(
     const reply = await callChatApi(thread, false, {
       kind,
       sessionId: chat.activeSessionId ?? undefined,
+      sessionWrapUp,
     });
     await scheduleAssistantReveal(reply, kind);
+    if (kind === "chat" && sessionWrapUp) {
+      await endChatSessionAction();
+    }
     return reply;
   } catch (e) {
     clearReplyChoreography();

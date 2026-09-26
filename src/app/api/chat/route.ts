@@ -46,6 +46,8 @@ type ChatRequestBody = {
   focusTopic?: string | null;
   recentTopics?: string[];
   lastOpeners?: string[];
+  /** Typed chat — Honza closes the session on this turn. */
+  sessionWrapUp?: boolean;
 };
 
 export async function POST(req: Request) {
@@ -146,6 +148,7 @@ export async function POST(req: Request) {
       focusTopic: prepared.focus,
       recentTopics: prepared.recent,
       lastOpeners: prepared.lastOpeners,
+      sessionWrapUp: Boolean(body.sessionWrapUp) && kind === "chat",
     });
 
     const nextOpeners = bootstrap
