@@ -294,17 +294,17 @@ export function AuthScreen({
         {mode === "login" ? (
           <Link
             href={ROUTES.signup}
-            className="auth-cta-outline flex w-full items-center justify-center rounded-full py-3.5 font-sans text-sm font-semibold transition hover:bg-white/80"
+            className="auth-cta-outline flex w-full items-center justify-center rounded-full py-3.5 font-sans text-[15px] font-semibold"
           >
             {c.login.secondaryCta}
           </Link>
         ) : (
-          <p className={cn(TYPE.bodySm, "text-accent")}>
-            {c.signup.switchPrompt}{" "}
-            <Link href={ROUTES.login} className="font-semibold underline-offset-2 hover:underline">
-              {c.signup.switchLink}
-            </Link>
-          </p>
+          <Link
+            href={ROUTES.login}
+            className="auth-cta-secondary flex w-full items-center justify-center rounded-full py-3.5 font-sans text-[15px] font-semibold"
+          >
+            {c.signup.switchPrompt} {c.signup.switchLink}
+          </Link>
         )}
       </form>
     </div>
