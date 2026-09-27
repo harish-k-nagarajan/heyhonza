@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-27 (stale chat thread on a fresh visit)
+## Current entry — 2026-09-27 (Start chatting no longer sits on the loader)
+
+### What broke
+Start chatting waited on the session, then held the thread on the typing glyphs until the opener finished. The first line was also hidden until the learner sent something, so the glyphs were the only thing on screen.
+
+### What changed
+The composer opens on the click. Honza's first line is written into the thread when it arrives. The typing glyphs stay for replies after the learner has sent a message.
+
+### Checked
+Click → text box within one frame, no glyphs for the ~6s opener fetch, then the Czech line. A reply and End chat still return to the start gate.
+
+---
+
+## Previous — 2026-09-27 (stale chat thread on a fresh visit)
 
 ### What broke
 `/api/state` treated every message with no `session_id` as the current chat. Call turns are saved that way, so a new login restored a 15-message call transcript, set the chat to active, and the dock intercepted Call with “Leave chat?”. The same payload also loaded every ended session (445 rows), which held the chat skeleton until that sync finished.

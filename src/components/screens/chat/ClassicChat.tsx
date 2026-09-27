@@ -134,15 +134,15 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
                   {t.chat.emptyHint}
                 </p>
               </div>
-            ) : !heroMode ? (
+            ) : (
               <>
-                <MessageList messages={threadMessages} />
+                {threadMessages.length > 0 ? (
+                  <MessageList messages={threadMessages} />
+                ) : null}
                 {showTyping ? <HonzaTypingBubble variant="classic" /> : null}
                 <div ref={bottomRef} />
               </>
-            ) : showTyping ? (
-              <HonzaTypingBubble variant="classic" />
-            ) : null}
+            )}
           </div>
         </Card>
 
