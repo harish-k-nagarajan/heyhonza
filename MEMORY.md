@@ -4,7 +4,17 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-26 (call speaker toggle removed)
+## Current entry — 2026-09-26 (orb margin motes + speech rays)
+
+### What broke
+Speech rays and the six motes from `honza.pen` HonzaOrb were drawn inside the ceramic box, under the shell (`z-index` below the body). On screen they were covered, so the margin around the face looked empty.
+
+### What changed
+Positions are mapped from the pen stage (240×212, body at 49,2 / 148×152) into the margin around the shell. Rays drift along the sides. Motes hold, then sprinkle outward and fade. Same on/off as the pen: rays on waiting, speaking, happy, surprised; motes on thinking and confused. Reduced motion keeps them still.
+
+---
+
+## Previous — 2026-09-26 (call speaker toggle removed)
 
 ### Decision
 Mobile browsers do not expose reliable earpiece vs loudspeaker routing for `HTMLAudioElement` TTS (no web equivalent of iOS `defaultToSpeaker`). The call screen speaker toggle was misleading — removed; controls are start / end only. `call-audio-route.ts` still sets `play-and-record` for the active call as a best-effort hint.
