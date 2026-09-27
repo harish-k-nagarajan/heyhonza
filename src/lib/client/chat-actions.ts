@@ -20,6 +20,10 @@ import type { MessageKind } from "@/types";
  */
 
 let initiateLock = false;
+/** Bumped when the learner sends or ends, so a late opener cannot land on top. */
+let openerGen = 0;
+/** In-flight local→server session swap. Sends wait so the turn uses the real id. */
+let sessionReady: Promise<string> | null = null;
 
 function threadMessages() {
   return useChatStore
@@ -139,13 +143,39 @@ async function endServerSession(
 }
 
 /** Start a new typed-chat session locally and on the server when persisted. */
-export async function startChatSession(): Promise<string> {
-  const serverId = await createServerSession();
-  return useChatStore.getState().startSession(serverId ?? undefined);
+export function startChatSession(): Promise<string> {
+  const state = useChatStore.getState();
+  if (state.chatPhase === "active" && state.activeSessionId) {
+    return sessionReady ?? Promise.resolve(state.activeSessionId);
+  }
+
+  // Flip to the composer before any network wait. The server id replaces this
+  // one when it arrives.
+  const localId = state.startSession();
+  const ready = (async () => {
+    try {
+      const serverId = await createServerSession();
+      const current = useChatStore.getState();
+      if (
+        serverId &&
+        current.chatPhase === "active" &&
+        current.activeSessionId === localId
+      ) {
+        current.replaceActiveSessionId(serverId);
+        return serverId;
+      }
+      return useChatStore.getState().activeSessionId ?? localId;
+    } finally {
+      if (sessionReady === ready) sessionReady = null;
+    }
+  })();
+  sessionReady = ready;
+  return ready;
 }
 
 /** End the active session and archive it for history. */
 export async function endChatSessionAction(): Promise<void> {
+  openerGen += 1;
   const chat = useChatStore.getState();
   const { activeSessionId, messages } = chat;
   if (!activeSessionId) {
@@ -165,14 +195,35 @@ export async function endChatSessionAction(): Promise<void> {
   chat.endSession();
 }
 
-/** Honza initiates within the active session. */
+function openerStillCurrent(sessionId: string, gen: number): boolean {
+  const state = useChatStore.getState();
+  return (
+    gen === openerGen &&
+    state.chatPhase === "active" &&
+    state.activeSessionId === sessionId &&
+    !state.messages.some((message) => message.role === "user")
+  );
+}
+
+/**
+ * Honza's first line in the session the learner just opened.
+ * The composer is already on screen. This does not take the loading state,
+ * so the thread does not sit on the typing glyphs while the reply is fetched.
+ */
 export async function initiateOpener(): Promise<void> {
   const chat = useChatStore.getState();
-  if (chat.messages.length > 0 || initiateLock || !chat.activeSessionId) return;
+  if (
+    chat.chatPhase !== "active" ||
+    chat.messages.some((message) => message.role === "user") ||
+    initiateLock ||
+    !chat.activeSessionId
+  ) {
+    return;
+  }
+  const sessionId = chat.activeSessionId;
+  const gen = ++openerGen;
   initiateLock = true;
-  chat.setStatus("loading");
   chat.setError(null);
-  useMoodStore.getState().setMood("thinking");
   try {
     const prior = [
       ...chat.messages,
@@ -182,20 +233,19 @@ export async function initiateOpener(): Promise<void> {
     const reply = await callChatApi([], true, {
       localHour: new Date().getHours(),
       lastContactAt,
-      sessionId: chat.activeSessionId,
+      sessionId,
     });
-    if (useChatStore.getState().messages.length === 0) {
-      await scheduleAssistantReveal(reply, "chat", {
-        shouldReveal: () => useChatStore.getState().messages.length === 0,
-      });
-    }
+    if (!openerStillCurrent(sessionId, gen)) return;
+    if (useChatStore.getState().messages.length > 0) return;
+    useChatStore.getState().addAssistantMessage(reply, "chat");
+    useMoodStore.getState().flashMood("speaking", { ms: 900 });
   } catch (e) {
+    if (!openerStillCurrent(sessionId, gen)) return;
     clearReplyChoreography();
     useChatStore.getState().setError(e instanceof Error ? e.message : "Unknown error");
     useMoodStore.getState().setMood("oops");
   } finally {
     initiateLock = false;
-    useChatStore.getState().setStatus("idle");
   }
 }
 
@@ -203,6 +253,8 @@ export async function sendUserTurn(
   text: string,
   kind: MessageKind = "chat",
 ): Promise<string | null> {
+  if (kind === "chat") openerGen += 1;
+  if (sessionReady) await sessionReady;
   const chat = useChatStore.getState();
   const prior = threadMessages();
   if (kind === "chat" && prior.length >= CHAT_SESSION_MAX_MESSAGES) {

@@ -111,7 +111,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
   const wantThreadOpen = !showStartGate;
 
-  if (!heroMode && threadMessages.length > 0 && stashedMessages !== threadMessages) {
+  if (threadMessages.length > 0 && stashedMessages !== threadMessages) {
     setStashedMessages(threadMessages);
   }
 
@@ -195,8 +195,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   const sizerLabel = longestChipLabel(t.chat);
   const actionMode = showStartGate ? "gate" : composerMode;
   const orbState = loading ? "thinking" : expression.mood;
-  const visibleMessages =
-    !heroMode && threadMessages.length > 0 ? threadMessages : exitingMessages;
+  const visibleMessages = threadMessages.length > 0 ? threadMessages : exitingMessages;
   const showThreadMessages = visibleMessages.length > 0;
 
   const send = useCallback(() => {

@@ -54,6 +54,8 @@ export type ChatState = {
   setStatus: (s: ChatState["status"]) => void;
   setError: (msg: string | null) => void;
   startSession: (sessionId?: string) => string;
+  /** Swap the local id for the server id without resetting the open thread. */
+  replaceActiveSessionId: (sessionId: string) => void;
   endSession: () => void;
   hydrateSessions: (payload: {
     activeSessionId: string | null;
@@ -179,6 +181,16 @@ export const useChatStore = create<ChatState>()(
           chatPhase: "active",
         });
         return sid;
+      },
+      replaceActiveSessionId: (sessionId) => {
+        const current = get().activeSessionId;
+        if (!current || current === sessionId) return;
+        set({
+          activeSessionId: sessionId,
+          messages: get().messages.map((message) =>
+            message.sessionId === current ? { ...message, sessionId } : message,
+          ),
+        });
       },
       endSession: () => {
         const { activeSessionId, messages, endedSessions, archivedMessages } = get();
