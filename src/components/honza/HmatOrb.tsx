@@ -24,20 +24,38 @@ import type { HonzaOrbState } from "./theme";
 
 const HERO_MIN = 100;
 
+/**
+ * Pen stage is 240×212; the ceramic body sits at (49, 2) and is 148×152.
+ * Rays and motes are placed in that stage, then mapped onto the body box so
+ * they land in the margin around the shell instead of under it.
+ */
+const BODY = { x: 49, y: 2, w: 148, h: 152 } as const;
+
+function stageBox(x: number, y: number, w: number, h: number) {
+  return {
+    left: `${((x - BODY.x) / BODY.w) * 100}%`,
+    top: `${((y - BODY.y) / BODY.h) * 100}%`,
+    width: `${(w / BODY.w) * 100}%`,
+    height: `${(h / BODY.h) * 100}%`,
+  };
+}
+
+/** Speech rays — honza.pen Qj69R / MXzhl / Q92Mq / G6POZ. */
 const RAYS = [
-  { className: "hmat-orb-ray hmat-orb-ray--lu", style: { left: "5%", top: "24%", transform: "rotate(-30deg)" } },
-  { className: "hmat-orb-ray hmat-orb-ray--ll", style: { left: "3.5%", top: "37%", transform: "rotate(-6deg)" } },
-  { className: "hmat-orb-ray hmat-orb-ray--ru", style: { right: "5%", top: "28%", transform: "rotate(30deg)" } },
-  { className: "hmat-orb-ray hmat-orb-ray--rl", style: { right: "3.5%", top: "36%", transform: "rotate(6deg)" } },
+  { className: "hmat-orb-ray hmat-orb-ray--lu", rot: -30, box: stageBox(13, 52, 15, 5), dx: "-2px", dy: "-8px" },
+  { className: "hmat-orb-ray hmat-orb-ray--ll", rot: -6, box: stageBox(9, 78, 15, 5), dx: "-3px", dy: "-5px" },
+  { className: "hmat-orb-ray hmat-orb-ray--ru", rot: 30, box: stageBox(213, 61, 15, 5), dx: "2px", dy: "8px" },
+  { className: "hmat-orb-ray hmat-orb-ray--rl", rot: 6, box: stageBox(216, 77, 15, 5), dx: "3px", dy: "5px" },
 ] as const;
 
+/** Six motes — honza.pen Particles dsZv8 … k2JdF. Outward sprinkle from the shell. */
 const PARTICLES = [
-  { left: "12.5%", top: "16%", size: 5, delay: "0s", opacity: 1 },
-  { left: "85.5%", top: "12%", size: 4, delay: "0.4s", opacity: 0.7 },
-  { left: "6.5%", top: "56%", size: 4, delay: "0.9s", opacity: 0.6 },
-  { left: "92.5%", top: "49%", size: 6, delay: "1.3s", opacity: 0.85 },
-  { left: "18%", top: "78%", size: 3, delay: "1.8s", opacity: 0.5 },
-  { left: "80.5%", top: "77%", size: 4, delay: "2.2s", opacity: 0.65 },
+  { x: 30, y: 34, size: 5, delay: "0s", opacity: 1, dx: "-13px", dy: "-6px" },
+  { x: 206, y: 26, size: 4, delay: "0.55s", opacity: 0.7, dx: "12px", dy: "-7px" },
+  { x: 16, y: 118, size: 4, delay: "1.1s", opacity: 0.6, dx: "-13px", dy: "5px" },
+  { x: 222, y: 104, size: 6, delay: "1.7s", opacity: 0.85, dx: "14px", dy: "4px" },
+  { x: 44, y: 166, size: 3, delay: "2.2s", opacity: 0.5, dx: "-9px", dy: "10px" },
+  { x: 194, y: 164, size: 4, delay: "2.8s", opacity: 0.65, dx: "9px", dy: "11px" },
 ] as const;
 
 function PixelLayer({
@@ -179,7 +197,16 @@ export function HmatOrb({
         {showRays ? (
           <div className="hmat-orb-rays" aria-hidden>
             {RAYS.map((ray) => (
-              <span key={ray.className} className={ray.className} style={ray.style} />
+              <span
+                key={ray.className}
+                className={ray.className}
+                style={{
+                  ...ray.box,
+                  ["--ray-rot" as string]: `${ray.rot}deg`,
+                  ["--ray-dx" as string]: ray.dx,
+                  ["--ray-dy" as string]: ray.dy,
+                }}
+              />
             ))}
           </div>
         ) : null}
@@ -191,12 +218,12 @@ export function HmatOrb({
                 key={i}
                 className="hmat-orb-particle"
                 style={{
-                  left: pt.left,
-                  top: pt.top,
-                  width: pt.size,
-                  height: pt.size,
+                  ...stageBox(pt.x, pt.y, pt.size, pt.size),
                   opacity: pt.opacity,
                   animationDelay: pt.delay,
+                  ["--p-opacity" as string]: String(pt.opacity),
+                  ["--dx" as string]: pt.dx,
+                  ["--dy" as string]: pt.dy,
                 }}
               />
             ))}
