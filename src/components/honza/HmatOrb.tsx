@@ -79,9 +79,9 @@ function PixelLayer({
       aria-hidden
     >
       <defs>
-        <filter id={fid} x="-60%" y="-60%" width="220%" height="220%" colorInterpolationFilters="sRGB">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="1.05" result="bleed" />
-          <feFlood floodColor={ORB_LED} floodOpacity="0.32" result="warm" />
+        <filter id={fid} x="-35%" y="-35%" width="170%" height="170%" colorInterpolationFilters="sRGB">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="0.42" result="bleed" />
+          <feFlood floodColor={ORB_LED} floodOpacity="0.5" result="warm" />
           <feComposite in="warm" in2="bleed" operator="in" result="glow" />
           <feMerge>
             <feMergeNode in="glow" />
@@ -201,10 +201,11 @@ export function HmatOrb({
     >
       {hero ? (
         <div className="hmat-orb-ground" aria-hidden>
-          <div className="hmat-orb-aura" />
+          <motion.div className="hmat-orb-aura" style={presence.auraStyle} />
           <motion.div className="hmat-orb-spill" style={presence.spillStyle} />
-          <motion.div className="hmat-orb-emissive" style={presence.emissiveStyle} />
+          <motion.div className="hmat-orb-occlusion" style={presence.shadowStyle} />
           <motion.div className="hmat-orb-shadow" style={presence.shadowStyle} />
+          <motion.div className="hmat-orb-emissive" style={presence.emissiveStyle} />
           <motion.div className="hmat-orb-contact" style={presence.contactStyle} />
         </div>
       ) : null}
@@ -252,6 +253,7 @@ export function HmatOrb({
           </div>
         ) : null}
 
+        <div className="hmat-orb-halo" aria-hidden />
         <div className="hmat-orb-body">
           <div className="hmat-orb-porcelain" aria-hidden />
           <div className="hmat-orb-ceramic" aria-hidden />

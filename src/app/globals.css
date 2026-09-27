@@ -350,20 +350,28 @@ body {
 /* Ceramic Honza — porcelain shell + inset LED matrix (honza.pen HonzaOrb).
  * Glow / rays / particles / rotation follow --orb-* vars set per face.
  * Compact (<100px) skips stage effects; hero floats + breathes. */
+@property --orb-glow {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ff6b4a;
+}
+
 .hmat-orb {
   --orb-glow: #ff6b4a;
   --orb-led: #e8432d;
   --orb-rotation: -4deg;
   --orb-intensity: 1;
   --orb-blink-delay: 0s;
-  --ray-pace: 1.2;
-  --ray-amp: 0.72;
+  --ray-pace: 1.35;
+  --ray-amp: 0.62;
   position: relative;
   display: inline-grid;
   place-items: center;
   isolation: isolate;
+  perspective: 720px;
   /* Stage extends beyond the body for aura / rays / shadow. */
   overflow: visible;
+  transition: --orb-glow var(--duration-very-slow) var(--ease-smooth-out);
 }
 .hmat-orb-stage {
   position: relative;
@@ -372,7 +380,8 @@ body {
   height: 100%;
   display: grid;
   place-items: center;
-  transform-origin: 50% 64%;
+  transform-origin: 50% 68%;
+  transform-style: preserve-3d;
 }
 .hmat-orb[data-attentive="true"] .hmat-orb-eyes--blink,
 .hmat-orb[data-attentive="true"] .hmat-orb-eyes--open {
@@ -385,32 +394,38 @@ body {
   opacity: 1;
 }
 .hmat-orb[data-face="speaking"] {
-  --ray-pace: 0.68;
-  --ray-amp: 0.95;
+  --ray-pace: 0.72;
+  --ray-amp: 0.88;
 }
 .hmat-orb[data-face="happy"] {
-  --ray-pace: 0.8;
-  --ray-amp: 1;
+  --ray-pace: 0.84;
+  --ray-amp: 0.96;
 }
 .hmat-orb[data-face="surprised"] {
-  --ray-pace: 0.48;
-  --ray-amp: 1.05;
+  --ray-pace: 0.5;
+  --ray-amp: 1;
 }
 .hmat-orb[data-face="thinking"] {
-  --ray-pace: 1;
-  --ray-amp: 0.8;
+  --ray-pace: 1.15;
+  --ray-amp: 0.55;
+}
+.hmat-orb[data-face="sad"] {
+  --ray-pace: 1.6;
+  --ray-amp: 0.28;
+}
+.hmat-orb[data-face="confused"] {
+  --ray-pace: 0.9;
+  --ray-amp: 0.5;
 }
 
-/* —— Ground light. Hung from the lower rim so the bright core sits on the
-   card, not behind the ceramic. The body covers anything above its base. —— */
+/* —— Floor light. Geometry matches honza.pen Glow (stage 240×212, body at
+   49,2 / 148×152). Percentages are relative to the ceramic body. Gradients
+   carry the falloff — no extra blur, or the pool turns into a generic glow.
+   The body covers the upper part; the pool sits on the card beneath it. —— */
 .hmat-orb-ground {
   position: absolute;
-  left: 50%;
-  top: 70%;
+  inset: 0;
   z-index: 0;
-  width: 250%;
-  height: 100%;
-  translate: -50% 0;
   pointer-events: none;
   overflow: visible;
 }
@@ -418,77 +433,93 @@ body {
 .hmat-orb-spill,
 .hmat-orb-emissive,
 .hmat-orb-shadow,
+.hmat-orb-occlusion,
 .hmat-orb-contact {
   position: absolute;
-  left: 50%;
   pointer-events: none;
   border-radius: 50%;
-  translate: -50% 0;
+  transform-origin: 50% 50%;
 }
+/* Backlight aura — atmosphere behind the shell, feathered so it wraps the sides. */
 .hmat-orb-aura {
-  top: 0;
-  width: 100%;
-  height: 88%;
-  transform-origin: 50% 0;
+  left: -18%;
+  top: 8%;
+  width: 136%;
+  height: 108%;
   background: radial-gradient(
-    ellipse 52% 40% at 50% 0%,
-    color-mix(in srgb, var(--orb-glow) calc(26% * var(--orb-intensity)), transparent) 0%,
-    color-mix(in srgb, var(--orb-glow) calc(8% * var(--orb-intensity)), transparent) 48%,
+    ellipse at 50% 72%,
+    color-mix(in srgb, var(--orb-glow) 36%, transparent) 0%,
+    color-mix(in srgb, var(--orb-glow) 16%, transparent) 42%,
     transparent 74%
   );
-  filter: blur(18px);
+  filter: blur(8px);
 }
+/* Wide reflected pool. Brightest at the lower rim, then fades down and out. */
 .hmat-orb-spill {
-  top: 0;
-  width: 88%;
-  height: 62%;
-  transform-origin: 50% 0;
+  left: -42%;
+  top: 74%;
+  width: 184%;
+  height: 58%;
   background: radial-gradient(
-    ellipse 48% 36% at 50% 0%,
-    color-mix(in srgb, var(--orb-glow) 50%, transparent) 0%,
-    color-mix(in srgb, var(--orb-glow) 18%, transparent) 42%,
-    transparent 74%
+    ellipse at 50% 22%,
+    color-mix(in srgb, var(--orb-glow) 40%, transparent) 0%,
+    color-mix(in srgb, var(--orb-glow) 18%, transparent) 36%,
+    color-mix(in srgb, var(--orb-glow) 6%, transparent) 62%,
+    transparent 100%
   );
-  filter: blur(14px);
 }
-.hmat-orb-emissive {
-  top: 0;
-  width: 72%;
-  height: 32%;
-  transform-origin: 50% 0;
-  background: radial-gradient(
-    ellipse 52% 46% at 50% 0%,
-    color-mix(in srgb, var(--orb-glow) 78%, #fff) 0%,
-    color-mix(in srgb, var(--orb-glow) 36%, transparent) 40%,
-    transparent 74%
-  );
-  filter: blur(9px);
-}
-.hmat-orb-shadow {
-  top: 4%;
-  width: 42%;
-  height: 16%;
-  transform-origin: 50% 20%;
+/* Contact occlusion — a whisper of weight inside the light, not a separate shape. */
+.hmat-orb-occlusion {
+  left: 18%;
+  top: 90%;
+  width: 64%;
+  height: 10%;
   background: radial-gradient(
     ellipse at 50% 40%,
-    color-mix(in srgb, var(--orb-glow) 50%, #1a100e) 0%,
-    color-mix(in srgb, var(--orb-glow) 20%, transparent) 55%,
+    rgba(58, 32, 22, 0.14) 0%,
+    rgba(58, 32, 22, 0.04) 50%,
     transparent 78%
   );
-  filter: blur(4px);
 }
-.hmat-orb-contact {
-  top: 1%;
-  width: 28%;
-  height: 10%;
-  transform-origin: 50% 0;
+/* Warm ground shadow tucked into the contact. */
+.hmat-orb-shadow {
+  left: 2%;
+  top: 91%;
+  width: 96%;
+  height: 14%;
   background: radial-gradient(
     ellipse at 50% 30%,
-    color-mix(in srgb, var(--orb-glow) 75%, #fff) 0%,
-    transparent 70%
+    color-mix(in srgb, var(--orb-glow) 42%, rgba(42, 22, 16, 0.35)) 0%,
+    color-mix(in srgb, var(--orb-glow) 14%, transparent) 55%,
+    transparent 100%
   );
-  filter: blur(3px);
-  opacity: calc(0.72 * var(--orb-intensity));
+}
+/* Coral core — strongest where the shell meets the card. */
+.hmat-orb-emissive {
+  left: -8%;
+  top: 88%;
+  width: 116%;
+  height: 24%;
+  background: radial-gradient(
+    ellipse at 50% 18%,
+    color-mix(in srgb, var(--orb-glow) 72%, #fff6f1) 0%,
+    color-mix(in srgb, var(--orb-glow) 40%, transparent) 34%,
+    color-mix(in srgb, var(--orb-glow) 12%, transparent) 64%,
+    transparent 100%
+  );
+}
+/* Hot contact line along the bottom rim. */
+.hmat-orb-contact {
+  left: 16%;
+  top: 93%;
+  width: 68%;
+  height: 7%;
+  background: radial-gradient(
+    ellipse at 50% 20%,
+    color-mix(in srgb, var(--orb-glow) 64%, #fff) 0%,
+    color-mix(in srgb, var(--orb-glow) 22%, transparent) 58%,
+    transparent 100%
+  );
 }
 
 /* —— Rays: short lines in the margin, drifting around the shell —— */
@@ -502,9 +533,9 @@ body {
 .hmat-orb-ray {
   position: absolute;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--orb-glow) 82%, #fff);
-  box-shadow: 0 0 5px color-mix(in srgb, var(--orb-glow) 40%, transparent);
-  opacity: 0.7;
+  background: color-mix(in srgb, var(--orb-glow) 78%, #fff);
+  box-shadow: 0 0 3px color-mix(in srgb, var(--orb-glow) 28%, transparent);
+  opacity: 0.45;
   transform: rotate(var(--ray-rot, 0deg));
   transform-origin: 50% 50%;
 }
@@ -520,9 +551,9 @@ body {
 .hmat-orb-particle {
   position: absolute;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--orb-glow) 78%, #fff);
-  box-shadow: 0 0 4px color-mix(in srgb, var(--orb-glow) 35%, transparent);
-  opacity: var(--p-opacity, 0.7);
+  background: color-mix(in srgb, var(--orb-glow) 82%, #fff);
+  box-shadow: 0 0 2px color-mix(in srgb, var(--orb-glow) 22%, transparent);
+  opacity: 0;
 }
 
 /* —— Ceramic body (corner radius 50 / 144 ≈ 34.7%) —— */
@@ -544,13 +575,29 @@ body {
   position: absolute;
   pointer-events: none;
 }
+.hmat-orb-halo {
+  position: absolute;
+  z-index: 0;
+  left: -10%;
+  top: 16%;
+  width: 120%;
+  height: 92%;
+  border-radius: 42%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 82%,
+    color-mix(in srgb, var(--orb-glow) 48%, transparent) 0%,
+    color-mix(in srgb, var(--orb-glow) 18%, transparent) 40%,
+    transparent 68%
+  );
+  filter: blur(14px);
+}
 .hmat-orb-porcelain {
   inset: 1.4% 1.4% 0;
   border-radius: 34.72%;
   background: linear-gradient(180deg, #f8f2ed 0%, #efe3da 60%, #f2d7cb 100%);
   box-shadow:
-    0 10px 18px color-mix(in srgb, var(--orb-glow) 15%, transparent),
-    inset 0 -4px 6px color-mix(in srgb, var(--orb-glow) 38%, transparent),
+    inset 0 -5px 8px color-mix(in srgb, var(--orb-glow) 32%, transparent),
     inset 0 -1px 1.5px #ffffffb3;
 }
 .hmat-orb-ceramic {
@@ -637,14 +684,14 @@ body {
   overflow: hidden;
   background:
     radial-gradient(
-      90% 80% at 50% 52%,
-      color-mix(in srgb, var(--orb-led) 8%, transparent),
-      transparent 70%
+      70% 60% at 50% 54%,
+      color-mix(in srgb, var(--orb-led) 11%, transparent),
+      transparent 62%
     ),
     #f5eee8;
   box-shadow:
-    inset 0 5px 9px #5a382a42,
-    inset 0 0 5px #7a5a4521,
+    inset 0 6px 10px #5a382a3d,
+    inset 0 1px 2px #5a382a22,
     inset 0 -2px 3px #ffffffa6;
   z-index: 2;
 }
@@ -723,7 +770,7 @@ body {
   .hmat-orb-ray {
     animation-name: hmat-orb-ray-live;
     animation-duration: calc(var(--ray-base, 6s) * var(--ray-pace, 1));
-    animation-timing-function: ease-in-out;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
     animation-iteration-count: infinite;
   }
   .hmat-orb[data-face="thinking"] .hmat-orb-particle {
@@ -774,38 +821,38 @@ body {
 }
 @keyframes hmat-orb-mouth-open {
   0%,
-  16% {
+  12% {
     opacity: 1;
   }
-  24%,
+  22%,
   100% {
     opacity: 0;
   }
 }
 @keyframes hmat-orb-mouth-mid {
   0%,
-  18% {
+  12% {
     opacity: 0;
   }
-  26%,
-  44% {
+  20%,
+  40% {
     opacity: 1;
   }
-  52%,
+  50%,
   100% {
     opacity: 0;
   }
 }
 @keyframes hmat-orb-mouth-wide {
   0%,
-  46% {
+  40% {
     opacity: 0;
   }
-  54%,
-  76% {
+  48%,
+  72% {
     opacity: 1;
   }
-  84%,
+  82%,
   100% {
     opacity: 0;
   }
@@ -813,59 +860,54 @@ body {
 @keyframes hmat-orb-contact-speak {
   0%,
   100% {
-    opacity: calc(0.38 * var(--orb-intensity));
+    opacity: calc(0.72 * var(--orb-intensity));
   }
-  28% {
-    opacity: calc(0.62 * var(--orb-intensity));
+  34% {
+    opacity: calc(1 * var(--orb-intensity));
   }
-  61% {
-    opacity: calc(0.34 * var(--orb-intensity));
+  62% {
+    opacity: calc(0.64 * var(--orb-intensity));
   }
 }
 @keyframes hmat-orb-ray-live {
   0%,
+  62%,
   100% {
-    opacity: calc(0.34 * var(--ray-amp, 0.7));
-    transform: rotate(var(--ray-rot, 0deg)) translate3d(0, 0, 0) scale(0.92);
+    opacity: calc(0.22 * var(--ray-amp, 0.6));
+    transform: rotate(var(--ray-rot, 0deg)) scale(0.84);
   }
-  38% {
-    opacity: calc(0.78 * var(--ray-amp, 0.7));
-    transform: rotate(calc(var(--ray-rot, 0deg) + var(--ray-spin, 0deg)))
-      translate3d(var(--ray-dx, 0px), var(--ray-dy, 0px), 0) scale(1);
-  }
-  71% {
-    opacity: calc(0.46 * var(--ray-amp, 0.7));
-    transform: rotate(var(--ray-rot, 0deg))
-      translate3d(calc(var(--ray-dx, 0px) * 0.3), calc(var(--ray-dy, 0px) * 0.25), 0) scale(0.96);
+  14% {
+    opacity: calc(0.7 * var(--ray-amp, 0.6));
+    transform: rotate(calc(var(--ray-rot, 0deg) + var(--ray-spin, 0deg))) scale(1);
   }
 }
 @keyframes hmat-orb-particle-rise {
   0% {
     opacity: 0;
-    transform: translate3d(0, 5px, 0) scale(0.55) rotate(0deg);
+    transform: translate3d(0, 6px, 0) scale(0.72);
   }
-  24% {
-    opacity: var(--p-opacity, 0.7);
-    transform: translate3d(calc(var(--dx, 0px) * 0.12), 0, 0) scale(1) rotate(7deg);
+  28% {
+    opacity: var(--p-opacity, 0.65);
+    transform: translate3d(calc(var(--dx, 0px) * 0.18), -1px, 0) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translate3d(calc(var(--dx, 0px) * 0.4), -14px, 0) scale(0.7) rotate(-5deg);
+    transform: translate3d(calc(var(--dx, 0px) * 0.5), -16px, 0) scale(0.78);
   }
 }
 @keyframes hmat-orb-particle-drift {
   0%,
   100% {
-    opacity: calc(var(--p-opacity, 0.6) * 0.3);
-    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+    transform: translate3d(0, 2px, 0) scale(0.8);
   }
-  28% {
-    opacity: var(--p-opacity, 0.7);
-    transform: translate3d(calc(var(--dx, 0px) * 0.28), 2px, 0) rotate(11deg);
+  36% {
+    opacity: var(--p-opacity, 0.55);
+    transform: translate3d(calc(var(--dx, 0px) * 0.22), -1px, 0) scale(1);
   }
-  64% {
-    opacity: calc(var(--p-opacity, 0.6) * 0.45);
-    transform: translate3d(calc(var(--dx, 0px) * -0.18), -3px, 0) rotate(-7deg);
+  70% {
+    opacity: calc(var(--p-opacity, 0.55) * 0.35);
+    transform: translate3d(calc(var(--dx, 0px) * -0.12), 3px, 0) scale(0.88);
   }
 }
 
@@ -1302,7 +1344,23 @@ body:has(.landing-page) {
 
 /* ===== Fern Mist handoff — Chat / Call / Settings ===== */
 
-/* Orb recess — honza.pen Bir3A + mood variants. Raised card, not an inset well. */
+@property --recess-g0 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffe8dc;
+}
+@property --recess-g1 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #fff8f4;
+}
+@property --recess-g2 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffffff;
+}
+
+/* Orb recess — honza.pen Bir3A + mood variants. Shallow well, not a flat card. */
 .hmat-recess-hero {
   --recess-g0: #ffe8dc;
   --recess-g1: #fff8f4;
@@ -1320,8 +1378,15 @@ body:has(.landing-page) {
   border: none;
   border-radius: 24px;
   background: linear-gradient(165deg, var(--recess-g0) 0%, var(--recess-g1) 55%, var(--recess-g2) 100%);
-  /* Glass card — rim via ::after; no directional drop shadow under the recess. */
-  box-shadow: none;
+  /* Inner well only — the orange pool belongs to the orb, not a card drop shadow. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    inset 0 16px 22px rgba(74, 48, 34, 0.05),
+    inset 0 -10px 16px rgba(255, 255, 255, 0.45);
+  transition:
+    --recess-g0 var(--duration-very-slow) var(--ease-smooth-out),
+    --recess-g1 var(--duration-very-slow) var(--ease-smooth-out),
+    --recess-g2 var(--duration-very-slow) var(--ease-smooth-out);
 }
 
 .hmat-recess-hero::after {
@@ -1331,8 +1396,10 @@ body:has(.landing-page) {
   z-index: 2;
   pointer-events: none;
   border-radius: inherit;
-  /* Soft top catch only — no white stroke ring. */
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  /* Soft top catch and a faint lower lip so the well has an edge. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .hmat-recess-hero--thinking {
@@ -2763,9 +2830,9 @@ body:has(.landing-page) {
 }
 
 .hmat-recess-pane--clear {
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px) saturate(1.05);
-  -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.14));
+  backdrop-filter: blur(4px) saturate(1.04);
+  -webkit-backdrop-filter: blur(4px) saturate(1.04);
 }
 
 .hmat-recess-blot {
