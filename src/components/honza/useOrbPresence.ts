@@ -17,10 +17,13 @@ import type { CeramicFace } from "./ceramic-faces";
  * then the wander loop takes back over (settle).
  */
 
-const BODY_SPRING = { stiffness: 38, damping: 18, mass: 1.45 };
-const GLOW_SPRING = { stiffness: 22, damping: 16, mass: 1.15 };
+/** Heavy ceramic. Overdamped so it settles instead of oscillating. */
+const BODY_SPRING = { stiffness: 52, damping: 19, mass: 1.4 };
+/** Light and shadow lag the body — softer, slower, still overdamped. */
+const GLOW_SPRING = { stiffness: 22, damping: 18, mass: 1.5 };
 
 const ATTENTIVE_LEAN = -2.1;
+const ATTENTIVE_LIFT = -1.25;
 
 type Drift = {
   y: number;
@@ -33,22 +36,23 @@ type Drift = {
 };
 
 function driftFor(face: CeramicFace, attentive: boolean): Drift {
-  const listen = attentive ? 0.55 : 1;
+  const listen = attentive ? 0.42 : 1;
+  const notice = attentive ? ATTENTIVE_LIFT : 0;
   switch (face) {
     case "waiting":
-      return { y: 2.1 * listen, x: 0.7 * listen, rot: 0.55, scale: 0.007, biasY: attentive ? 1.15 : 0, pace: 2400 };
+      return { y: 3.4 * listen, x: 1.15 * listen, rot: 0.6, scale: 0.008, biasY: notice, pace: 3600 };
     case "thinking":
-      return { y: 2.4 * listen, x: 0.45, rot: 0.85, scale: 0.006, biasY: attentive ? 0.4 : -0.7, pace: 1700 };
+      return { y: 2.6 * listen, x: 0.65 * listen, rot: 0.85, scale: 0.006, biasY: notice - 1.1, pace: 2200 };
     case "speaking":
-      return { y: 2.2, x: 0.6, rot: 0.65, scale: 0.009, biasY: -1.7, pace: 1300 };
+      return { y: 2.4 * listen, x: 0.75 * listen, rot: 0.5, scale: 0.01, biasY: notice - 2.2, pace: 1600 };
     case "happy":
-      return { y: 2.8 * listen, x: 0.9, rot: 0.8, scale: 0.011, biasY: attentive ? -0.2 : -1.15, pace: 1500 };
+      return { y: 3.1 * listen, x: 1.15 * listen, rot: 0.7, scale: 0.011, biasY: notice - 1.4, pace: 1900 };
     case "surprised":
-      return { y: 1.1, x: 0.35, rot: 0.35, scale: 0.005, biasY: -2.2, pace: 900 };
+      return { y: 1.15, x: 0.35, rot: 0.35, scale: 0.004, biasY: notice - 3.2, pace: 1100 };
     case "sad":
-      return { y: 0.7, x: 0.15, rot: 0.2, scale: 0.003, biasY: 1.3, pace: 3200 };
+      return { y: 0.75 * listen, x: 0.18 * listen, rot: 0.16, scale: 0.003, biasY: notice + 1.5, pace: 4400 };
     case "confused":
-      return { y: 1.5, x: 1.05, rot: 1.25, scale: 0.004, biasY: 0.35, pace: 1100 };
+      return { y: 1.55 * listen, x: 1.25 * listen, rot: 1.1, scale: 0.004, biasY: notice + 0.35, pace: 1500 };
     default: {
       const _never: never = face;
       return _never;
@@ -59,19 +63,19 @@ function driftFor(face: CeramicFace, attentive: boolean): Drift {
 function reactionLift(face: CeramicFace): number {
   switch (face) {
     case "waiting":
-      return -0.5;
+      return -0.6;
     case "thinking":
-      return -1.7;
+      return -2.2;
     case "speaking":
-      return -2.5;
+      return -3.1;
     case "happy":
-      return -2.1;
+      return -2.4;
     case "surprised":
-      return -3.2;
+      return -3.8;
     case "sad":
-      return 0.8;
+      return 1.1;
     case "confused":
-      return 0.4;
+      return 0.45;
     default: {
       const _never: never = face;
       return _never;
@@ -142,32 +146,38 @@ export function useOrbPresence({
 
   const glowX = useSpring(x, GLOW_SPRING);
   const glowY = useSpring(y, GLOW_SPRING);
-  const glowRot = useSpring(rot, GLOW_SPRING);
+  /** Positive when the body is above its rest line. */
+  const lift = useTransform(glowY, (gy) => -num(gy));
 
   const bodyTransform = useTransform([x, y, rot, scale], ([xv, yv, rv, sv]) => {
-    return `translate3d(${num(xv)}px, ${num(yv)}px, 0) rotate(${num(rv)}deg) scale(${num(sv)})`;
+    const tilt = clamp(-num(yv) * 0.26, -1.35, 1.35);
+    return `translate3d(${num(xv)}px, ${num(yv)}px, 0) rotate(${num(rv)}deg) rotateX(${tilt}deg) scale(${num(sv)})`;
   });
 
-  const shiftX = useTransform([glowX, glowRot], ([px, rv]) => -num(px) * 0.4 - num(rv) * 0.55);
-
-  const spillTransform = useTransform([shiftX, glowY], ([sx, gy]) => {
-    const spread = 1 - num(gy) * 0.032;
-    return `translate3d(${num(sx)}px, 0, 0) scale(${spread}, ${1 + (spread - 1) * 0.45})`;
+  const auraTransform = useTransform([glowX, lift], ([gx, lv]) => {
+    const spread = clamp(1 + num(lv) * 0.045, 0.92, 1.16);
+    return `translate3d(${num(gx) * 0.55}px, 0, 0) scale(${spread})`;
   });
-  const spillOpacity = useTransform([glowY, intensityMv], ([gy, i]) => clamp(0.86 - num(gy) * 0.03, 0.55, 1) * num(i));
+  const auraOpacity = useTransform([lift, intensityMv], ([lv, i]) => clamp(0.96 - num(lv) * 0.04, 0.7, 1) * num(i));
 
-  const emissiveTransform = useTransform([shiftX, glowY], ([sx, gy]) => {
-    const spread = 1 - num(gy) * 0.04;
-    return `translate3d(${num(sx) * 0.75}px, 0, 0) scale(${spread}, ${1 + (spread - 1) * 0.35})`;
+  const spillTransform = useTransform([glowX, lift], ([gx, lv]) => {
+    const spread = clamp(1 + num(lv) * 0.07, 0.9, 1.22);
+    return `translate3d(${num(gx)}px, 0, 0) scale(${spread}, ${1 + (spread - 1) * 0.45})`;
   });
-  const emissiveOpacity = useTransform([glowY, intensityMv], ([gy, i]) => clamp(0.92 + num(gy) * 0.035, 0.5, 1) * num(i));
+  const spillOpacity = useTransform([lift, intensityMv], ([lv, i]) => clamp(0.96 - num(lv) * 0.06, 0.62, 1) * num(i));
 
-  const shadowTransform = useTransform([shiftX, glowY], ([sx, gy]) => {
-    const width = 1 + num(gy) * 0.05;
-    const soft = 1 + num(gy) * 0.02;
-    return `translate3d(${num(sx) * 1.15}px, 0, 0) scale(${width}, ${soft})`;
+  const emissiveTransform = useTransform([glowX, lift], ([gx, lv]) => {
+    const spread = clamp(1 + num(lv) * 0.085, 0.86, 1.24);
+    return `translate3d(${num(gx) * 0.92}px, 0, 0) scale(${spread}, ${1 + (spread - 1) * 0.35})`;
   });
-  const shadowOpacity = useTransform([glowY, intensityMv], ([gy, i]) => clamp(0.62 + num(gy) * 0.07, 0.32, 0.9) * num(i));
+  const emissiveOpacity = useTransform([lift, intensityMv], ([lv, i]) => clamp(1 - num(lv) * 0.08, 0.58, 1) * num(i));
+
+  const shadowTransform = useTransform([glowX, lift], ([gx, lv]) => {
+    const width = clamp(1 - num(lv) * 0.065, 0.8, 1.16);
+    const soft = clamp(1 - num(lv) * 0.04, 0.86, 1.12);
+    return `translate3d(${num(gx)}px, 0, 0) scale(${width}, ${soft})`;
+  });
+  const shadowOpacity = useTransform([lift, intensityMv], ([lv, i]) => clamp(1 - num(lv) * 0.1, 0.48, 1) * num(i));
 
   useEffect(() => {
     intensityMv.set(intensity);
@@ -273,9 +283,10 @@ export function useOrbPresence({
 
   return {
     bodyStyle: { transform: bodyTransform },
+    auraStyle: { transform: auraTransform, opacity: auraOpacity },
     spillStyle: { transform: spillTransform, opacity: spillOpacity },
     emissiveStyle: { transform: emissiveTransform, opacity: emissiveOpacity },
     shadowStyle: { transform: shadowTransform, opacity: shadowOpacity },
-    contactStyle: { transform: shadowTransform },
+    contactStyle: { transform: shadowTransform, opacity: emissiveOpacity },
   };
 }

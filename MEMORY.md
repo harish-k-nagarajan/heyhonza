@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-26 (orb margin motes + speech rays)
+## Current entry — 2026-09-27 (floor light coupled to the ceramic)
+
+### What was wrong
+The shell still read as a static ceramic with effects beside it. The orange pool's bright core sat behind the body, so only a faint detached smear showed, and the shadow slid the opposite way from the orb.
+
+### What changed
+The floor stack follows the pen glow (aura, wide spill, warm contact, coral core) and stays on the card while the body floats on the existing motion springs. A slower spring drives the pool and shadow with the body: higher means a smaller, softer shadow and a wider pool. Face pixels keep a tight LED halo. Side rays are staggered bursts. Recess mood colors interpolate. No second animation library. Reduced motion keeps the light and drops the wander.
+
+### Checked
+Chat and call recesses: the pool meets the lower rim. Composer focus holds the eyes open and lifts slightly. `npm run build` was not run while dev was up.
+
+---
+
+## Previous — 2026-09-26 (orb margin motes + speech rays)
 
 ### What broke
 Speech rays and the six motes from `honza.pen` HonzaOrb were drawn inside the ceramic box, under the shell (`z-index` below the body). On screen they were covered, so the margin around the face looked empty.
