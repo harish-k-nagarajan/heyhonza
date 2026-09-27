@@ -565,6 +565,23 @@ body {
   border-radius: 34.72%;
   overflow: hidden;
 }
+.hmat-orb--compact .hmat-orb-rim-bottom,
+.hmat-orb--compact .hmat-orb-rim-right,
+.hmat-orb--compact .hmat-orb-halo {
+  display: none;
+}
+.hmat-orb--compact .hmat-orb-porcelain {
+  background: #fff;
+  box-shadow: none;
+}
+.hmat-orb--compact .hmat-orb-ceramic {
+  background: #fff;
+  outline: none;
+  box-shadow: inset 2px 3px 5px #fff;
+}
+.hmat-orb--compact .hmat-orb-bezel {
+  box-shadow: inset 0 1px 2px #8a624822;
+}
 .hmat-orb-porcelain,
 .hmat-orb-ceramic,
 .hmat-orb-sheen,

@@ -253,7 +253,7 @@ export function HmatOrb({
           </div>
         ) : null}
 
-        <div className="hmat-orb-halo" aria-hidden />
+        {hero ? <div className="hmat-orb-halo" aria-hidden /> : null}
         <div className="hmat-orb-body">
           <div className="hmat-orb-porcelain" aria-hidden />
           <div className="hmat-orb-ceramic" aria-hidden />
