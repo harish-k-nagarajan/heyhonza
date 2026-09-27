@@ -128,12 +128,17 @@ export function HmatDock() {
 
   const commitHref = useCallback(
     (href: string, haptic: boolean) => {
-      if (pathname === href || pathname.startsWith(`${href}/`)) return;
+      const index = TABS.findIndex((tab) => tab.href === href);
+      if (pathname === href || pathname.startsWith(`${href}/`)) {
+        if (index >= 0) snapPillToIndex(index);
+        return;
+      }
       if (haptic) tapLight();
       if (isHmatMainTab(href)) setPendingHref(href);
+      if (index >= 0) snapPillToIndex(index);
       router.push(href);
     },
-    [pathname, router, setPendingHref],
+    [pathname, router, setPendingHref, snapPillToIndex],
   );
 
   const goToHref = useCallback(
@@ -144,11 +149,12 @@ export function HmatDock() {
         href === ROUTES.call || href === ROUTES.settings;
       if (onChat && leavingForMainTab && isTypedChatActive()) {
         setLeaveTarget(href);
+        snapPillToIndex(activeIndex >= 0 ? activeIndex : 0);
         return;
       }
       commitHref(href, haptic);
     },
-    [commitHref, pathname],
+    [activeIndex, commitHref, pathname, snapPillToIndex],
   );
 
   useEffect(() => {
@@ -248,9 +254,8 @@ export function HmatDock() {
       }
 
       const tab = TABS[targetIndex];
-      const snapIndex = tab ? targetIndex : activeIndex >= 0 ? activeIndex : 0;
-      snapPillToIndex(snapIndex, drag.metrics);
       if (tab) goToHref(tab.href, !moved);
+      else snapPillToIndex(activeIndex >= 0 ? activeIndex : 0, drag.metrics);
     },
     [activeIndex, goToHref, snapPillToIndex],
   );
@@ -271,11 +276,9 @@ export function HmatDock() {
         return;
       }
       e.preventDefault();
-      const index = TABS.findIndex((tab) => tab.href === href);
-      if (index >= 0) snapPillToIndex(index);
       goToHref(href, true);
     },
-    [goToHref, snapPillToIndex],
+    [goToHref],
   );
 
   return (

@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-27 (floor light coupled to the ceramic)
+## Current entry — 2026-09-27 (stale chat thread on a fresh visit)
+
+### What broke
+`/api/state` treated every message with no `session_id` as the current chat. Call turns are saved that way, so a new login restored a 15-message call transcript, set the chat to active, and the dock intercepted Call with “Leave chat?”. The same payload also loaded every ended session (445 rows), which held the chat skeleton until that sync finished.
+
+### What changed
+The live thread is only a typed chat started on this page. Reload and server sync do not reopen old rows. Call lines are not rendered in the chat thread and do not arm the leave dialog. `/api/state` no longer selects the full message history; ended-session metadata is capped. Starting a chat closes any previous open session first.
+
+### Checked
+Chat opens on the start gate with no old bubbles and no leave dialog. Call opens directly from that gate.
+
+---
+
+## Previous — 2026-09-27 (floor light coupled to the ceramic)
 
 ### What was wrong
 The shell still read as a static ceramic with effects beside it. The orange pool's bright core sat behind the body, so only a faint detached smear showed, and the shadow slid the opposite way from the orb.

@@ -27,9 +27,10 @@ function threadMessages() {
     .messages.filter((m) => m.role === "user" || m.role === "assistant");
 }
 
-/** True when the learner has started a typed chat (composer / thread), not the Start gate. */
+/** True when the learner has started a typed chat and has not ended it. */
 export function isTypedChatActive(): boolean {
-  return useChatStore.getState().chatPhase === "active";
+  const { chatPhase, activeSessionId } = useChatStore.getState();
+  return chatPhase === "active" && Boolean(activeSessionId);
 }
 
 async function refreshLocalGoogleDocIfStale(): Promise<void> {
@@ -151,7 +152,9 @@ export async function endChatSessionAction(): Promise<void> {
     chat.endSession();
     return;
   }
-  const thread = messages.filter((m) => m.role === "user" || m.role === "assistant");
+  const thread = messages.filter(
+    (m) => (m.kind ?? "chat") !== "call" && (m.role === "user" || m.role === "assistant"),
+  );
   if (thread.length > 0) {
     await endServerSession(
       activeSessionId,

@@ -187,7 +187,7 @@ export async function loadUserState(): Promise<UserState | null> {
     }
   }
 
-  const [contextRes, sessionsRes, messagesRes] = await Promise.all([
+  const [contextRes, openRes, endedRes] = await Promise.all([
     supabase
       .from("user_context")
       .select("id, source_kind, source_ref, content, synced_at")
@@ -195,14 +195,19 @@ export async function loadUserState(): Promise<UserState | null> {
       .order("synced_at", { ascending: true }),
     supabase
       .from("chat_sessions")
+      .select("id")
+      .eq("user_id", user.id)
+      .is("ended_at", null)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("chat_sessions")
       .select("id, started_at, ended_at, preview, message_count")
       .eq("user_id", user.id)
-      .order("started_at", { ascending: false }),
-    supabase
-      .from("messages")
-      .select("id, role, content, kind, session_id, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: true }),
+      .not("ended_at", "is", null)
+      .order("started_at", { ascending: false })
+      .limit(40),
   ]);
 
   const daily = Number(p?.daily_message_count ?? 1);
@@ -228,32 +233,19 @@ export async function loadUserState(): Promise<UserState | null> {
   };
 
   const contextChunks = (contextRes.data ?? []).map(chunkFromRow);
-  const allMessages: PersistedMessage[] = (messagesRes.data ?? []).map((m) => ({
-    id: m.id as string,
-    role: m.role as "user" | "assistant",
-    content: m.content as string,
-    kind: (m.kind as "chat" | "call") ?? "chat",
-    sessionId: (m.session_id as string | null) ?? undefined,
-    createdAt: new Date(m.created_at as string).getTime(),
+  const activeSessionId = (openRes.data?.id as string | undefined) ?? null;
+
+  const endedSessions: PersistedSession[] = (endedRes.data ?? []).map((s) => ({
+    id: s.id as string,
+    startedAt: new Date(s.started_at as string).getTime(),
+    endedAt: s.ended_at ? new Date(s.ended_at as string).getTime() : undefined,
+    preview: (s.preview as string) ?? "",
+    messageCount: (s.message_count as number) ?? 0,
   }));
 
-  const sessions = sessionsRes.data ?? [];
-  const activeRow = sessions.find((s) => s.ended_at == null);
-  const activeSessionId = (activeRow?.id as string | undefined) ?? null;
-
-  const endedSessions: PersistedSession[] = sessions
-    .filter((s) => s.ended_at != null)
-    .map((s) => ({
-      id: s.id as string,
-      startedAt: new Date(s.started_at as string).getTime(),
-      endedAt: s.ended_at ? new Date(s.ended_at as string).getTime() : undefined,
-      preview: (s.preview as string) ?? "",
-      messageCount: (s.message_count as number) ?? 0,
-    }));
-
-  const messages = activeSessionId
-    ? allMessages.filter((m) => m.sessionId === activeSessionId)
-    : allMessages.filter((m) => !m.sessionId);
+  // The live thread is whatever the learner starts now. Old rows — especially
+  // call turns saved with no session — must not come back as the current chat.
+  const messages: PersistedMessage[] = [];
 
   return {
     persisted: true,
@@ -334,6 +326,11 @@ export async function createChatSession(): Promise<string | null> {
   const userId = await getUserId();
   if (!userId) return null;
   const supabase = await createSupabaseServerClient();
+  await supabase
+    .from("chat_sessions")
+    .update({ ended_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .is("ended_at", null);
   const { data, error } = await supabase
     .from("chat_sessions")
     .insert({ user_id: userId, preview: "", message_count: 0 })
