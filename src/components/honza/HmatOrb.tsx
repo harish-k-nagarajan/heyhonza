@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo } from "react";
+import { motion } from "motion/react";
 
 import { cn } from "@/lib/cn";
 import {
@@ -14,6 +15,7 @@ import {
   type CeramicPixel,
 } from "./ceramic-faces";
 import type { HonzaOrbState } from "./theme";
+import { useOrbPresence } from "./useOrbPresence";
 
 /**
  * Ceramic Honza — one porcelain body with an inset LED matrix, seated in the
@@ -40,12 +42,12 @@ function stageBox(x: number, y: number, w: number, h: number) {
   };
 }
 
-/** Speech rays — honza.pen Qj69R / MXzhl / Q92Mq / G6POZ. */
+/** Short ticks beside the shell — honza.pen Qj69R / MXzhl / Q92Mq / G6POZ. */
 const RAYS = [
-  { className: "hmat-orb-ray hmat-orb-ray--lu", rot: -30, box: stageBox(13, 52, 15, 5), dx: "-2px", dy: "-8px" },
-  { className: "hmat-orb-ray hmat-orb-ray--ll", rot: -6, box: stageBox(9, 78, 15, 5), dx: "-3px", dy: "-5px" },
-  { className: "hmat-orb-ray hmat-orb-ray--ru", rot: 30, box: stageBox(213, 61, 15, 5), dx: "2px", dy: "8px" },
-  { className: "hmat-orb-ray hmat-orb-ray--rl", rot: 6, box: stageBox(216, 77, 15, 5), dx: "3px", dy: "5px" },
+  { key: "lu", rot: -30, spin: -7, box: stageBox(12, 50, 15, 6), dx: "-2px", dy: "-3px", dur: "6.2s", delay: "0.1s" },
+  { key: "ll", rot: -6, spin: 5, box: stageBox(8, 76, 14, 5), dx: "-3px", dy: "2px", dur: "7.8s", delay: "1.1s" },
+  { key: "ru", rot: 30, spin: 6, box: stageBox(213, 54, 15, 6), dx: "2px", dy: "-2px", dur: "5.5s", delay: "0.45s" },
+  { key: "rl", rot: 6, spin: -5, box: stageBox(216, 75, 14, 5), dx: "3px", dy: "2px", dur: "8.4s", delay: "1.7s" },
 ] as const;
 
 /** Six motes — honza.pen Particles dsZv8 … k2JdF. Outward sprinkle from the shell. */
@@ -67,6 +69,7 @@ function PixelLayer({
   className?: string;
   fill: string;
 }) {
+  const fid = `led${useId().replace(/:/g, "")}`;
   return (
     <svg
       className={className}
@@ -75,6 +78,17 @@ function PixelLayer({
       viewBox={`0 0 ${CERAMIC_VIEW} ${CERAMIC_VIEW}`}
       aria-hidden
     >
+      <defs>
+        <filter id={fid} x="-60%" y="-60%" width="220%" height="220%" colorInterpolationFilters="sRGB">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1.05" result="bleed" />
+          <feFlood floodColor={ORB_LED} floodOpacity="0.32" result="warm" />
+          <feComposite in="warm" in2="bleed" operator="in" result="glow" />
+          <feMerge>
+            <feMergeNode in="glow" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
       {pixels.map((px, i) => (
         <rect
           key={`${px.x}-${px.y}-${i}`}
@@ -82,9 +96,10 @@ function PixelLayer({
           y={px.y}
           width={CERAMIC_PIXEL}
           height={CERAMIC_PIXEL}
-          rx={1.08}
+          rx={0.7}
           fill={fill}
           opacity={px.o ?? 1}
+          filter={`url(#${fid})`}
         />
       ))}
     </svg>
@@ -160,7 +175,13 @@ export function HmatOrb({
 
   const showRays = hero && config.rays;
   const showParticles = hero && config.particles;
-  const floatOn = hero && breathe;
+  const presence = useOrbPresence({
+    enabled: hero && breathe,
+    rotation: config.rotation,
+    face,
+    attentive,
+    intensity: config.intensity,
+  });
 
   return (
     <div
@@ -178,33 +199,34 @@ export function HmatOrb({
         ["--orb-blink-delay" as string]: blinkDelay,
       }}
     >
-      <div
-        className={cn(
-          "hmat-orb-stage",
-          floatOn && "hmat-orb-stage--float",
-          popping && "react-pop",
-        )}
-      >
-        {hero ? (
-          <>
-            <div className="hmat-orb-aura" aria-hidden />
-            <div className="hmat-orb-spill" aria-hidden />
-            <div className="hmat-orb-shadow" aria-hidden />
-            <div className="hmat-orb-contact" aria-hidden />
-          </>
-        ) : null}
+      {hero ? (
+        <div className="hmat-orb-ground" aria-hidden>
+          <div className="hmat-orb-aura" />
+          <motion.div className="hmat-orb-spill" style={presence.spillStyle} />
+          <motion.div className="hmat-orb-emissive" style={presence.emissiveStyle} />
+          <motion.div className="hmat-orb-shadow" style={presence.shadowStyle} />
+          <motion.div className="hmat-orb-contact" style={presence.contactStyle} />
+        </div>
+      ) : null}
 
+      <motion.div
+        className={cn("hmat-orb-stage", popping && "react-pop")}
+        style={presence.bodyStyle}
+      >
         {showRays ? (
           <div className="hmat-orb-rays" aria-hidden>
             {RAYS.map((ray) => (
               <span
-                key={ray.className}
-                className={ray.className}
+                key={ray.key}
+                className={`hmat-orb-ray hmat-orb-ray--${ray.key}`}
                 style={{
                   ...ray.box,
                   ["--ray-rot" as string]: `${ray.rot}deg`,
+                  ["--ray-spin" as string]: `${ray.spin}deg`,
                   ["--ray-dx" as string]: ray.dx,
                   ["--ray-dy" as string]: ray.dy,
+                  ["--ray-base" as string]: ray.dur,
+                  animationDelay: ray.delay,
                 }}
               />
             ))}
@@ -219,8 +241,8 @@ export function HmatOrb({
                 className="hmat-orb-particle"
                 style={{
                   ...stageBox(pt.x, pt.y, pt.size, pt.size),
-                  opacity: pt.opacity,
                   animationDelay: pt.delay,
+                  animationDuration: `${2.6 + (i % 5) * 0.72}s`,
                   ["--p-opacity" as string]: String(pt.opacity),
                   ["--dx" as string]: pt.dx,
                   ["--dy" as string]: pt.dy,
@@ -244,7 +266,7 @@ export function HmatOrb({
             <div className="hmat-orb-glass" aria-hidden />
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
