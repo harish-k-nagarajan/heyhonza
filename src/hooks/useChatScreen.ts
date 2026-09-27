@@ -77,10 +77,14 @@ export function useChatScreen(): ChatScreen {
     return () => setMood("idle");
   }, [setMood]);
 
-  const threadMessages = useMemo(
-    () => messages.filter((m) => m.role === "user" || m.role === "assistant"),
-    [messages],
-  );
+  const threadMessages = useMemo(() => {
+    if (chatPhase !== "active") return [];
+    return messages.filter(
+      (m) =>
+        (m.kind ?? "chat") === "chat" &&
+        (m.role === "user" || m.role === "assistant"),
+    );
+  }, [chatPhase, messages]);
 
   const heroMode = !threadMessages.some((m) => m.role === "user");
   const showStartGate = chatPhase === "idle";

@@ -16,6 +16,26 @@ function previewFromMessages(messages: ChatMessage[]): string {
 
 export type ChatPhase = "idle" | "active";
 
+/** History metadata kept on the client. The live thread is never this list. */
+const ENDED_SESSION_CAP = 40;
+
+function isCallMessage(message: ChatMessage): boolean {
+  return message.kind === "call";
+}
+
+/** Typed-chat turns for the open session. Call lines and session-less leftovers stay out. */
+function liveTypedMessages(
+  messages: ChatMessage[],
+  activeSessionId: string | null,
+): ChatMessage[] {
+  if (!activeSessionId) return [];
+  return messages.filter(
+    (message) =>
+      (message.role === "user" || message.role === "assistant") &&
+      !isCallMessage(message),
+  );
+}
+
 export type ChatState = {
   activeSessionId: string | null;
   endedSessions: ChatSessionMeta[];
@@ -144,7 +164,7 @@ export const useChatStore = create<ChatState>()(
       setMessages: (messages) =>
         set({
           messages,
-          chatPhase: messages.length > 0 ? "active" : get().chatPhase,
+          chatPhase: get().activeSessionId ? "active" : "idle",
         }),
       setStatus: (status) => set({ status }),
       setError: (lastError) => set({ lastError }),
@@ -172,7 +192,7 @@ export const useChatStore = create<ChatState>()(
           });
           return;
         }
-        const thread = messages.filter((m) => m.role === "user" || m.role === "assistant");
+        const thread = liveTypedMessages(messages, activeSessionId);
         if (thread.length > 0) {
           const meta: ChatSessionMeta = {
             id: activeSessionId,
@@ -205,17 +225,26 @@ export const useChatStore = create<ChatState>()(
           });
         }
       },
-      hydrateSessions: ({ activeSessionId, endedSessions, messages, archivedMessages }) => {
-        const hasThread = messages.length > 0;
+      hydrateSessions: ({ endedSessions, archivedMessages }) => {
+        const current = get();
+        // A typed chat the learner started in this page stays. Server history
+        // must not become that thread — call transcripts and old rows were
+        // showing up as "in chat" and blocking the dock.
+        const inProgress =
+          current.chatPhase === "active" && Boolean(current.activeSessionId);
         set({
-          activeSessionId: hasThread ? activeSessionId : null,
-          endedSessions,
-          messages,
-          archivedMessages: archivedMessages ?? get().archivedMessages,
-          chatPhase: hasThread ? "active" : "idle",
-          lastError: null,
-          typingPreview: null,
-          status: "idle",
+          endedSessions: endedSessions.slice(0, ENDED_SESSION_CAP),
+          archivedMessages: archivedMessages ?? current.archivedMessages,
+          ...(inProgress
+            ? {}
+            : {
+                activeSessionId: null,
+                messages: [],
+                chatPhase: "idle" as const,
+                lastError: null,
+                typingPreview: null,
+                status: "idle" as const,
+              }),
         });
       },
       setArchivedSessionMessages: (sessionId, messages) =>
@@ -245,20 +274,22 @@ export const useChatStore = create<ChatState>()(
     {
       name: "honza-chat",
       partialize: (s) => ({
-        activeSessionId: s.activeSessionId,
-        endedSessions: s.endedSessions,
+        // A reload starts a new chat. Keeping the live thread here is what
+        // brought call transcripts back as "in chat".
+        activeSessionId: null,
+        endedSessions: s.endedSessions.slice(0, ENDED_SESSION_CAP),
         archivedMessages: s.archivedMessages,
-        messages: s.messages,
+        messages: [],
       }),
       merge: (persisted, current) => {
         const migrated = migrateLegacyState(persisted);
-        const hasThread = migrated.messages.length > 0;
-        const chatPhase: ChatPhase = hasThread ? "active" : "idle";
         return {
           ...current,
-          ...migrated,
-          activeSessionId: hasThread ? migrated.activeSessionId : null,
-          chatPhase,
+          endedSessions: (migrated.endedSessions ?? []).slice(0, ENDED_SESSION_CAP),
+          archivedMessages: migrated.archivedMessages,
+          activeSessionId: null,
+          messages: [],
+          chatPhase: "idle" as const,
         };
       },
     },

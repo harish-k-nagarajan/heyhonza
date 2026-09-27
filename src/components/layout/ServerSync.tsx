@@ -16,7 +16,6 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useChatStore } from "@/stores/useChatStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { useSyncStore } from "@/stores/useSyncStore";
-import type { ChatMessage } from "@/types";
 import type { LevelId, TopicId } from "@/lib/constants";
 
 function applyServerState(data: ServerState): void {
@@ -68,20 +67,12 @@ function applyServerState(data: ServerState): void {
   });
   settings.setContextChunks(data.contextChunks ?? []);
 
-  // `kind` must survive hydration: it's what makes a call transcript
-  // still read as a call after a refresh or a re-login.
-  const mapped: ChatMessage[] = (data.messages ?? []).map((m) => ({
-    id: m.id,
-    role: m.role,
-    content: m.content,
-    kind: m.kind ?? "chat",
-    sessionId: m.sessionId,
-    createdAt: m.createdAt,
-  }));
+  // History metadata only. The live thread stays empty unless this page
+  // already started a typed chat — saved call/chat rows must not reopen it.
   useChatStore.getState().hydrateSessions({
-    activeSessionId: data.activeSessionId ?? null,
+    activeSessionId: null,
     endedSessions: data.endedSessions ?? [],
-    messages: mapped,
+    messages: [],
   });
 }
 
@@ -95,9 +86,9 @@ function shouldSkipTokenRefresh(session: Session | null, lastHydratedUserId: str
 
 /**
  * On first mount, ask the server whether this browser is a signed-in user with
- * DB-backed state. If so, overwrite the local Zustand stores with the DB truth
- * (chat history, settings, context) so history survives refresh / re-login and
- * a second user sees their own separate data. When not persisted (local
+ * DB-backed state. If so, overwrite settings and context with the DB truth so
+ * a second user sees their own data. The live chat thread is not restored —
+ * opening the app starts at the chat gate. When not persisted (local
  * pass-through dev, or signed out), leaves the localStorage-backed stores as-is.
  *
  * Re-runs hydration when auth changes (sign-in / sign-out) without an AppShell

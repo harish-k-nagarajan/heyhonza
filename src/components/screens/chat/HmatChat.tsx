@@ -172,14 +172,11 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
       });
     };
 
-    if (screen.ready && providersLoaded) {
-      const id = window.requestAnimationFrame(reveal);
-      return () => window.cancelAnimationFrame(id);
-    }
-
+    // Don't tie this to server sync. A slow history load was cancelling the
+    // timer and holding the skeleton until old messages arrived.
     const timeout = window.setTimeout(reveal, 240);
     return () => window.clearTimeout(timeout);
-  }, [mounted, screen.ready, providersLoaded]);
+  }, [mounted]);
 
   const composerMode = heroMode ? "idle" : "ongoing";
   const localizedError = localizeClientError(lastError, t.errors);
