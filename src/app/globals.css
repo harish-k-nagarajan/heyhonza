@@ -573,22 +573,43 @@ body {
   border-radius: 34.72%;
   overflow: hidden;
 }
+/* Compact (<100px) keeps the same ceramic as hero; pixel shadows on the 120px
+ * body would flood a 64px LED well and read as a darker face tile. */
+.hmat-orb--compact {
+  container-type: size;
+}
 .hmat-orb--compact .hmat-orb-rim-bottom,
 .hmat-orb--compact .hmat-orb-rim-right,
 .hmat-orb--compact .hmat-orb-halo {
   display: none;
 }
 .hmat-orb--compact .hmat-orb-porcelain {
-  background: #fff;
-  box-shadow: none;
+  box-shadow:
+    inset 0 -4.17cqi 6.67cqi color-mix(in srgb, var(--orb-glow) 32%, transparent),
+    inset 0 -0.83cqi 1.25cqi #ffffffb3;
 }
 .hmat-orb--compact .hmat-orb-ceramic {
-  background: #fff;
-  outline: none;
-  box-shadow: inset 2px 3px 5px #fff;
+  box-shadow:
+    inset 2.5cqi 4.17cqi 6.67cqi #ffffff,
+    inset -4.17cqi -7.5cqi 13.33cqi #e0cbbd8c,
+    inset -1.67cqi -2.5cqi 4.17cqi color-mix(in srgb, var(--orb-glow) 26%, transparent);
+  outline-width: 1cqi;
+  outline-offset: -1cqi;
 }
 .hmat-orb--compact .hmat-orb-bezel {
-  box-shadow: inset 0 1px 2px #8a624822;
+  box-shadow:
+    inset 0 1.67cqi 2.5cqi #8a624833,
+    0 -0.83cqi 1.67cqi #c9b2a340;
+}
+.hmat-orb--compact .hmat-orb-matrix {
+  box-shadow:
+    inset 0 5cqi 8.33cqi #5a382a3d,
+    inset 0 0.83cqi 1.67cqi #5a382a22,
+    inset 0 -1.67cqi 2.5cqi #ffffffa6;
+}
+.hmat-orb--compact .hmat-orb-matrix-dots {
+  opacity: 0.22;
+  background-image: radial-gradient(circle, #5a3a2a26 16%, transparent 22%);
 }
 .hmat-orb-porcelain,
 .hmat-orb-ceramic,
@@ -2248,8 +2269,9 @@ body:has(.landing-page) {
 /* ===== Hmat screen continuity — Chat / Call / Settings ===== */
 
 .hmat-presence-compact {
-  border-radius: 14px;
-  overflow: hidden;
+  display: grid;
+  place-items: center;
+  line-height: 0;
 }
 
 .hmat-screen-frame {
