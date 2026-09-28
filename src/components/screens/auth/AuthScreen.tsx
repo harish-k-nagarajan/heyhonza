@@ -155,7 +155,6 @@ export function AuthScreen({
 
       if (data.session) {
         router.replace(next);
-        router.refresh();
         return;
       }
       setStatus("confirm-sent");
@@ -174,7 +173,6 @@ export function AuthScreen({
     }
 
     router.replace(next);
-    router.refresh();
   };
 
   if (status === "confirm-sent") {
