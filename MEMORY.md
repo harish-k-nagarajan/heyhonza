@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-27 (Start chatting no longer sits on the loader)
+## Current entry — 2026-09-28 (compact orb face well)
+
+### What was wrong
+The 64px settings/header orb flattened porcelain to white and kept hero-sized inset shadows on the LED well. At that size the shadows flooded the matrix, so the face sat on a darker tile than chat/call.
+
+### What changed
+Compact keeps the same ceramic as the 120px hero. Shadows scale with the orb (`cqi`). The wrapper no longer clips the squircle to a tighter 14px tile.
+
+### Checked
+Settings header vs chat and call heroes. Face well is the same cream panel.
+
+---
+
+## Previous — 2026-09-27 (Start chatting no longer sits on the loader)
 
 ### What broke
 Start chatting waited on the session, then held the thread on the typing glyphs until the opener finished. The first line was also hidden until the learner sent something, so the glyphs were the only thing on screen.
