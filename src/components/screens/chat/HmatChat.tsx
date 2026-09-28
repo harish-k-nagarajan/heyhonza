@@ -75,6 +75,8 @@ function HmatEmptyHint({ text }: { text: string }) {
 
 /** Survives dock remounts in this JS context; resets on full reload. */
 let chatBootCeremonyDone = false;
+/** Skeleton already revealed — skip replay on tab remounts / post-login navigation. */
+let chatSkelRevealed = false;
 
 export function HmatChat({ screen }: { screen: ChatScreen }) {
   const { t } = useLocale();
@@ -97,9 +99,9 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   const threadAccRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
   const [mounted, setMounted] = useState(false);
-  const [revealed, setRevealed] = useState(false);
-  const [presenceShown, setPresenceShown] = useState(false);
-  const [copyShown, setCopyShown] = useState(false);
+  const [revealed, setRevealed] = useState(() => chatSkelRevealed);
+  const [presenceShown, setPresenceShown] = useState(() => chatSkelRevealed);
+  const [copyShown, setCopyShown] = useState(() => chatSkelRevealed);
   const [draft, setDraft] = useState("");
   const [composerFocused, setComposerFocused] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
@@ -156,10 +158,16 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
   useEffect(() => {
     if (!mounted) return;
+    if (chatSkelRevealed) {
+      chatBootCeremonyDone = true;
+      return;
+    }
+
     const skipCeremony = chatBootCeremonyDone;
     chatBootCeremonyDone = true;
 
     const reveal = () => {
+      chatSkelRevealed = true;
       setRevealed(true);
       if (skipCeremony) {
         setPresenceShown(true);
@@ -174,6 +182,10 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
 
     // Don't tie this to server sync. A slow history load was cancelling the
     // timer and holding the skeleton until old messages arrived.
+    if (skipCeremony) {
+      reveal();
+      return;
+    }
     const timeout = window.setTimeout(reveal, 240);
     return () => window.clearTimeout(timeout);
   }, [mounted]);

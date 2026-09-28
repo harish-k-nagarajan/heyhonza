@@ -2624,6 +2624,7 @@ body:has(.landing-page) {
 }
 
 .hmat-chat-skel {
+  --pulse-count: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);

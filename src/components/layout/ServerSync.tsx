@@ -84,6 +84,16 @@ function shouldSkipTokenRefresh(session: Session | null, lastHydratedUserId: str
   );
 }
 
+/** Password login can fire SIGNED_IN right after mount sync already hydrated this user. */
+function shouldSkipSignedInHydrate(
+  session: Session | null,
+  lastHydratedUserId: string | null,
+): boolean {
+  const { checked, dbMode } = useSyncStore.getState();
+  const userId = session?.user?.id ?? null;
+  return Boolean(checked && dbMode && userId && userId === lastHydratedUserId);
+}
+
 /**
  * On first mount, ask the server whether this browser is a signed-in user with
  * DB-backed state. If so, overwrite settings and context with the DB truth so
@@ -145,6 +155,7 @@ export function ServerSync() {
           triggerAuthSync();
           return;
         case "SIGNED_IN":
+          if (shouldSkipSignedInHydrate(session, lastHydratedUserIdRef.current)) return;
           triggerAuthSync();
           return;
         case "SIGNED_OUT":
