@@ -152,6 +152,8 @@ export type HmatOrbProps = {
   stackClassName?: string;
   /** Composer focus / call listening — lean in, pause blinks. */
   attentive?: boolean;
+  /** Hero floor pool / halo under the body (off for compact auth wells). */
+  floorLight?: boolean;
 };
 
 export function HmatOrb({
@@ -161,8 +163,10 @@ export function HmatOrb({
   className,
   stackClassName,
   attentive = false,
+  floorLight = true,
 }: HmatOrbProps) {
   const hero = size >= HERO_MIN;
+  const showFloorLight = hero && floorLight;
   const popping = stackClassName === "react-pop";
   const face: CeramicFace = popping ? "surprised" : moodToCeramicFace(state);
   const config = CERAMIC_FACE_CONFIG[face];
@@ -199,7 +203,7 @@ export function HmatOrb({
         ["--orb-blink-delay" as string]: blinkDelay,
       }}
     >
-      {hero ? (
+      {showFloorLight ? (
         <div className="hmat-orb-ground" aria-hidden>
           <motion.div className="hmat-orb-aura" style={presence.auraStyle} />
           <motion.div className="hmat-orb-spill" style={presence.spillStyle} />
@@ -253,7 +257,7 @@ export function HmatOrb({
           </div>
         ) : null}
 
-        {hero ? <div className="hmat-orb-halo" aria-hidden /> : null}
+        {showFloorLight ? <div className="hmat-orb-halo" aria-hidden /> : null}
         <div className="hmat-orb-body">
           <div className="hmat-orb-porcelain" aria-hidden />
           <div className="hmat-orb-ceramic" aria-hidden />

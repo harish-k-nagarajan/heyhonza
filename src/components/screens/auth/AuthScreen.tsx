@@ -215,7 +215,7 @@ export function AuthScreen({
         </div>
 
         <div className="mat-recess flex w-full flex-col items-center rounded-[20px] px-4 py-4">
-          <HmatOrb state="idle" size={120} />
+          <HmatOrb state="idle" size={120} floorLight={false} />
         </div>
 
         <p className={cn(TYPE.label, "text-accent")}>{copy.kicker}</p>
