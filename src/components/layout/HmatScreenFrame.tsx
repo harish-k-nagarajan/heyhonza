@@ -43,7 +43,7 @@ export function HmatScreenFrame({
       document
         .querySelector(".hmat-screen-frame--enter")
         ?.classList.remove("hmat-screen-frame--enter");
-    }, 220);
+    }, 280);
     return () => window.clearTimeout(id);
   }, [key, motionOk]);
 

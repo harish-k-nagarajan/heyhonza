@@ -86,7 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {hideNav || isWelcome ? (
               children
             ) : (
-              <HmatScreenFrame frameKey={useTabStage ? tabHref : pathname}>
+              <HmatScreenFrame frameKey={useTabStage ? "hmat-main-tabs" : pathname}>
                 {useTabStage ? <HmatTabStage /> : children}
               </HmatScreenFrame>
             )}

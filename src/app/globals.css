@@ -99,8 +99,16 @@
   /* Authored presence beat — speak dust + Honza bubble share this */
   --duration-presence-beat: 680ms;
   --duration-presence-wave: 120ms;
-  --duration-screen-in: 160ms;
-  --duration-screen-out: 260ms;
+  --duration-screen-in: var(--duration-fast);
+  /* Dock tab slide — transitions.dev #08 (symmetric open/close) */
+  --page-slide-dur: var(--duration-fast);
+  --page-fade-dur: var(--duration-fast);
+  --page-slide-distance: var(--distance-base);
+  --page-blur: var(--blur-medium);
+  --page-stagger: 0ms;
+  --page-exit-enabled: 1;
+  --page-slide-ease: var(--ease-smooth-out);
+  --page-fade-ease: var(--ease-smooth-out);
   --duration-drawer-in: 280ms;
   --duration-drawer-out: 200ms;
   --duration-orb-pop: 280ms;
@@ -2246,12 +2254,11 @@ body:has(.landing-page) {
 
 .hmat-screen-frame {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
   filter: none;
 }
 
-/* Dock tab change — page rises with the pill. forwards (not both) so a cancelled
-   animation cannot freeze the live tree at opacity 0. */
+/* First paint after sign-in — soft fade (not dock tab slides; those use .hmat-tab-slide). */
 @media (prefers-reduced-motion: no-preference) {
   .hmat-screen-frame--enter {
     animation: hmat-screen-enter var(--duration-screen-in) var(--ease-smooth-out) forwards;
@@ -2261,11 +2268,59 @@ body:has(.landing-page) {
 @keyframes hmat-screen-enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(var(--distance-small));
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Dock tabs — page side-by-side (transitions.dev #08), three-up */
+.hmat-tab-slide {
+  position: relative;
+}
+
+.hmat-tab-slide .hmat-tab-page {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(0);
+  filter: blur(calc(var(--page-blur) * var(--page-exit-enabled)));
+  transition:
+    opacity var(--page-fade-dur) var(--page-fade-ease),
+    transform var(--page-slide-dur) var(--page-slide-ease),
+    filter var(--page-slide-dur) var(--page-slide-ease);
+  will-change: opacity, transform, filter;
+}
+
+.hmat-tab-slide[data-page="1"] .hmat-tab-page[data-page-id="2"],
+.hmat-tab-slide[data-page="1"] .hmat-tab-page[data-page-id="3"],
+.hmat-tab-slide[data-page="2"] .hmat-tab-page[data-page-id="3"] {
+  transform: translateX(var(--page-slide-distance));
+}
+
+.hmat-tab-slide[data-page="2"] .hmat-tab-page[data-page-id="1"],
+.hmat-tab-slide[data-page="3"] .hmat-tab-page[data-page-id="1"],
+.hmat-tab-slide[data-page="3"] .hmat-tab-page[data-page-id="2"] {
+  transform: translateX(calc(var(--page-slide-distance) * -1));
+}
+
+.hmat-tab-slide[data-page="1"] .hmat-tab-page[data-page-id="1"],
+.hmat-tab-slide[data-page="2"] .hmat-tab-page[data-page-id="2"],
+.hmat-tab-slide[data-page="3"] .hmat-tab-page[data-page-id="3"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+  filter: blur(0);
+  transition-delay: var(--page-stagger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hmat-tab-slide .hmat-tab-page {
+    transition: none !important;
+    filter: none;
   }
 }
 
