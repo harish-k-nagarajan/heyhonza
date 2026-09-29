@@ -39,6 +39,16 @@ export function HmatTabStage() {
     setMountedIds(next);
   }
 
+  const [seenPage, setSeenPage] = useState(activePage);
+  const [travel, setTravel] = useState<"soft" | "peer">("soft");
+  if (seenPage !== activePage) {
+    const from = seenPage;
+    const to = activePage;
+    const peer = (from === 1 && to === 2) || (from === 2 && to === 1);
+    setSeenPage(to);
+    setTravel(peer ? "peer" : "soft");
+  }
+
   useEffect(() => {
     if (pendingHref && pathname === pendingHref) setPendingHref(null);
   }, [pathname, pendingHref, setPendingHref]);
@@ -47,6 +57,7 @@ export function HmatTabStage() {
     <div
       className="hmat-tab-slide flex min-h-0 flex-1 flex-col overflow-hidden"
       data-page={String(activePage)}
+      data-travel={travel}
     >
       {TAB_PAGES.map(({ id, Screen }) => {
         if (!mountedIds.has(id)) return null;

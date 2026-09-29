@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-28 (compact orb face well)
+## Current entry — 2026-09-29 (call → chat no longer ghosts)
+
+### What was wrong
+Chat and call share the same hero. The dock slide only travels 8px, so the orb, title, and chip stacked on top of each other and then snapped.
+
+### What changed
+Chat ↔ call now pushes a full stage (`--page-slide-distance-peer`) with the drawer ease. Settings keeps the 8px dissolve.
+
+### Checked
+Mid-transition: the two heroes sit side by side instead of doubled in place. Settings → call still uses the short dissolve.
+
+---
+
+## Previous — 2026-09-28 (compact orb face well)
 
 ### What was wrong
 The 64px settings/header orb flattened porcelain to white and kept hero-sized inset shadows on the LED well. At that size the shadows flooded the matrix, so the face sat on a darker tile than chat/call.
