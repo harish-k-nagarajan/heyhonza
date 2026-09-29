@@ -152,7 +152,9 @@ export function startChatSession(): Promise<string> {
   // Flip to the composer before any network wait. The server id replaces this
   // one when it arrives.
   const localId = state.startSession();
-  const ready = (async () => {
+  // Assigned before the async body reads it. A const cannot refer to itself.
+  let ready: Promise<string> | null = null;
+  ready = (async () => {
     try {
       const serverId = await createServerSession();
       const current = useChatStore.getState();
