@@ -234,8 +234,8 @@ If the production host is `*.vercel.app` with **Deployment Protection / SSO** on
 
 ## 7. Regenerating icons
 
-Icons are generated from the idle `HonzaOrb` face — keep them in sync if the face
-or palette changes:
+Icons are generated from the ceramic orb (idle / waiting face) — keep them in
+sync if the shell, face, or palette changes:
 
 ```bash
 node scripts/generate-icons.mjs   # writes public/icons/* and public/apple-touch-icon.png
