@@ -15,6 +15,9 @@ import type { CeramicFace } from "./ceramic-faces";
  * follows it. Wander targets are irregular so the path is settling, not a
  * sine. State changes dip (notice), then lean into the new pose (react),
  * then the wander loop takes back over (settle).
+ *
+ * Soft cast shadow stays on the card: origin at the ellipse top so lift opens
+ * the floor, and lateral throw grows with height. Contact stays under the rim.
  */
 
 /** Heavy ceramic. Overdamped so it settles instead of oscillating. */
@@ -40,7 +43,7 @@ function driftFor(face: CeramicFace, attentive: boolean): Drift {
   const notice = attentive ? ATTENTIVE_LIFT : 0;
   switch (face) {
     case "waiting":
-      return { y: 3.4 * listen, x: 1.15 * listen, rot: 0.6, scale: 0.008, biasY: notice, pace: 3600 };
+      return { y: 10 * listen, x: 5.5 * listen, rot: 1.4, scale: 0.012, biasY: notice, pace: 2400 };
     case "thinking":
       return { y: 2.6 * listen, x: 0.65 * listen, rot: 0.85, scale: 0.006, biasY: notice - 1.1, pace: 2200 };
     case "speaking":
@@ -113,6 +116,11 @@ function num(value: unknown) {
   return typeof value === "number" ? value : 0;
 }
 
+/** Lateral throw grows as the body rises — high orb casts farther. */
+function lateralThrow(gx: number, lift: number, gain = 0.09) {
+  return gx * (1 + clamp(lift, 0, 10) * gain);
+}
+
 export function useOrbPresence({
   enabled,
   rotation,
@@ -146,6 +154,7 @@ export function useOrbPresence({
 
   const glowX = useSpring(x, GLOW_SPRING);
   const glowY = useSpring(y, GLOW_SPRING);
+  const glowRot = useSpring(rot, GLOW_SPRING);
   /** Positive when the body is above its rest line. */
   const lift = useTransform(glowY, (gy) => -num(gy));
 
@@ -155,29 +164,53 @@ export function useOrbPresence({
   });
 
   const auraTransform = useTransform([glowX, lift], ([gx, lv]) => {
-    const spread = clamp(1 + num(lv) * 0.045, 0.92, 1.16);
-    return `translate3d(${num(gx) * 0.55}px, 0, 0) scale(${spread})`;
+    const L = num(lv);
+    const spread = clamp(1 + L * 0.045, 0.92, 1.16);
+    return `translate3d(${lateralThrow(num(gx), L, 0.05) * 0.55}px, 0, 0) scale(${spread})`;
   });
   const auraOpacity = useTransform([lift, intensityMv], ([lv, i]) => clamp(0.96 - num(lv) * 0.04, 0.7, 1) * num(i));
 
   const spillTransform = useTransform([glowX, lift], ([gx, lv]) => {
-    const spread = clamp(1 + num(lv) * 0.07, 0.9, 1.22);
-    return `translate3d(${num(gx)}px, 0, 0) scale(${spread}, ${1 + (spread - 1) * 0.45})`;
+    const L = num(lv);
+    const spread = clamp(1 + L * 0.07, 0.9, 1.22);
+    return `translate3d(${lateralThrow(num(gx), L, 0.06)}px, 0, 0) scale(${spread}, ${1 + (spread - 1) * 0.45})`;
   });
   const spillOpacity = useTransform([lift, intensityMv], ([lv, i]) => clamp(0.96 - num(lv) * 0.06, 0.62, 1) * num(i));
 
   const emissiveTransform = useTransform([glowX, lift], ([gx, lv]) => {
-    const spread = clamp(1 + num(lv) * 0.085, 0.86, 1.24);
-    return `translate3d(${num(gx) * 0.92}px, 0, 0) scale(${spread}, ${1 + (spread - 1) * 0.35})`;
+    const L = num(lv);
+    const spread = clamp(1 + L * 0.085, 0.86, 1.24);
+    return `translate3d(${lateralThrow(num(gx), L, 0.055) * 0.92}px, 0, 0) scale(${spread}, ${1 + (spread - 1) * 0.35})`;
   });
   const emissiveOpacity = useTransform([lift, intensityMv], ([lv, i]) => clamp(1 - num(lv) * 0.08, 0.58, 1) * num(i));
 
-  const shadowTransform = useTransform([glowX, lift], ([gx, lv]) => {
-    const width = clamp(1 - num(lv) * 0.065, 0.8, 1.16);
-    const soft = clamp(1 - num(lv) * 0.04, 0.86, 1.12);
-    return `translate3d(${num(gx)}px, 0, 0) scale(${width}, ${soft})`;
+  /** Soft cast — wider / flatter / fainter when high; opposite lean from body tilt. */
+  const shadowTransform = useTransform([glowX, glowRot, lift], ([gx, rv, lv]) => {
+    const L = num(lv);
+    const width = clamp(1 + L * 0.055, 0.78, 1.55);
+    const height = clamp(1 - L * 0.045, 0.52, 1.12);
+    const lean = clamp(-num(rv) * 0.4, -3.5, 3.5);
+    return `translate3d(${lateralThrow(num(gx), L, 0.1)}px, 0, 0) rotate(${lean}deg) scale(${width}, ${height})`;
   });
-  const shadowOpacity = useTransform([lift, intensityMv], ([lv, i]) => clamp(1 - num(lv) * 0.1, 0.48, 1) * num(i));
+  const shadowOpacity = useTransform([lift, intensityMv], ([lv, i]) => {
+    const L = num(lv);
+    return clamp(1 - L * 0.045, 0.28, 1) * num(i);
+  });
+  const shadowFilter = useTransform(lift, (lv) => {
+    const extra = clamp(num(lv) * 0.55, 0, 7);
+    return extra > 0.15 ? `blur(${extra.toFixed(2)}px)` : "none";
+  });
+
+  /** Occlusion + contact stay nearly under the rim — small lateral, little scale. */
+  const contactTransform = useTransform([glowX, lift], ([gx, lv]) => {
+    const L = num(lv);
+    const tuck = clamp(1 - L * 0.025, 0.92, 1.05);
+    return `translate3d(${num(gx) * 0.32}px, 0, 0) scale(${tuck}, ${tuck})`;
+  });
+  const contactOpacity = useTransform([lift, intensityMv], ([lv, i]) => {
+    const L = num(lv);
+    return clamp(1 - L * 0.05, 0.7, 1) * num(i);
+  });
 
   useEffect(() => {
     intensityMv.set(intensity);
@@ -286,7 +319,12 @@ export function useOrbPresence({
     auraStyle: { transform: auraTransform, opacity: auraOpacity },
     spillStyle: { transform: spillTransform, opacity: spillOpacity },
     emissiveStyle: { transform: emissiveTransform, opacity: emissiveOpacity },
-    shadowStyle: { transform: shadowTransform, opacity: shadowOpacity },
-    contactStyle: { transform: shadowTransform, opacity: emissiveOpacity },
+    occlusionStyle: { transform: contactTransform, opacity: contactOpacity },
+    shadowStyle: {
+      transform: shadowTransform,
+      opacity: shadowOpacity,
+      filter: shadowFilter,
+    },
+    contactStyle: { transform: contactTransform, opacity: contactOpacity },
   };
 }
