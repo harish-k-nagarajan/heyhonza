@@ -4,7 +4,17 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-30 (orb rays, motes, spatial shadow)
+## Current entry — 2026-09-30 (PWA logo → ceramic orb)
+
+### What changed
+Home-screen and favicon marks were still the flat pixel-frame face. `scripts/generate-icons.mjs` now draws the ceramic shell (squircle, inset matrix, waiting smile) and writes `public/icons/*`, `public/apple-touch-icon.png`, and `src/app/icon.png`.
+
+### Checked
+512, 192, maskable, and Apple touch renders: shell, cheeks, and smile read at small size. Rerun the script if the face or palette changes.
+
+---
+
+## Previous — 2026-09-30 (orb rays, motes, spatial shadow)
 
 ### What was wrong
 Margin marks sat at approximate positions and pulsed like blinkers. Soft cast shadow scaled from its center with lift, so it swelled into the shell instead of opening on the floor.
