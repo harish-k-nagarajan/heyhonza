@@ -44,20 +44,52 @@ function stageBox(x: number, y: number, w: number, h: number) {
 
 /** Short ticks beside the shell — honza.pen Qj69R / MXzhl / Q92Mq / G6POZ. */
 const RAYS = [
-  { key: "lu", rot: -30, spin: -7, box: stageBox(12, 50, 15, 6), dx: "-2px", dy: "-3px", dur: "6.2s", delay: "0.1s" },
-  { key: "ll", rot: -6, spin: 5, box: stageBox(8, 76, 14, 5), dx: "-3px", dy: "2px", dur: "7.8s", delay: "1.1s" },
-  { key: "ru", rot: 30, spin: 6, box: stageBox(213, 54, 15, 6), dx: "2px", dy: "-2px", dur: "5.5s", delay: "0.45s" },
-  { key: "rl", rot: 6, spin: -5, box: stageBox(216, 75, 14, 5), dx: "3px", dy: "2px", dur: "8.4s", delay: "1.7s" },
+  {
+    key: "lu",
+    rot: -30,
+    box: stageBox(13, 52, 15, 5),
+    dx: "-11px",
+    dy: "-6.4px",
+    dur: "4.2s",
+    delay: "0.12s",
+  },
+  {
+    key: "ll",
+    rot: -6,
+    box: stageBox(9, 78, 15, 5),
+    dx: "-13px",
+    dy: "-1.4px",
+    dur: "4.8s",
+    delay: "1.35s",
+  },
+  {
+    key: "ru",
+    rot: 30,
+    box: stageBox(213, 61, 15, 5),
+    dx: "11px",
+    dy: "-6.4px",
+    dur: "4.5s",
+    delay: "0.7s",
+  },
+  {
+    key: "rl",
+    rot: 6,
+    box: stageBox(216, 77, 15, 5),
+    dx: "13px",
+    dy: "1.4px",
+    dur: "5.1s",
+    delay: "2.05s",
+  },
 ] as const;
 
-/** Six motes — honza.pen Particles dsZv8 … k2JdF. Outward sprinkle from the shell. */
+/** Six motes — honza.pen Particles dsZv8 … k2JdF. */
 const PARTICLES = [
-  { x: 30, y: 34, size: 5, delay: "0s", opacity: 1, dx: "-13px", dy: "-6px" },
-  { x: 206, y: 26, size: 4, delay: "0.55s", opacity: 0.7, dx: "12px", dy: "-7px" },
-  { x: 16, y: 118, size: 4, delay: "1.1s", opacity: 0.6, dx: "-13px", dy: "5px" },
-  { x: 222, y: 104, size: 6, delay: "1.7s", opacity: 0.85, dx: "14px", dy: "4px" },
-  { x: 44, y: 166, size: 3, delay: "2.2s", opacity: 0.5, dx: "-9px", dy: "10px" },
-  { x: 194, y: 164, size: 4, delay: "2.8s", opacity: 0.65, dx: "9px", dy: "11px" },
+  { x: 30, y: 34, size: 5, delay: "0s", opacity: 1, dx: "-12px", dy: "-34px", dur: "3.4s" },
+  { x: 206, y: 26, size: 4, delay: "0.55s", opacity: 0.7, dx: "11px", dy: "-36px", dur: "3.8s" },
+  { x: 16, y: 118, size: 4, delay: "1.15s", opacity: 0.6, dx: "-14px", dy: "-28px", dur: "3.2s" },
+  { x: 222, y: 104, size: 6, delay: "1.7s", opacity: 0.85, dx: "13px", dy: "-30px", dur: "3.9s" },
+  { x: 44, y: 166, size: 3, delay: "2.25s", opacity: 0.5, dx: "-10px", dy: "-32px", dur: "3.1s" },
+  { x: 194, y: 164, size: 4, delay: "2.85s", opacity: 0.65, dx: "10px", dy: "-34px", dur: "3.6s" },
 ] as const;
 
 function PixelLayer({
@@ -177,8 +209,8 @@ export function HmatOrb({
     return `${-((Math.abs(h) % 450) / 100).toFixed(2)}s`;
   }, [uid]);
 
-  const showRays = hero && config.rays;
-  const showParticles = hero && config.particles;
+  const raysOn = hero && config.rays;
+  const particlesOn = hero && config.particles;
   const presence = useOrbPresence({
     enabled: hero && breathe,
     rotation: config.rotation,
@@ -207,7 +239,7 @@ export function HmatOrb({
         <div className="hmat-orb-ground" aria-hidden>
           <motion.div className="hmat-orb-aura" style={presence.auraStyle} />
           <motion.div className="hmat-orb-spill" style={presence.spillStyle} />
-          <motion.div className="hmat-orb-occlusion" style={presence.shadowStyle} />
+          <motion.div className="hmat-orb-occlusion" style={presence.occlusionStyle} />
           <motion.div className="hmat-orb-shadow" style={presence.shadowStyle} />
           <motion.div className="hmat-orb-emissive" style={presence.emissiveStyle} />
           <motion.div className="hmat-orb-contact" style={presence.contactStyle} />
@@ -218,8 +250,8 @@ export function HmatOrb({
         className={cn("hmat-orb-stage", popping && "react-pop")}
         style={presence.bodyStyle}
       >
-        {showRays ? (
-          <div className="hmat-orb-rays" aria-hidden>
+        {hero ? (
+          <div className={cn("hmat-orb-rays", raysOn && "is-on")} aria-hidden>
             {RAYS.map((ray) => (
               <span
                 key={ray.key}
@@ -227,19 +259,18 @@ export function HmatOrb({
                 style={{
                   ...ray.box,
                   ["--ray-rot" as string]: `${ray.rot}deg`,
-                  ["--ray-spin" as string]: `${ray.spin}deg`,
                   ["--ray-dx" as string]: ray.dx,
                   ["--ray-dy" as string]: ray.dy,
                   ["--ray-base" as string]: ray.dur,
-                  animationDelay: ray.delay,
+                  ["--ray-enter-delay" as string]: ray.delay,
                 }}
               />
             ))}
           </div>
         ) : null}
 
-        {showParticles ? (
-          <div className="hmat-orb-particles" aria-hidden>
+        {hero ? (
+          <div className={cn("hmat-orb-particles", particlesOn && "is-on")} aria-hidden>
             {PARTICLES.map((pt, i) => (
               <span
                 key={i}
@@ -247,7 +278,7 @@ export function HmatOrb({
                 style={{
                   ...stageBox(pt.x, pt.y, pt.size, pt.size),
                   animationDelay: pt.delay,
-                  animationDuration: `${2.6 + (i % 5) * 0.72}s`,
+                  animationDuration: pt.dur,
                   ["--p-opacity" as string]: String(pt.opacity),
                   ["--dx" as string]: pt.dx,
                   ["--dy" as string]: pt.dy,

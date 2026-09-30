@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-29 (call → chat no longer ghosts)
+## Current entry — 2026-09-30 (orb rays, motes, spatial shadow)
+
+### What was wrong
+Margin marks sat at approximate positions and pulsed like blinkers. Soft cast shadow scaled from its center with lift, so it swelled into the shell instead of opening on the floor.
+
+### What changed
+Rays and motes use honza.pen stage geometry; layers cross-fade by face. Per-mood compositor motion (waiting / speaking / happy / surprised rays; thinking / confused motes). Cast shadow origin is the ellipse top — wider, flatter, fainter, and farther when the body rises; contact stays under the rim.
+
+### Checked
+Call and chat recesses at ~430px: idle rays, thinking motes, speaking, excited, oops. Shadow scale and lateral follow lift/x. `npm run lint` clean. Build skipped (dev running).
+
+---
+
+## Previous — 2026-09-29 (call → chat no longer ghosts)
 
 ### What was wrong
 Chat and call share the same hero. The dock slide only travels 8px, so the orb, title, and chip stacked on top of each other and then snapped.

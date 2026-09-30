@@ -374,8 +374,9 @@ body {
   --orb-rotation: -4deg;
   --orb-intensity: 1;
   --orb-blink-delay: 0s;
-  --ray-pace: 1.35;
-  --ray-amp: 0.62;
+  --ray-travel: 1;
+  --ray-peak: 0.8;
+  --ray-floor: 0.45;
   position: relative;
   display: inline-grid;
   place-items: center;
@@ -406,28 +407,24 @@ body {
   opacity: 1;
 }
 .hmat-orb[data-face="speaking"] {
-  --ray-pace: 0.72;
-  --ray-amp: 0.88;
+  --ray-travel: 1.35;
+  --ray-peak: 0.95;
+  --ray-floor: 0.5;
 }
 .hmat-orb[data-face="happy"] {
-  --ray-pace: 0.84;
-  --ray-amp: 0.96;
+  --ray-travel: 1.5;
+  --ray-peak: 0.95;
+  --ray-floor: 0.48;
 }
 .hmat-orb[data-face="surprised"] {
-  --ray-pace: 0.5;
-  --ray-amp: 1;
+  --ray-travel: 1;
+  --ray-peak: 0.8;
+  --ray-floor: 0.45;
 }
-.hmat-orb[data-face="thinking"] {
-  --ray-pace: 1.15;
-  --ray-amp: 0.55;
-}
-.hmat-orb[data-face="sad"] {
-  --ray-pace: 1.6;
-  --ray-amp: 0.28;
-}
-.hmat-orb[data-face="confused"] {
-  --ray-pace: 0.9;
-  --ray-amp: 0.5;
+.hmat-orb[data-face="waiting"] {
+  --ray-travel: 1;
+  --ray-peak: 0.8;
+  --ray-floor: 0.45;
 }
 
 /* —— Floor light. Geometry matches honza.pen Glow (stage 240×212, body at
@@ -451,6 +448,10 @@ body {
   pointer-events: none;
   border-radius: 50%;
   transform-origin: 50% 50%;
+}
+/* Soft cast opens across the floor from the ellipse top, not into the shell. */
+.hmat-orb-shadow {
+  transform-origin: 50% 0%;
 }
 /* Backlight aura — atmosphere behind the shell, feathered so it wraps the sides. */
 .hmat-orb-aura {
@@ -534,38 +535,54 @@ body {
   );
 }
 
-/* —— Rays: short lines in the margin, drifting around the shell —— */
-.hmat-orb-rays {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  overflow: visible;
-}
-.hmat-orb-ray {
-  position: absolute;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--orb-glow) 78%, #fff);
-  box-shadow: 0 0 3px color-mix(in srgb, var(--orb-glow) 28%, transparent);
-  opacity: 0.45;
-  transform: rotate(var(--ray-rot, 0deg));
-  transform-origin: 50% 50%;
-}
-
-/* —— Particles: motes around the shell that sprinkle outward —— */
+/* —— Rays + motes: both layers stay mounted; inactive fades with a soft blur —— */
+.hmat-orb-rays,
 .hmat-orb-particles {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
   overflow: visible;
+  opacity: 0;
+  filter: blur(var(--blur-small));
+  transition:
+    opacity var(--duration-medium) var(--ease-smooth-out),
+    filter var(--duration-medium) var(--ease-smooth-out);
 }
+.hmat-orb-rays.is-on,
+.hmat-orb-particles.is-on {
+  opacity: 1;
+  filter: blur(0);
+}
+/* Pen capsules — 15×5, radius 2.5, fill 0.8, glow blur 6 at ~60%. */
+.hmat-orb-ray {
+  position: absolute;
+  border-radius: 2.5px;
+  background: color-mix(in srgb, var(--orb-glow) 88%, #fff);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--orb-glow) 60%, transparent);
+  opacity: 0.8;
+  transform: rotate(var(--ray-rot, 0deg));
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+/* Pen motes — fill = glow hue, glow blur 4 at ~30%. */
 .hmat-orb-particle {
   position: absolute;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--orb-glow) 82%, #fff);
-  box-shadow: 0 0 2px color-mix(in srgb, var(--orb-glow) 22%, transparent);
-  opacity: 0;
+  background: var(--orb-glow);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--orb-glow) 30%, transparent);
+  opacity: var(--p-opacity, 0.65);
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hmat-orb-ray {
+    opacity: 0.8;
+    transform: rotate(var(--ray-rot, 0deg));
+  }
+  .hmat-orb-particle {
+    opacity: var(--p-opacity, 0.65);
+    transform: none;
+  }
 }
 
 /* —— Ceramic body (corner radius 50 / 144 ≈ 34.7%) —— */
@@ -817,11 +834,41 @@ body {
   .hmat-orb[data-face="speaking"] .hmat-orb-contact {
     animation: hmat-orb-contact-speak 2.15s ease-in-out infinite;
   }
-  .hmat-orb-ray {
-    animation-name: hmat-orb-ray-live;
-    animation-duration: calc(var(--ray-base, 6s) * var(--ray-pace, 1));
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Waiting — quiet along-axis drift + opacity breathe on 6–8s clocks. */
+  .hmat-orb[data-face="waiting"] .hmat-orb-ray {
+    --ray-floor: 0.1;
+    --ray-peak: 1;
+    animation-name: hmat-orb-ray-wait;
+    animation-duration: var(--ray-base, 4.6s);
+    animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
+    animation-delay: var(--ray-enter-delay, 0s);
+  }
+  /* Speaking — same rays, ~mouth cycle, more travel, higher peak. */
+  .hmat-orb[data-face="speaking"] .hmat-orb-ray {
+    animation-name: hmat-orb-ray-speak;
+    animation-duration: 2.2s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-delay: var(--ray-enter-delay, 0s);
+  }
+  /* Happy — enter brighten once, then wider/quicker twinkle. */
+  .hmat-orb[data-face="happy"] .hmat-orb-ray {
+    animation-name: hmat-orb-ray-happy-enter, hmat-orb-ray-happy;
+    animation-duration: 0.42s, calc(var(--ray-base, 7s) * 0.72);
+    animation-timing-function: var(--ease-smooth-out), ease-in-out;
+    animation-iteration-count: 1, infinite;
+    animation-delay: var(--ray-enter-delay, 0s), calc(0.42s + var(--ray-enter-delay, 0s));
+    animation-fill-mode: forwards, none;
+  }
+  /* Surprised — one outward flick, then waiting loop. */
+  .hmat-orb[data-face="surprised"] .hmat-orb-ray {
+    animation-name: hmat-orb-ray-flick, hmat-orb-ray-wait;
+    animation-duration: 0.4s, var(--ray-base, 7s);
+    animation-timing-function: var(--ease-smooth-out), ease-in-out;
+    animation-iteration-count: 1, infinite;
+    animation-delay: var(--ray-enter-delay, 0s), calc(0.4s + var(--ray-enter-delay, 0s));
+    animation-fill-mode: forwards, none;
   }
   .hmat-orb[data-face="thinking"] .hmat-orb-particle {
     animation-name: hmat-orb-particle-rise;
@@ -919,45 +966,116 @@ body {
     opacity: calc(0.64 * var(--orb-intensity));
   }
 }
-@keyframes hmat-orb-ray-live {
+@keyframes hmat-orb-ray-wait {
   0%,
-  62%,
   100% {
-    opacity: calc(0.22 * var(--ray-amp, 0.6));
-    transform: rotate(var(--ray-rot, 0deg)) scale(0.84);
+    opacity: var(--ray-floor, 0.12);
+    transform: rotate(var(--ray-rot, 0deg)) translate3d(0, 0, 0) scale(0.7);
   }
-  14% {
-    opacity: calc(0.7 * var(--ray-amp, 0.6));
-    transform: rotate(calc(var(--ray-rot, 0deg) + var(--ray-spin, 0deg))) scale(1);
+  42% {
+    opacity: var(--ray-peak, 1);
+    transform: rotate(var(--ray-rot, 0deg))
+      translate3d(
+        calc(var(--ray-dx, 0px) * var(--ray-travel, 1)),
+        calc(var(--ray-dy, 0px) * var(--ray-travel, 1)),
+        0
+      )
+      scale(1.2);
+  }
+}
+@keyframes hmat-orb-ray-speak {
+  0%,
+  100% {
+    opacity: var(--ray-floor, 0.5);
+    transform: rotate(var(--ray-rot, 0deg)) translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: var(--ray-peak, 0.95);
+    transform: rotate(var(--ray-rot, 0deg))
+      translate3d(
+        calc(var(--ray-dx, 0px) * var(--ray-travel, 1.35)),
+        calc(var(--ray-dy, 0px) * var(--ray-travel, 1.35)),
+        0
+      );
+  }
+}
+@keyframes hmat-orb-ray-happy-enter {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--ray-rot, 0deg))
+      translate3d(
+        calc(var(--ray-dx, 0px) * 0.35),
+        calc(var(--ray-dy, 0px) * 0.35),
+        0
+      );
+  }
+  100% {
+    opacity: var(--ray-floor, 0.48);
+    transform: rotate(var(--ray-rot, 0deg)) translate3d(0, 0, 0);
+  }
+}
+@keyframes hmat-orb-ray-happy {
+  0%,
+  100% {
+    opacity: var(--ray-floor, 0.48);
+    transform: rotate(var(--ray-rot, 0deg)) translate3d(0, 0, 0);
+  }
+  40% {
+    opacity: var(--ray-peak, 0.95);
+    transform: rotate(var(--ray-rot, 0deg))
+      translate3d(
+        calc(var(--ray-dx, 0px) * var(--ray-travel, 1.5)),
+        calc(var(--ray-dy, 0px) * var(--ray-travel, 1.5)),
+        0
+      );
+  }
+}
+@keyframes hmat-orb-ray-flick {
+  0% {
+    opacity: 0.8;
+    transform: rotate(var(--ray-rot, 0deg)) translate3d(0, 0, 0);
+  }
+  38% {
+    opacity: 1;
+    transform: rotate(var(--ray-rot, 0deg))
+      translate3d(calc(var(--ray-dx, 0px) * 2.85), calc(var(--ray-dy, 0px) * 2.85), 0);
+  }
+  100% {
+    opacity: var(--ray-floor, 0.45);
+    transform: rotate(var(--ray-rot, 0deg)) translate3d(0, 0, 0);
   }
 }
 @keyframes hmat-orb-particle-rise {
   0% {
     opacity: 0;
-    transform: translate3d(0, 6px, 0) scale(0.72);
+    transform: translate3d(0, 4px, 0) scale(0.78);
   }
-  28% {
-    opacity: var(--p-opacity, 0.65);
-    transform: translate3d(calc(var(--dx, 0px) * 0.18), -1px, 0) scale(1);
+  22% {
+    opacity: calc(var(--p-opacity, 0.65) * var(--orb-intensity, 1));
+    transform: translate3d(calc(var(--dx, 0px) * 0.2), calc(var(--dy, -30px) * 0.15), 0) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translate3d(calc(var(--dx, 0px) * 0.5), -16px, 0) scale(0.78);
+    transform: translate3d(var(--dx, 0px), var(--dy, -34px), 0) scale(0.72);
   }
 }
 @keyframes hmat-orb-particle-drift {
   0%,
   100% {
     opacity: 0;
-    transform: translate3d(0, 2px, 0) scale(0.8);
+    transform: translate3d(0, 1px, 0) scale(0.82);
   }
-  36% {
-    opacity: var(--p-opacity, 0.55);
-    transform: translate3d(calc(var(--dx, 0px) * 0.22), -1px, 0) scale(1);
+  28% {
+    opacity: calc(var(--p-opacity, 0.55) * var(--orb-intensity, 1) * 0.85);
+    transform: translate3d(calc(var(--dx, 0px) * 0.55), -2px, 0) scale(1);
   }
-  70% {
-    opacity: calc(var(--p-opacity, 0.55) * 0.35);
-    transform: translate3d(calc(var(--dx, 0px) * -0.12), 3px, 0) scale(0.88);
+  58% {
+    opacity: calc(var(--p-opacity, 0.55) * var(--orb-intensity, 1) * 0.4);
+    transform: translate3d(calc(var(--dx, 0px) * -0.35), 3px, 0) scale(0.9);
+  }
+  82% {
+    opacity: calc(var(--p-opacity, 0.55) * var(--orb-intensity, 1) * 0.22);
+    transform: translate3d(calc(var(--dx, 0px) * 0.18), 1px, 0) scale(0.86);
   }
 }
 
