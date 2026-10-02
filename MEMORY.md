@@ -4,7 +4,23 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-03 (orb presence: quiet the waiting wander)
+## Current entry — 2026-10-03 (waiting: breathe + bilateral weight-shift)
+
+### What was wrong
+Waiting home rotation is −4°. Wander rotation was ±0.4°, so the live range stayed −4.4° to −3.6° — it could only lean left. X/Y wander (1.25 / 2.5px on the heavy body spring) was below perception, and scale was 0. The random tick was not a weight shift.
+
+### What changed
+Waiting no longer random-wanders. A second overdamped spring (ζ ≈ 1.08) breathes Y only, about 4.5px over a 5.4s period, independent of tilt. X and rotation shift together: left is x −3px / −7°, right is x +3px / +1°, held 2–3.5s, then the other side. Home, first paint, and reduced motion stay at −4°. Pills still follow body X/Y only. Blink cycle is 5.2s; the double-blink keyframes are unchanged. Other faces keep the smaller settle.
+
+### Decision
+Do not go back to a random micro-wander, and do not scale the body on idle. If the first second of waiting is obvious, it is too much. The chest should take a few seconds to notice; the lean is what you catch if you keep looking.
+
+### Checked
+Live waiting, from the frame the hero mounted: first 1s was exactly `translate3d(0,0,0) rotate(-4deg) scale(1)`. Y then rose to about −4.3px and back on a ~5.4s period while rotation stayed −4°. The first lean passed through upright to x +3 / +1°, held, then went to x −3 / −7°, and alternated. Over 42s, X stayed inside [−3, 3], rotation inside [−7, 1], rotateX stayed 0, scale stayed 1 — targets were hit and not crossed. Ray translate matched the body on every sample and the ray layer never rotated. Contact and shadow lagged the body on the card and the contact tightened as the chest rose. Reduced-motion reload parked at `translate3d(0px, 0px, 0px) rotate(-4deg) scale(1)`, ray opacity 0.8, blink `hmat-orb-blink` 5.2s infinite. Call hero, same preference, same rest pose. `npx eslint` on `useOrbPresence.ts` clean. Build not run while dev is up.
+
+---
+
+## Previous — 2026-10-03 (orb presence: quiet the waiting wander)
 
 ### What was wrong
 Waiting wander was `y: 10`, `x: 5.5`, `rot: 1.4`, `scale: 0.012`. On a face that stays up for minutes that read as the ceramic hovering. Pill rest pose was already DuUWC (left alone).
