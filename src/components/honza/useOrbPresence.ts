@@ -14,17 +14,22 @@ import type { CeramicFace } from "./ceramic-faces";
  * Ceramic presence — one heavy body spring, and a slower ground spring that
  * follows it. Wander targets are irregular so the path is settling, not a
  * sine. State changes dip (notice), then lean into the new pose (react),
- * then the wander loop takes back over (settle).
+ * then the wander loop takes back over (settle). A new mood retargets the
+ * same springs from the live value; nothing restarts or snaps.
  *
- * Floor light stays on the card: it lags the body and does not inherit tilt.
- * Speech rays use the body's X/Y only — same springs, no rotate and no scale.
- * Lateral throw grows with height. Contact stays under the rim.
+ * Waiting is on screen for minutes, so its travel stays inside a couple of
+ * pixels. Floor light stays on the card: it lags the body and does not
+ * inherit tilt. Speech pills use the body's X/Y only — same springs, no
+ * rotate and no scale. Lateral throw grows with height. Contact stays under
+ * the rim.
  */
 
-/** Heavy ceramic. Overdamped so it settles instead of oscillating. */
+/** Heavy ceramic. Overdamped (ζ ≈ 1.11) so it settles instead of oscillating. */
 const BODY_SPRING = { stiffness: 52, damping: 19, mass: 1.4 };
 /** Light and shadow lag the body — softer, slower, still overdamped. */
 const GLOW_SPRING = { stiffness: 22, damping: 18, mass: 1.5 };
+/** Scale channel. Overdamped; mood changes only, and never a bounce. */
+const SCALE_SPRING = { stiffness: 48, damping: 18, mass: 1.05 };
 
 const ATTENTIVE_LEAN = -2.1;
 const ATTENTIVE_LIFT = -1.25;
@@ -35,24 +40,42 @@ type Drift = {
   rot: number;
   scale: number;
   biasY: number;
-  /** Milliseconds between new wander targets. */
+  /** Nominal milliseconds between wander targets, when `band` is unset. */
   pace: number;
+  /** Inclusive wait before the next irregular retarget. */
+  band?: readonly [number, number];
 };
+
+function nextPace(d: Drift) {
+  if (d.band) {
+    const [min, max] = d.band;
+    return min + Math.random() * (max - min);
+  }
+  return d.pace * (0.75 + Math.random() * 0.7);
+}
 
 function driftFor(face: CeramicFace, attentive: boolean): Drift {
   const listen = attentive ? 0.42 : 1;
   const notice = attentive ? ATTENTIVE_LIFT : 0;
   switch (face) {
     case "waiting":
-      return { y: 10 * listen, x: 5.5 * listen, rot: 1.4, scale: 0.012, biasY: notice, pace: 2400 };
+      return {
+        y: 2.5 * listen,
+        x: 1.25 * listen,
+        rot: 0.4,
+        scale: 0,
+        biasY: notice,
+        pace: 2700,
+        band: [2400, 3000],
+      };
     case "thinking":
-      return { y: 2.6 * listen, x: 0.65 * listen, rot: 0.85, scale: 0.006, biasY: notice - 1.1, pace: 2200 };
+      return { y: 1.15 * listen, x: 0.4 * listen, rot: 0.16, scale: 0, biasY: notice - 0.6, pace: 3000 };
     case "speaking":
-      return { y: 2.4 * listen, x: 0.75 * listen, rot: 0.5, scale: 0.01, biasY: notice - 2.2, pace: 1600 };
+      return { y: 1.6 * listen, x: 0.55 * listen, rot: 0.35, scale: 0.004, biasY: notice - 1.2, pace: 2000 };
     case "happy":
-      return { y: 3.1 * listen, x: 1.15 * listen, rot: 0.7, scale: 0.011, biasY: notice - 1.4, pace: 1900 };
+      return { y: 1.4 * listen, x: 0.5 * listen, rot: 0.28, scale: 0.003, biasY: notice - 1, pace: 2600 };
     case "surprised":
-      return { y: 1.15, x: 0.35, rot: 0.35, scale: 0.004, biasY: notice - 3.2, pace: 1100 };
+      return { y: 0.7, x: 0.25, rot: 0.2, scale: 0.004, biasY: notice - 1.5, pace: 2400 };
     case "sad":
       return { y: 0.75 * listen, x: 0.18 * listen, rot: 0.16, scale: 0.003, biasY: notice + 1.5, pace: 4400 };
     case "confused":
@@ -69,13 +92,13 @@ function reactionLift(face: CeramicFace): number {
     case "waiting":
       return -0.6;
     case "thinking":
-      return -2.2;
+      return -1.4;
     case "speaking":
-      return -3.1;
+      return -1.4;
     case "happy":
       return -2.4;
     case "surprised":
-      return -3.8;
+      return -3;
     case "sad":
       return 1.1;
     case "confused":
@@ -151,7 +174,7 @@ export function useOrbPresence({
   const x = useSpring(targetX, BODY_SPRING);
   const y = useSpring(targetY, BODY_SPRING);
   const rot = useSpring(targetRot, BODY_SPRING);
-  const scale = useSpring(targetScale, { stiffness: 48, damping: 18, mass: 1.05 });
+  const scale = useSpring(targetScale, SCALE_SPRING);
 
   const glowX = useSpring(x, GLOW_SPRING);
   const glowY = useSpring(y, GLOW_SPRING);
@@ -236,6 +259,12 @@ export function useOrbPresence({
       targetY.set(bias);
       targetRot.set(rest);
       targetScale.set(1);
+      x.jump(0);
+      y.jump(bias);
+      rot.jump(rest);
+      scale.jump(1);
+      glowX.jump(0);
+      glowY.jump(bias);
       return;
     }
 
@@ -288,7 +317,23 @@ export function useOrbPresence({
       window.clearTimeout(react);
       window.clearTimeout(settle);
     };
-  }, [enabled, reduce, face, attentive, rotation, targetX, targetY, targetRot, targetScale]);
+  }, [
+    enabled,
+    reduce,
+    face,
+    attentive,
+    rotation,
+    targetX,
+    targetY,
+    targetRot,
+    targetScale,
+    x,
+    y,
+    rot,
+    scale,
+    glowX,
+    glowY,
+  ]);
 
   useEffect(() => {
     driftRef.current = driftFor(face, attentive);
@@ -308,10 +353,10 @@ export function useOrbPresence({
       targetX.set((Math.random() * 2 - 1) * d.x);
       targetRot.set(restRotRef.current + (Math.random() * 2 - 1) * d.rot);
       targetScale.set(1 + (Math.random() * 2 - 1) * d.scale);
-      timer = window.setTimeout(tick, d.pace * (0.75 + Math.random() * 0.7));
+      timer = window.setTimeout(tick, nextPace(d));
     };
 
-    timer = window.setTimeout(tick, 900);
+    timer = window.setTimeout(tick, nextPace(driftRef.current));
     return () => {
       stopped = true;
       window.clearTimeout(timer);

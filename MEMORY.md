@@ -4,7 +4,23 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-03 (speech pills: CSS angle inversion)
+## Current entry — 2026-10-03 (orb presence: quiet the waiting wander)
+
+### What was wrong
+Waiting wander was `y: 10`, `x: 5.5`, `rot: 1.4`, `scale: 0.012`. On a face that stays up for minutes that read as the ceramic hovering. Pill rest pose was already DuUWC (left alone).
+
+### What changed
+Waiting travel is now about `y ±2.5px`, `x ±1.25px`, `rot ±0.4°`, no scale, retarget every 2.4–3s. Thinking wanders less than that. Speaking / happy / surprised keep a smaller settle; surprised is still the short react-pop (~280ms) and the springs stay overdamped. Pills keep following body X/Y only. Waiting pills breathe opacity 0.55↔0.85 plus glow on the 4–6s clocks. Happy and surprised brighten once (`--duration-medium`, `--ease-smooth-out`) then join that breathe. Speaking pills pulse on `--orb-mouth-clock` (2.2s) with the mouth. Reduced motion jumps the springs to the DuUWC rest pose and freezes ray / particle travel; blink still runs.
+
+### Decision
+Do not enlarge idle travel to make the lag readable. If the first second of waiting is obvious, it is too much.
+
+### Checked
+Frozen waiting pill boxes match DuUWC stage coordinates. With motion on, ray translate matched the body translate (delta 0) and the ray layer stayed unrotated. Over 12s, waiting Y stayed inside ±2.5px, X inside ±1.25px, rotation inside ±0.4° of −4°, scale stayed 1, and the path held then stepped (not a sine). Orb tap went waiting → surprised → waiting from the live spring; scale stayed within 0.998–1.005; pills stayed glued. Reduced-motion reload parked at `translate3d(0,0,0) rotate(-4deg) scale(1)`, ray opacity 0.8, blink still infinite. Call hero uses the same orb. Settings 64px orb has no rays. `npx eslint` on `useOrbPresence.ts` and `HmatOrb.tsx` clean. Build not run while dev is up. Pre-existing hydration warning in `HmatDock.tsx` is unrelated.
+
+---
+
+## Previous — 2026-10-03 (speech pills: CSS angle inversion)
 
 ### What was wrong
 Pen rotation is counterclockwise around the top-left. CSS `rotate()` is clockwise. `RAYS` copied the pen angles (`−30 / −6 / +30 / +6`), so every capsule tilted the wrong way and the free end swung off the shell. `.hmat-orb-rays` sat outside the rotating stage but did not follow the body's translate, so a lifted ceramic left the pills low and far. Speaking, happy, and surprised keyframes still translated by `--ray-dx` / `--ray-dy` / `--ray-travel`.

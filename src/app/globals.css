@@ -369,6 +369,8 @@ body {
   --orb-rotation: -4deg;
   --orb-intensity: 1;
   --orb-blink-delay: 0s;
+  /* Speak loop — mouth, pills, and contact share one clock. Longer than UI durations. */
+  --orb-mouth-clock: 2.2s;
   --ray-peak: 0.8;
   --ray-floor: 0.45;
   position: relative;
@@ -553,7 +555,7 @@ body {
   opacity: 0.8;
   transform: rotate(var(--ray-rot, 0deg));
   transform-origin: 0 0;
-  will-change: transform, opacity;
+  will-change: opacity;
 }
 /* Pen motes — fill = glow hue, glow blur 4 at ~30%. */
 .hmat-orb-particle {
@@ -873,26 +875,35 @@ body {
   overflow: visible;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .hmat-orb-eyes--open {
-    animation: hmat-orb-unblink 7.8s ease-in-out infinite;
-    animation-delay: var(--orb-blink-delay);
-  }
+/* Blink stays under reduced motion — it is how the face reads as alive. */
+.hmat-orb-eyes--open {
+  animation: hmat-orb-unblink 7.8s var(--ease-in-out) infinite;
+  animation-delay: var(--orb-blink-delay);
+}
+.hmat-orb-eyes--blink {
+  animation: hmat-orb-blink 7.8s var(--ease-in-out) infinite;
+  animation-delay: var(--orb-blink-delay);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hmat-orb-eyes--open,
   .hmat-orb-eyes--blink {
-    animation: hmat-orb-blink 7.8s ease-in-out infinite;
-    animation-delay: var(--orb-blink-delay);
+    animation-duration: 7.8s !important;
+    animation-iteration-count: infinite !important;
   }
+}
+
+@media (prefers-reduced-motion: no-preference) {
   .hmat-orb[data-face="speaking"] .hmat-orb-mouth--open {
-    animation: hmat-orb-mouth-open 2.15s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    animation: hmat-orb-mouth-open var(--orb-mouth-clock) cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
   .hmat-orb[data-face="speaking"] .hmat-orb-mouth--mid {
-    animation: hmat-orb-mouth-mid 2.15s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    animation: hmat-orb-mouth-mid var(--orb-mouth-clock) cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
   .hmat-orb[data-face="speaking"] .hmat-orb-mouth--wide {
-    animation: hmat-orb-mouth-wide 2.15s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    animation: hmat-orb-mouth-wide var(--orb-mouth-clock) cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
   .hmat-orb[data-face="speaking"] .hmat-orb-contact {
-    animation: hmat-orb-contact-speak 2.15s ease-in-out infinite;
+    animation: hmat-orb-contact-speak var(--orb-mouth-clock) ease-in-out infinite;
   }
   /* Waiting — rest pose stays put. Opacity and glow breathe only. */
   .hmat-orb[data-face="waiting"] .hmat-orb-ray {
@@ -902,30 +913,22 @@ body {
     animation-iteration-count: infinite;
     animation-delay: var(--ray-enter-delay, 0s);
   }
-  /* Speaking — same rest pose, ~mouth cycle. Opacity and glow only. */
+  /* Speaking — same rest pose, on the mouth clock. Opacity and glow only. */
   .hmat-orb[data-face="speaking"] .hmat-orb-ray {
     animation-name: hmat-orb-ray-speak;
-    animation-duration: 2.2s;
+    animation-duration: var(--orb-mouth-clock);
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
     animation-delay: var(--ray-enter-delay, 0s);
   }
-  /* Happy — enter brighten once, then a quicker opacity / glow twinkle. */
-  .hmat-orb[data-face="happy"] .hmat-orb-ray {
-    animation-name: hmat-orb-ray-happy-enter, hmat-orb-ray-happy;
-    animation-duration: 0.42s, calc(var(--ray-base, 7s) * 0.72);
-    animation-timing-function: var(--ease-smooth-out), ease-in-out;
-    animation-iteration-count: 1, infinite;
-    animation-delay: var(--ray-enter-delay, 0s), calc(0.42s + var(--ray-enter-delay, 0s));
-    animation-fill-mode: forwards, none;
-  }
-  /* Surprised — one opacity flick, then the waiting loop. No travel. */
+  /* Happy / surprised — one brighten, then the waiting breathe. No travel. */
+  .hmat-orb[data-face="happy"] .hmat-orb-ray,
   .hmat-orb[data-face="surprised"] .hmat-orb-ray {
     animation-name: hmat-orb-ray-flick, hmat-orb-ray-wait;
-    animation-duration: 0.4s, var(--ray-base, 7s);
+    animation-duration: var(--duration-medium), var(--ray-base, 4.6s);
     animation-timing-function: var(--ease-smooth-out), ease-in-out;
     animation-iteration-count: 1, infinite;
-    animation-delay: var(--ray-enter-delay, 0s), calc(0.4s + var(--ray-enter-delay, 0s));
+    animation-delay: 0s, calc(var(--duration-medium) + var(--ray-enter-delay, 0s));
     animation-fill-mode: forwards, none;
   }
   .hmat-orb[data-face="thinking"] .hmat-orb-particle {
@@ -1046,38 +1049,17 @@ body {
     box-shadow: 0 0 calc(6 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.6);
   }
 }
-@keyframes hmat-orb-ray-happy-enter {
-  0% {
-    opacity: 1;
-    box-shadow: 0 0 calc(6 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.6);
-  }
-  100% {
-    opacity: var(--ray-floor, 0.48);
-    box-shadow: 0 0 calc(4 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.4);
-  }
-}
-@keyframes hmat-orb-ray-happy {
-  0%,
-  100% {
-    opacity: var(--ray-floor, 0.48);
-    box-shadow: 0 0 calc(4 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.4);
-  }
-  40% {
-    opacity: var(--ray-peak, 0.95);
-    box-shadow: 0 0 calc(6 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.6);
-  }
-}
 @keyframes hmat-orb-ray-flick {
   0% {
-    opacity: 0.8;
-    box-shadow: 0 0 calc(6 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.55);
+    opacity: 0.7;
+    box-shadow: 0 0 calc(5 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.45);
   }
-  38% {
+  42% {
     opacity: 1;
-    box-shadow: 0 0 calc(8 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.7);
+    box-shadow: 0 0 calc(6 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.6);
   }
   100% {
-    opacity: var(--ray-floor, 0.45);
+    opacity: 0.55;
     box-shadow: 0 0 calc(4 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.4);
   }
 }
