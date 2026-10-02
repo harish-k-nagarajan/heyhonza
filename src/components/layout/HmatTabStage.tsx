@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { CallScreen } from "@/components/screens/call/CallScreen";
 import { ChatScreen } from "@/components/screens/chat/ChatScreen";
@@ -39,15 +39,15 @@ export function HmatTabStage() {
     setMountedIds(next);
   }
 
-  const [seenPage, setSeenPage] = useState(activePage);
-  const [travel, setTravel] = useState<"soft" | "peer">("soft");
-  if (seenPage !== activePage) {
-    const from = seenPage;
-    const to = activePage;
-    const peer = (from === 1 && to === 2) || (from === 2 && to === 1);
-    setSeenPage(to);
-    setTravel(peer ? "peer" : "soft");
-  }
+  /** Adjacent tabs travel 100%; chat ↔ settings travels 200% — scale duration so pace matches. */
+  const prevActiveRef = useRef(activePage);
+  const [slideSteps, setSlideSteps] = useState(1);
+  useEffect(() => {
+    const prev = prevActiveRef.current;
+    if (prev === activePage) return;
+    setSlideSteps(Math.abs(activePage - prev));
+    prevActiveRef.current = activePage;
+  }, [activePage]);
 
   useEffect(() => {
     if (pendingHref && pathname === pendingHref) setPendingHref(null);
@@ -57,7 +57,7 @@ export function HmatTabStage() {
     <div
       className="hmat-tab-slide flex min-h-0 flex-1 flex-col overflow-hidden"
       data-page={String(activePage)}
-      data-travel={travel}
+      style={{ "--page-slide-steps": slideSteps } as CSSProperties}
     >
       {TAB_PAGES.map(({ id, Screen }) => {
         if (!mountedIds.has(id)) return null;

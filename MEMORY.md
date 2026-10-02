@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-02 (Hmat chat load gate)
+## Current entry — 2026-10-02 (unified dock tab carousel)
+
+### What was wrong
+Chat ↔ call used a full-stage slide (`peer` travel); call ↔ settings and chat ↔ settings used an 8px fade (`soft`). Same dock, two different motion profiles.
+
+### What changed
+Removed `peer` / `soft` in `HmatTabStage`. All three tabs use one carousel: inactive pages sit at ±100% / ±200% by dock order, blur + `--ease-smooth-out`. Duration scales with hop count (`--page-slide-steps`: 1× medium for neighbors, 2× for chat ↔ settings) so long slides aren’t rushed.
+
+### Checked
+`npm run lint` clean. Manual: chat ↔ call ↔ settings each feel like the same horizontal push.
+
+---
+
+## Previous — 2026-10-02 (Hmat chat load gate)
 
 ### What was wrong
 `HmatChat` always played a 240ms skeleton “ceremony” via module flags + `setTimeout`, independent of server sync. In dev, missed chunk hydration could leave the skeleton up until a dock tab forced navigation.
