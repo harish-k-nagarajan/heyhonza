@@ -25,7 +25,7 @@ export function clearReplyChoreography(): void {
 
 /**
  * After the API resolves, show typing preview then reveal the assistant message.
- * Replaces immediate addAssistantMessage + flashMood in sendUserTurn / initiateOpener.
+ * Replaces immediate addAssistantMessage + flashMood in sendUserTurn.
  */
 export function scheduleAssistantReveal(
   reply: string,
