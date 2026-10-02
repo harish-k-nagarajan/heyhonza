@@ -27,9 +27,10 @@ import { useOrbPresence } from "./useOrbPresence";
 const HERO_MIN = 100;
 
 /**
- * Pen stage is 240×212; the ceramic body sits at (49, 2) and is 148×152.
- * Rays and motes are placed in that stage, then mapped onto the body box so
- * they land in the margin around the shell instead of under it.
+ * Pen stage is 240×212; the ceramic body sits at (49, 2) and is 148×152
+ * (slightly taller than wide). The product box stays square. Hero maps that
+ * body onto the square; rays, motes, and floor light are percentages of it.
+ * Speech rays live in the unrotated stage — they do not inherit body tilt.
  */
 const BODY = { x: 49, y: 2, w: 148, h: 152 } as const;
 
@@ -218,6 +219,8 @@ export function HmatOrb({
     attentive,
     intensity: config.intensity,
   });
+  /** One pen-pixel, scaled so the 152-tall body fills the square. */
+  const orbPx = `${size / BODY.h}px`;
 
   return (
     <div
@@ -233,23 +236,34 @@ export function HmatOrb({
         ["--orb-rotation" as string]: `${config.rotation}deg`,
         ["--orb-intensity" as string]: String(config.intensity),
         ["--orb-blink-delay" as string]: blinkDelay,
+        ["--orb-px" as string]: orbPx,
       }}
     >
-      {showFloorLight ? (
-        <div className="hmat-orb-ground" aria-hidden>
-          <motion.div className="hmat-orb-aura" style={presence.auraStyle} />
-          <motion.div className="hmat-orb-spill" style={presence.spillStyle} />
-          <motion.div className="hmat-orb-occlusion" style={presence.occlusionStyle} />
-          <motion.div className="hmat-orb-shadow" style={presence.shadowStyle} />
-          <motion.div className="hmat-orb-emissive" style={presence.emissiveStyle} />
-          <motion.div className="hmat-orb-contact" style={presence.contactStyle} />
-        </div>
-      ) : null}
-
-      <motion.div
-        className={cn("hmat-orb-stage", popping && "react-pop")}
-        style={presence.bodyStyle}
+      <div
+        className="hmat-orb-metrics"
+        style={
+          hero
+            ? { width: (size * BODY.w) / BODY.h, height: size }
+            : undefined
+        }
       >
+        {showFloorLight ? (
+          <>
+            <motion.div className="hmat-orb-aura" style={presence.auraStyle} />
+            <motion.div className="hmat-orb-halo-pivot" style={presence.bodyStyle}>
+              <div className="hmat-orb-halo" />
+            </motion.div>
+            <div className="hmat-orb-ground" aria-hidden>
+              <motion.div className="hmat-orb-spill" style={presence.spillStyle} />
+              <motion.div className="hmat-orb-shadow" style={presence.shadowStyle}>
+                <span className="hmat-orb-shadow-fill" />
+              </motion.div>
+              <motion.div className="hmat-orb-emissive" style={presence.emissiveStyle} />
+              <motion.div className="hmat-orb-contact" style={presence.contactStyle} />
+            </div>
+          </>
+        ) : null}
+
         {hero ? (
           <div className={cn("hmat-orb-rays", raysOn && "is-on")} aria-hidden>
             {RAYS.map((ray) => (
@@ -288,22 +302,27 @@ export function HmatOrb({
           </div>
         ) : null}
 
-        {showFloorLight ? <div className="hmat-orb-halo" aria-hidden /> : null}
-        <div className="hmat-orb-body">
-          <div className="hmat-orb-porcelain" aria-hidden />
-          <div className="hmat-orb-ceramic" aria-hidden />
-          <div className="hmat-orb-sheen" aria-hidden />
-          <div className="hmat-orb-specular" aria-hidden />
-          <div className="hmat-orb-rim-right" aria-hidden />
-          <div className="hmat-orb-rim-bottom" aria-hidden />
-          <div className="hmat-orb-bezel" aria-hidden />
-          <div className="hmat-orb-matrix">
-            <div className="hmat-orb-matrix-dots" aria-hidden />
-            <FaceLayers face={face} led={`var(--orb-led, ${ORB_LED})`} />
-            <div className="hmat-orb-glass" aria-hidden />
+        <motion.div
+          className={cn("hmat-orb-stage", popping && "react-pop")}
+          style={presence.bodyStyle}
+        >
+          {hero ? <div className="hmat-orb-weight" aria-hidden /> : null}
+          <div className="hmat-orb-body">
+            <div className="hmat-orb-porcelain" aria-hidden />
+            <div className="hmat-orb-ceramic" aria-hidden />
+            <div className="hmat-orb-sheen" aria-hidden />
+            <div className="hmat-orb-specular" aria-hidden />
+            <div className="hmat-orb-rim-right" aria-hidden />
+            <div className="hmat-orb-rim-bottom" aria-hidden />
+            <div className="hmat-orb-bezel" aria-hidden />
+            <div className="hmat-orb-matrix">
+              <div className="hmat-orb-matrix-dots" aria-hidden />
+              <FaceLayers face={face} led={`var(--orb-led, ${ORB_LED})`} />
+              <div className="hmat-orb-glass" aria-hidden />
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

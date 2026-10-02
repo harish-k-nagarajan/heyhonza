@@ -16,8 +16,8 @@ import type { CeramicFace } from "./ceramic-faces";
  * sine. State changes dip (notice), then lean into the new pose (react),
  * then the wander loop takes back over (settle).
  *
- * Soft cast shadow stays on the card: origin at the ellipse top so lift opens
- * the floor, and lateral throw grows with height. Contact stays under the rim.
+ * Floor light stays on the card: it lags the body and does not inherit tilt.
+ * Lateral throw grows with height. Contact stays under the rim.
  */
 
 /** Heavy ceramic. Overdamped so it settles instead of oscillating. */
@@ -154,7 +154,6 @@ export function useOrbPresence({
 
   const glowX = useSpring(x, GLOW_SPRING);
   const glowY = useSpring(y, GLOW_SPRING);
-  const glowRot = useSpring(rot, GLOW_SPRING);
   /** Positive when the body is above its rest line. */
   const lift = useTransform(glowY, (gy) => -num(gy));
 
@@ -184,13 +183,12 @@ export function useOrbPresence({
   });
   const emissiveOpacity = useTransform([lift, intensityMv], ([lv, i]) => clamp(1 - num(lv) * 0.08, 0.58, 1) * num(i));
 
-  /** Soft cast — wider / flatter / fainter when high; opposite lean from body tilt. */
-  const shadowTransform = useTransform([glowX, glowRot, lift], ([gx, rv, lv]) => {
+  /** Ground ellipse stays axis-aligned on the card — wider / flatter when the body rises. */
+  const shadowTransform = useTransform([glowX, lift], ([gx, lv]) => {
     const L = num(lv);
     const width = clamp(1 + L * 0.055, 0.78, 1.55);
     const height = clamp(1 - L * 0.045, 0.52, 1.12);
-    const lean = clamp(-num(rv) * 0.4, -3.5, 3.5);
-    return `translate3d(${lateralThrow(num(gx), L, 0.1)}px, 0, 0) rotate(${lean}deg) scale(${width}, ${height})`;
+    return `translate3d(${lateralThrow(num(gx), L, 0.1)}px, 0, 0) scale(${width}, ${height})`;
   });
   const shadowOpacity = useTransform([lift, intensityMv], ([lv, i]) => {
     const L = num(lv);
@@ -201,7 +199,7 @@ export function useOrbPresence({
     return extra > 0.15 ? `blur(${extra.toFixed(2)}px)` : "none";
   });
 
-  /** Occlusion + contact stay nearly under the rim — small lateral, little scale. */
+  /** Contact stays nearly under the rim — small lateral, little scale. */
   const contactTransform = useTransform([glowX, lift], ([gx, lv]) => {
     const L = num(lv);
     const tuck = clamp(1 - L * 0.025, 0.92, 1.05);
@@ -319,7 +317,6 @@ export function useOrbPresence({
     auraStyle: { transform: auraTransform, opacity: auraOpacity },
     spillStyle: { transform: spillTransform, opacity: spillOpacity },
     emissiveStyle: { transform: emissiveTransform, opacity: emissiveOpacity },
-    occlusionStyle: { transform: contactTransform, opacity: contactOpacity },
     shadowStyle: {
       transform: shadowTransform,
       opacity: shadowOpacity,

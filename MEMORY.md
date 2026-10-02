@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-02 (typed chat: learner writes first)
+## Current entry — 2026-10-02 (waiting orb: rays, floor, porcelain weight)
+
+### What was wrong
+Waiting read as a flat white squircle on a circular coral blob, with thin dashes floating off the sides. Speech rays used `transform-origin: 50% 50%` and were children of `.hmat-orb-stage`, so they inherited the body’s −4° and the 50% 68% pivot — the left pair spread vertically and the lower dash sat down by the floor. The waiting keyframes also scaled 0.7→1.2 and translated off the pen rest pose. `.hmat-orb-aura` (136%×108% plus an extra `blur(8px)`) and `.hmat-orb-halo` (120%×92% radial, blur 14) wrapped the shell into one round glow. Spill, emissive, and contact overlapped the body and merged with that circle. `.hmat-orb-body { overflow: hidden }` clipped the porcelain wall’s object shadow (`0 10px 18px #B8452A26`), so the ceramic had no weight. The rim was a flat `color-mix(#ffd2c0 55%, #fff)` outline.
+
+### What changed
+Rays and motes sit in an unrotated layer on the 148×152 body (the square `size` API maps that taller body onto the hero). Ray rotation is around the top-left. Waiting only pulses opacity (~0.55↔0.85) and the glow. Floor layers match the pen stack (aura, wide spill, thin ground ellipse, coral bounce, hot contact) and stay on the card. Halo is a 144×146 squircle behind the body and rotates with it. Porcelain thickness peeks 6px (scaled) and its cast shadow lives on a sibling so the shell can still clip the matrix. Ceramic stroke runs white at the top to coral at the bottom. Compact orbs are unchanged.
+
+### Checked
+Call hero, reduced motion, waiting: four capsules, left lower near the cheeks, floor is a puddle under the rim rather than a circle wrapping the shell. Orb tap flashes surprised with rays still on. Speaking ray animation is `hmat-orb-ray-speak` with top-left origin. Six motes stay mounted outside the rotating body. Settings 64px orb has no rays, halo, or floor. `npx eslint` on `HmatOrb.tsx` and `useOrbPresence.ts` clean. Build not run while dev is up.
+
+---
+
+## Previous — 2026-10-02 (typed chat: learner writes first)
 
 ### What was wrong
 Tapping “Start chatting” opened the composer, flashed the waiting empty state (“Honza is waiting” / “Honza’s listening”), then `initiateOpener()` fetched a bootstrap Czech line and dropped it into the thread a few seconds later. The learner never got to write first.
