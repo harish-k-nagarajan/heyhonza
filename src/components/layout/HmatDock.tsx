@@ -44,13 +44,53 @@ const RUBBER = 0.32;
 
 type TabMetrics = { left: number; width: number };
 
+/** Absolute pill uses the nav padding box; tab rects must use the same origin. */
+function navContentOriginX(nav: HTMLElement): number {
+  const rect = nav.getBoundingClientRect();
+  const padLeft = parseFloat(getComputedStyle(nav).paddingLeft) || 0;
+  return rect.left + padLeft;
+}
+
 function indexFromX(x: number, metrics: TabMetrics[]): number {
   if (metrics.length === 0) return 0;
+  let best = 0;
+  let bestDist = Infinity;
   for (let i = 0; i < metrics.length; i += 1) {
-    const tab = metrics[i];
-    if (x < tab.left + tab.width) return i;
+    const center = metrics[i].left + metrics[i].width / 2;
+    const dist = Math.abs(x - center);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = i;
+    }
   }
-  return metrics.length - 1;
+  return best;
+}
+
+/** Pill tracks the finger and eases its width between neighboring tabs. */
+function pillFromCenter(
+  center: number,
+  metrics: TabMetrics[],
+): { left: number; width: number } {
+  const first = metrics[0];
+  const last = metrics[metrics.length - 1];
+  if (!first || !last) return { left: 0, width: 0 };
+
+  const centers = metrics.map((tab) => tab.left + tab.width / 2);
+  if (center <= centers[0]) {
+    return { left: center - first.width / 2, width: first.width };
+  }
+  const end = centers.length - 1;
+  if (center >= centers[end]) {
+    return { left: center - last.width / 2, width: last.width };
+  }
+
+  let i = 0;
+  while (i < end - 1 && center > centers[i + 1]) i += 1;
+  const next = i + 1;
+  const span = centers[next] - centers[i];
+  const t = span === 0 ? 0 : (center - centers[i]) / span;
+  const width = metrics[i].width + (metrics[next].width - metrics[i].width) * t;
+  return { left: center - width / 2, width };
 }
 
 function rubberClamp(value: number, min: number, max: number): number {
@@ -66,7 +106,7 @@ export function HmatDock() {
   const setPendingHref = useTabNavStore((s) => s.setPendingHref);
   const pendingHref = useTabNavStore((s) => s.pendingHref);
   const navRef = useRef<HTMLElement>(null);
-  const tabRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [pill, setPill] = useState({ left: 0, width: 0 });
   const [dragging, setDragging] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
@@ -81,9 +121,6 @@ export function HmatDock() {
     pointerId: -1,
     metrics: [] as TabMetrics[],
     hoverIndex: 0,
-    pillWidth: 0,
-    minLeft: 0,
-    maxLeft: 0,
   });
 
   const activeIndex = TABS.findIndex(
@@ -99,11 +136,11 @@ export function HmatDock() {
   const measureTabs = useCallback((): TabMetrics[] => {
     const nav = navRef.current;
     if (!nav) return [];
-    const navLeft = nav.getBoundingClientRect().left;
-    return tabRefs.current.map((tab) => {
-      if (!tab) return { left: 0, width: 0 };
-      const rect = tab.getBoundingClientRect();
-      return { left: rect.left - navLeft, width: rect.width };
+    const originX = navContentOriginX(nav);
+    return slotRefs.current.map((slot) => {
+      if (!slot) return { left: 0, width: 0 };
+      const rect = slot.getBoundingClientRect();
+      return { left: rect.left - originX, width: rect.width };
     });
   }, []);
 
@@ -112,19 +149,32 @@ export function HmatDock() {
       const tabs = metrics ?? measureTabs();
       const tab = tabs[index >= 0 ? index : 0] ?? tabs[0];
       if (!tab) return;
-      setPill({ left: tab.left, width: tab.width });
+      setPill((current) =>
+        current.left === tab.left && current.width === tab.width
+          ? current
+          : { left: tab.left, width: tab.width },
+      );
     },
     [measureTabs],
   );
 
   useLayoutEffect(() => {
-    if (dragRef.current.active) return;
+    if (dragRef.current.active || dragging) return;
     const index = pendingIndex >= 0 ? pendingIndex : activeIndex >= 0 ? activeIndex : 0;
     snapPillToIndex(index);
     const onResize = () => snapPillToIndex(index);
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [activeIndex, pendingIndex, pathname, snapPillToIndex]);
+    const observer = new ResizeObserver(onResize);
+    const nav = navRef.current;
+    if (nav) observer.observe(nav);
+    for (const slot of slotRefs.current) {
+      if (slot) observer.observe(slot);
+    }
+    return () => {
+      window.removeEventListener("resize", onResize);
+      observer.disconnect();
+    };
+  }, [activeIndex, dragging, pendingIndex, pathname, snapPillToIndex]);
 
   const commitHref = useCallback(
     (href: string, haptic: boolean) => {
@@ -171,10 +221,8 @@ export function HmatDock() {
       }
       const metrics = measureTabs();
       if (metrics.length === 0) return;
-      const first = metrics[0];
-      const last = metrics[metrics.length - 1];
-      const navLeft = navRef.current?.getBoundingClientRect().left ?? 0;
-      const startIndex = indexFromX(e.clientX - navLeft, metrics);
+      const originX = navRef.current ? navContentOriginX(navRef.current) : 0;
+      const startIndex = indexFromX(e.clientX - originX, metrics);
       pointerIdRef.current = e.pointerId;
       dragRef.current = {
         active: true,
@@ -183,9 +231,6 @@ export function HmatDock() {
         pointerId: e.pointerId,
         metrics,
         hoverIndex: startIndex,
-        pillWidth: metrics[startIndex]?.width ?? first.width,
-        minLeft: first.left,
-        maxLeft: last.left,
       };
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -210,11 +255,18 @@ export function HmatDock() {
       setPreviewIndex(drag.hoverIndex);
     }
 
-    const navLeft = navRef.current?.getBoundingClientRect().left ?? 0;
-    const x = e.clientX - navLeft;
+    const originX = navRef.current ? navContentOriginX(navRef.current) : 0;
+    const x = e.clientX - originX;
+    const first = drag.metrics[0];
+    const last = drag.metrics[drag.metrics.length - 1];
+    if (!first || !last) return;
+    const center = rubberClamp(
+      x,
+      first.left + first.width / 2,
+      last.left + last.width / 2,
+    );
+    setPill(pillFromCenter(center, drag.metrics));
     const nextIndex = indexFromX(x, drag.metrics);
-    const pillLeft = rubberClamp(x - drag.pillWidth / 2, drag.minLeft, drag.maxLeft);
-    setPill({ left: pillLeft, width: drag.pillWidth });
 
     if (nextIndex !== drag.hoverIndex) {
       drag.hoverIndex = nextIndex;
@@ -303,7 +355,7 @@ export function HmatDock() {
     >
       <nav
         ref={navRef}
-        className="fdock pointer-events-auto relative flex gap-1 rounded-[28px] p-2"
+        className="fdock pointer-events-auto relative rounded-[28px] p-2"
         data-dragging={dragging ? "true" : "false"}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -323,22 +375,26 @@ export function HmatDock() {
           const current =
             pathname === tab.href || pathname.startsWith(`${tab.href}/`);
           return (
-            <Link
+            <div
               key={tab.href}
               ref={(el) => {
-                tabRefs.current[i] = el;
+                slotRefs.current[i] = el;
               }}
-              href={tab.href}
-              aria-current={current ? "page" : undefined}
-              onClick={(e) => onTabClick(e, tab.href)}
-              className={cn(
-                "hmat-tab relative z-[1] flex min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-[22px] px-[18px] py-3 font-display",
-                highlighted && "on",
-              )}
+              className="fdock-slot"
             >
-              <FernDockIcon name={tab.icon} size={16} />
-              <span className="hmat-tab-lbl">{t.nav[tab.labelKey]}</span>
-            </Link>
+              <Link
+                href={tab.href}
+                aria-current={current ? "page" : undefined}
+                onClick={(e) => onTabClick(e, tab.href)}
+                className={cn(
+                  "hmat-tab relative z-[1] min-h-11 font-display",
+                  highlighted && "on",
+                )}
+              >
+                <FernDockIcon name={tab.icon} size={16} className="shrink-0" />
+                <span className="hmat-tab-lbl">{t.nav[tab.labelKey]}</span>
+              </Link>
+            </div>
           );
         })}
       </nav>
