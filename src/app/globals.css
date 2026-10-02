@@ -100,14 +100,9 @@
   --duration-presence-beat: 680ms;
   --duration-presence-wave: 120ms;
   --duration-screen-in: var(--duration-fast);
-  /* Dock tab slide — transitions.dev #08 (symmetric open/close) */
-  --page-slide-dur: var(--duration-fast);
-  --page-fade-dur: var(--duration-fast);
-  --page-slide-distance: var(--distance-base);
-  /* Chat ↔ call share one hero. A full stage push, so the two faces never stack. */
-  --page-slide-distance-peer: 100%;
-  --page-slide-dur-peer: var(--duration-medium);
-  --page-slide-ease-peer: var(--ease-drawer);
+  /* Dock tab slide — transitions.dev #08, three-tab carousel (chat · call · settings) */
+  --page-slide-dur: var(--duration-medium);
+  --page-fade-dur: var(--duration-medium);
   --page-blur: var(--blur-medium);
   --page-stagger: 0ms;
   --page-exit-enabled: 1;
@@ -2436,6 +2431,9 @@ body:has(.landing-page) {
 /* Dock tabs — page side-by-side (transitions.dev #08), three-up */
 .hmat-tab-slide {
   position: relative;
+  --page-slide-steps: 1;
+  --page-slide-dur: calc(var(--duration-medium) * var(--page-slide-steps));
+  --page-fade-dur: calc(var(--duration-medium) * var(--page-slide-steps));
 }
 
 .hmat-tab-slide .hmat-tab-page {
@@ -2452,30 +2450,29 @@ body:has(.landing-page) {
   will-change: opacity, transform, filter;
 }
 
-.hmat-tab-slide[data-travel="peer"] {
-  --page-slide-dur: var(--page-slide-dur-peer);
-  --page-fade-dur: var(--page-slide-dur-peer);
-  --page-slide-ease: var(--page-slide-ease-peer);
-  --page-fade-ease: var(--page-slide-ease-peer);
-}
-
-.hmat-tab-slide[data-page="1"] .hmat-tab-page[data-page-id="3"],
-.hmat-tab-slide[data-page="2"] .hmat-tab-page[data-page-id="3"] {
-  transform: translateX(var(--page-slide-distance));
-}
-
-.hmat-tab-slide[data-page="3"] .hmat-tab-page[data-page-id="1"],
-.hmat-tab-slide[data-page="3"] .hmat-tab-page[data-page-id="2"] {
-  transform: translateX(calc(var(--page-slide-distance) * -1));
-}
-
-/* Chat sits a full stage left of call, call a full stage right of chat. */
+/* Inactive tabs sit one stage apart on the dock order (1 chat · 2 call · 3 settings). */
 .hmat-tab-slide[data-page="1"] .hmat-tab-page[data-page-id="2"] {
-  transform: translateX(var(--page-slide-distance-peer));
+  transform: translateX(100%);
+}
+
+.hmat-tab-slide[data-page="1"] .hmat-tab-page[data-page-id="3"] {
+  transform: translateX(200%);
 }
 
 .hmat-tab-slide[data-page="2"] .hmat-tab-page[data-page-id="1"] {
-  transform: translateX(calc(var(--page-slide-distance-peer) * -1));
+  transform: translateX(-100%);
+}
+
+.hmat-tab-slide[data-page="2"] .hmat-tab-page[data-page-id="3"] {
+  transform: translateX(100%);
+}
+
+.hmat-tab-slide[data-page="3"] .hmat-tab-page[data-page-id="1"] {
+  transform: translateX(-200%);
+}
+
+.hmat-tab-slide[data-page="3"] .hmat-tab-page[data-page-id="2"] {
+  transform: translateX(-100%);
 }
 
 .hmat-tab-slide[data-page="1"] .hmat-tab-page[data-page-id="1"],
