@@ -4,7 +4,23 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-02 (waiting orb: rays, floor, porcelain weight)
+## Current entry — 2026-10-03 (speech pills: CSS angle inversion)
+
+### What was wrong
+Pen rotation is counterclockwise around the top-left. CSS `rotate()` is clockwise. `RAYS` copied the pen angles (`−30 / −6 / +30 / +6`), so every capsule tilted the wrong way and the free end swung off the shell. `.hmat-orb-rays` sat outside the rotating stage but did not follow the body's translate, so a lifted ceramic left the pills low and far. Speaking, happy, and surprised keyframes still translated by `--ray-dx` / `--ray-dy` / `--ray-travel`.
+
+### What changed
+CSS angles are the pen angles with the sign flipped: left upper `+30deg`, left lower `+6deg`, right upper `−30deg`, right lower `−6deg`. `transform-origin` stays `0 0`. Positions stay in the unrotated 148×152 body stage. `useOrbPresence` exposes a translate-only style on the same body springs (`x`, `y`) — no rotate, no rotateX, no scale. Floor glow still lags on the card. Ray travel variables and keyframe translates are gone; those moods pulse opacity and glow only.
+
+### Decision
+Rays must follow body translate but not rotate. Do not copy pen rotation numbers into CSS.
+
+### Checked
+Chat waiting, `prefers-reduced-motion: reduce`, body at rest (translate 0, rotation −4°). Pill layout matches the 148×152 stage within half a pixel. Angles are +30 / +6 / −30 / −6, origin top-left, opacity 0.8, fill `#FF6B4A`. Left upper reads as a backslash beside the eyes; the lower pair sits near the smile; the right pair mirrors. While wandering, ray translate matched the body translate exactly and the ray layer stayed unrotated. `npx eslint` on `HmatOrb.tsx` and `useOrbPresence.ts` clean. Build not run while dev is up.
+
+---
+
+## Previous — 2026-10-02 (waiting orb: rays, floor, porcelain weight)
 
 ### What was wrong
 Waiting read as a flat white squircle on a circular coral blob, with thin dashes floating off the sides. Speech rays used `transform-origin: 50% 50%` and were children of `.hmat-orb-stage`, so they inherited the body’s −4° and the 50% 68% pivot — the left pair spread vertically and the lower dash sat down by the floor. The waiting keyframes also scaled 0.7→1.2 and translated off the pen rest pose. `.hmat-orb-aura` (136%×108% plus an extra `blur(8px)`) and `.hmat-orb-halo` (120%×92% radial, blur 14) wrapped the shell into one round glow. Spill, emissive, and contact overlapped the body and merged with that circle. `.hmat-orb-body { overflow: hidden }` clipped the porcelain wall’s object shadow (`0 10px 18px #B8452A26`), so the ceramic had no weight. The rim was a flat `color-mix(#ffd2c0 55%, #fff)` outline.

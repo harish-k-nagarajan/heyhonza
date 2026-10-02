@@ -30,7 +30,9 @@ const HERO_MIN = 100;
  * Pen stage is 240×212; the ceramic body sits at (49, 2) and is 148×152
  * (slightly taller than wide). The product box stays square. Hero maps that
  * body onto the square; rays, motes, and floor light are percentages of it.
- * Speech rays live in the unrotated stage — they do not inherit body tilt.
+ * Speech rays live in the unrotated stage — they follow the body's X/Y
+ * translate and do not inherit tilt or scale. Pen rotation is CCW around
+ * the top-left; CSS rotate() is CW, so each stored angle is sign-flipped.
  */
 const BODY = { x: 49, y: 2, w: 148, h: 152 } as const;
 
@@ -43,44 +45,15 @@ function stageBox(x: number, y: number, w: number, h: number) {
   };
 }
 
-/** Short ticks beside the shell — honza.pen Qj69R / MXzhl / Q92Mq / G6POZ. */
+/**
+ * Short ticks beside the shell — honza.pen Qj69R / MXzhl / Q92Mq / G6POZ.
+ * `rot` is the CSS angle (pen CCW negated): left-upper reads as a backslash.
+ */
 const RAYS = [
-  {
-    key: "lu",
-    rot: -30,
-    box: stageBox(13, 52, 15, 5),
-    dx: "-11px",
-    dy: "-6.4px",
-    dur: "4.2s",
-    delay: "0.12s",
-  },
-  {
-    key: "ll",
-    rot: -6,
-    box: stageBox(9, 78, 15, 5),
-    dx: "-13px",
-    dy: "-1.4px",
-    dur: "4.8s",
-    delay: "1.35s",
-  },
-  {
-    key: "ru",
-    rot: 30,
-    box: stageBox(213, 61, 15, 5),
-    dx: "11px",
-    dy: "-6.4px",
-    dur: "4.5s",
-    delay: "0.7s",
-  },
-  {
-    key: "rl",
-    rot: 6,
-    box: stageBox(216, 77, 15, 5),
-    dx: "13px",
-    dy: "1.4px",
-    dur: "5.1s",
-    delay: "2.05s",
-  },
+  { key: "lu", rot: 30, box: stageBox(13, 52, 15, 5), dur: "4.2s", delay: "0.12s" },
+  { key: "ll", rot: 6, box: stageBox(9, 78, 15, 5), dur: "4.8s", delay: "1.35s" },
+  { key: "ru", rot: -30, box: stageBox(213, 61, 15, 5), dur: "4.5s", delay: "0.7s" },
+  { key: "rl", rot: -6, box: stageBox(216, 77, 15, 5), dur: "5.1s", delay: "2.05s" },
 ] as const;
 
 /** Six motes — honza.pen Particles dsZv8 … k2JdF. */
@@ -265,7 +238,11 @@ export function HmatOrb({
         ) : null}
 
         {hero ? (
-          <div className={cn("hmat-orb-rays", raysOn && "is-on")} aria-hidden>
+          <motion.div
+            className={cn("hmat-orb-rays", raysOn && "is-on")}
+            style={presence.rayStyle}
+            aria-hidden
+          >
             {RAYS.map((ray) => (
               <span
                 key={ray.key}
@@ -273,14 +250,12 @@ export function HmatOrb({
                 style={{
                   ...ray.box,
                   ["--ray-rot" as string]: `${ray.rot}deg`,
-                  ["--ray-dx" as string]: ray.dx,
-                  ["--ray-dy" as string]: ray.dy,
                   ["--ray-base" as string]: ray.dur,
                   ["--ray-enter-delay" as string]: ray.delay,
                 }}
               />
             ))}
-          </div>
+          </motion.div>
         ) : null}
 
         {hero ? (

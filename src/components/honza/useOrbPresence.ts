@@ -17,6 +17,7 @@ import type { CeramicFace } from "./ceramic-faces";
  * then the wander loop takes back over (settle).
  *
  * Floor light stays on the card: it lags the body and does not inherit tilt.
+ * Speech rays use the body's X/Y only — same springs, no rotate and no scale.
  * Lateral throw grows with height. Contact stays under the rim.
  */
 
@@ -160,6 +161,11 @@ export function useOrbPresence({
   const bodyTransform = useTransform([x, y, rot, scale], ([xv, yv, rv, sv]) => {
     const tilt = clamp(-num(yv) * 0.26, -1.35, 1.35);
     return `translate3d(${num(xv)}px, ${num(yv)}px, 0) rotate(${num(rv)}deg) rotateX(${tilt}deg) scale(${num(sv)})`;
+  });
+
+  /** Pills stay beside the cheeks. Tilt and scale stay on the ceramic. */
+  const rayTransform = useTransform([x, y], ([xv, yv]) => {
+    return `translate3d(${num(xv)}px, ${num(yv)}px, 0)`;
   });
 
   const auraTransform = useTransform([glowX, lift], ([gx, lv]) => {
@@ -314,6 +320,7 @@ export function useOrbPresence({
 
   return {
     bodyStyle: { transform: bodyTransform },
+    rayStyle: { transform: rayTransform },
     auraStyle: { transform: auraTransform, opacity: auraOpacity },
     spillStyle: { transform: spillTransform, opacity: spillOpacity },
     emissiveStyle: { transform: emissiveTransform, opacity: emissiveOpacity },
