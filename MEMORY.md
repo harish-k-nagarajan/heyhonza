@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-09-30 (PWA logo → ceramic orb)
+## Current entry — 2026-10-02 (Hmat chat load gate)
+
+### What was wrong
+`HmatChat` always played a 240ms skeleton “ceremony” via module flags + `setTimeout`, independent of server sync. In dev, missed chunk hydration could leave the skeleton up until a dock tab forced navigation.
+
+### What changed
+Skeleton only while `screen.ready && providersLoaded` are false (settings hydrate + `/api/state` checked + provider status). Real chat paints immediately when those resolve — no overlay reveal timer.
+
+### Checked
+`npm run lint` clean. Manual reload on `/chat`: skeleton drops once APIs return, then “Start chatting” is interactive.
+
+---
+
+## Previous — 2026-09-30 (PWA logo → ceramic orb)
 
 ### What changed
 Home-screen and favicon marks were still the flat pixel-frame face. `scripts/generate-icons.mjs` now draws the ceramic shell (squircle, inset matrix, waiting smile) and writes `public/icons/*`, `public/apple-touch-icon.png`, and `src/app/icon.png`.
