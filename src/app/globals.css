@@ -381,9 +381,14 @@ body {
   overflow: visible;
   transition: --orb-glow var(--duration-very-slow) var(--ease-smooth-out);
 }
+.hmat-orb-metrics {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
 .hmat-orb-stage {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   width: 100%;
   height: 100%;
   display: grid;
@@ -422,14 +427,14 @@ body {
   --ray-floor: 0.45;
 }
 
-/* —— Floor light. Geometry matches honza.pen Glow (stage 240×212, body at
-   49,2 / 148×152). Percentages are relative to the ceramic body. Gradients
-   carry the falloff — no extra blur, or the pool turns into a generic glow.
-   The body covers the upper part; the pool sits on the card beneath it. —— */
+/* —— Floor light. Unrotated, percentages of the 148×152 body.
+   honza.pen Glow: aura behind the shell, then a wide flat spill, a thin
+   ground ellipse, coral bounce, and a hot contact line under the rim.
+   Blur radii are the pen's effect blur, scaled by --orb-px. —— */
 .hmat-orb-ground {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
   pointer-events: none;
   overflow: visible;
 }
@@ -437,97 +442,90 @@ body {
 .hmat-orb-spill,
 .hmat-orb-emissive,
 .hmat-orb-shadow,
-.hmat-orb-occlusion,
 .hmat-orb-contact {
   position: absolute;
   pointer-events: none;
   border-radius: 50%;
   transform-origin: 50% 50%;
 }
-/* Soft cast opens across the floor from the ellipse top, not into the shell. */
+/* Ground ellipse is pinned at the sit line so lift opens downward. */
 .hmat-orb-shadow {
   transform-origin: 50% 0%;
 }
-/* Backlight aura — atmosphere behind the shell, feathered so it wraps the sides. */
+/* Backlight aura — 180×170 at stage (30, 0). Atmosphere behind the shell. */
 .hmat-orb-aura {
-  left: -18%;
-  top: 8%;
-  width: 136%;
-  height: 108%;
+  z-index: 0;
+  left: -12.838%;
+  top: -1.316%;
+  width: 121.622%;
+  height: 111.842%;
   background: radial-gradient(
-    ellipse at 50% 72%,
-    color-mix(in srgb, var(--orb-glow) 36%, transparent) 0%,
-    color-mix(in srgb, var(--orb-glow) 16%, transparent) 42%,
-    transparent 74%
+    ellipse at center,
+    rgb(from var(--orb-glow) r g b / 0.302) 0%,
+    rgb(from var(--orb-glow) r g b / 0.149) 50%,
+    transparent 100%
   );
-  filter: blur(8px);
+  filter: blur(calc(18 * var(--orb-px, 1px)));
 }
-/* Wide reflected pool. Brightest at the lower rim, then fades down and out. */
+/* Emissive spill — 240×64 at stage (0, 134). Wide flat pool on the card. */
 .hmat-orb-spill {
-  left: -42%;
-  top: 74%;
-  width: 184%;
-  height: 58%;
+  left: -33.108%;
+  top: 86.842%;
+  width: 162.162%;
+  height: 42.105%;
   background: radial-gradient(
-    ellipse at 50% 22%,
-    color-mix(in srgb, var(--orb-glow) 40%, transparent) 0%,
-    color-mix(in srgb, var(--orb-glow) 18%, transparent) 36%,
-    color-mix(in srgb, var(--orb-glow) 6%, transparent) 62%,
+    ellipse at center,
+    rgb(from var(--orb-glow) r g b / 0.302) 0%,
+    rgb(from var(--orb-glow) r g b / 0.149) 50%,
     transparent 100%
   );
+  filter: blur(calc(14 * var(--orb-px, 1px)));
 }
-/* Contact occlusion — a whisper of weight inside the light, not a separate shape. */
-.hmat-orb-occlusion {
-  left: 18%;
-  top: 90%;
-  width: 64%;
-  height: 10%;
-  background: radial-gradient(
-    ellipse at 50% 40%,
-    rgba(58, 32, 22, 0.14) 0%,
-    rgba(58, 32, 22, 0.04) 50%,
-    transparent 78%
-  );
-}
-/* Warm ground shadow tucked into the contact. */
+/* Ground shadow — 140×16 at stage (50, 154). Thin occlusion at the sit point. */
 .hmat-orb-shadow {
-  left: 2%;
-  top: 91%;
-  width: 96%;
-  height: 14%;
+  left: 0.676%;
+  top: 100%;
+  width: 94.595%;
+  height: 10.526%;
+}
+.hmat-orb-shadow-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background: radial-gradient(
-    ellipse at 50% 30%,
-    color-mix(in srgb, var(--orb-glow) 42%, rgba(42, 22, 16, 0.35)) 0%,
-    color-mix(in srgb, var(--orb-glow) 14%, transparent) 55%,
+    ellipse at center,
+    rgb(from var(--orb-glow) r g b / 0.302) 0%,
     transparent 100%
   );
+  filter: blur(calc(6 * var(--orb-px, 1px)));
 }
-/* Coral core — strongest where the shell meets the card. */
+/* Coral emissive — 150×24 at stage (45, 160). Bounce under the rim. */
 .hmat-orb-emissive {
-  left: -8%;
-  top: 88%;
-  width: 116%;
-  height: 24%;
+  left: -2.703%;
+  top: 103.947%;
+  width: 101.351%;
+  height: 15.789%;
   background: radial-gradient(
-    ellipse at 50% 18%,
-    color-mix(in srgb, var(--orb-glow) 72%, #fff6f1) 0%,
-    color-mix(in srgb, var(--orb-glow) 40%, transparent) 34%,
-    color-mix(in srgb, var(--orb-glow) 12%, transparent) 64%,
+    ellipse at center,
+    var(--orb-glow) 0%,
+    rgb(from var(--orb-glow) r g b / 0.6) 35%,
+    rgb(from var(--orb-glow) r g b / 0.149) 70%,
     transparent 100%
   );
+  filter: blur(calc(8 * var(--orb-px, 1px)));
 }
-/* Hot contact line along the bottom rim. */
+/* Hot contact — 90×6 at stage (75, 156). Where ceramic meets the card. */
 .hmat-orb-contact {
-  left: 16%;
-  top: 93%;
-  width: 68%;
-  height: 7%;
+  left: 17.568%;
+  top: 101.316%;
+  width: 60.811%;
+  height: 3.947%;
   background: radial-gradient(
-    ellipse at 50% 20%,
-    color-mix(in srgb, var(--orb-glow) 64%, #fff) 0%,
-    color-mix(in srgb, var(--orb-glow) 22%, transparent) 58%,
+    ellipse at center,
+    rgb(from var(--orb-glow) r g b / 0.6) 0%,
     transparent 100%
   );
+  filter: blur(calc(3 * var(--orb-px, 1px)));
 }
 
 /* —— Rays + motes: both layers stay mounted; inactive fades with a soft blur —— */
@@ -535,7 +533,7 @@ body {
 .hmat-orb-particles {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
   overflow: visible;
   opacity: 0;
@@ -549,15 +547,16 @@ body {
   opacity: 1;
   filter: blur(0);
 }
-/* Pen capsules — 15×5, radius 2.5, fill 0.8, glow blur 6 at ~60%. */
+/* Pen capsules — 15×5, radius 2.5, fill 0.8, glow blur 6 at 60%.
+   Rotate around the top-left, matching honza.pen (not the box center). */
 .hmat-orb-ray {
   position: absolute;
-  border-radius: 2.5px;
-  background: color-mix(in srgb, var(--orb-glow) 88%, #fff);
-  box-shadow: 0 0 6px color-mix(in srgb, var(--orb-glow) 60%, transparent);
+  border-radius: calc(2.5 * var(--orb-px, 1px));
+  background: var(--orb-glow);
+  box-shadow: 0 0 calc(6 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.6);
   opacity: 0.8;
   transform: rotate(var(--ray-rot, 0deg));
-  transform-origin: 50% 50%;
+  transform-origin: 0 0;
   will-change: transform, opacity;
 }
 /* Pen motes — fill = glow hue, glow blur 4 at ~30%. */
@@ -573,6 +572,7 @@ body {
   .hmat-orb-ray {
     opacity: 0.8;
     transform: rotate(var(--ray-rot, 0deg));
+    transform-origin: 0 0;
   }
   .hmat-orb-particle {
     opacity: var(--p-opacity, 0.65);
@@ -637,22 +637,40 @@ body {
   position: absolute;
   pointer-events: none;
 }
+/* Backlight halo — 144×146 squircle. Same pivot as the body, but the floor
+   stack paints above it so the blur cannot become the puddle on the card. */
+.hmat-orb-halo-pivot {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  transform-origin: 50% 68%;
+}
 .hmat-orb-halo {
   position: absolute;
   z-index: 0;
-  left: -10%;
-  top: 16%;
-  width: 120%;
-  height: 92%;
-  border-radius: 42%;
+  left: 3.378%;
+  top: 3.289%;
+  width: 97.297%;
+  height: 96.053%;
+  border-radius: 34.72%;
   pointer-events: none;
-  background: radial-gradient(
-    ellipse at 50% 82%,
-    color-mix(in srgb, var(--orb-glow) 48%, transparent) 0%,
-    color-mix(in srgb, var(--orb-glow) 18%, transparent) 40%,
-    transparent 68%
-  );
-  filter: blur(14px);
+  background: var(--orb-glow);
+  opacity: 0.5;
+  filter: blur(calc(14 * var(--orb-px, 1px)));
+}
+/* Object-cast shadow for the porcelain wall. Sibling of the clipped body
+   so overflow:hidden on the shell does not eat the 0 10px 18px falloff. */
+.hmat-orb-weight {
+  position: absolute;
+  z-index: 1;
+  left: 1.351%;
+  top: 3.947%;
+  width: 97.297%;
+  height: 94.737%;
+  border-radius: 34.72%;
+  pointer-events: none;
+  box-shadow: 0 calc(10 * var(--orb-px, 1px)) calc(18 * var(--orb-px, 1px)) #b8452a26;
 }
 .hmat-orb-porcelain {
   inset: 1.4% 1.4% 0;
@@ -677,12 +695,63 @@ body {
     inset 3px 5px 8px #ffffff,
     inset -5px -9px 16px #e0cbbd8c,
     inset -2px -3px 5px color-mix(in srgb, var(--orb-glow) 26%, transparent);
-  border: 1.2px solid transparent;
-  border-image: linear-gradient(180deg, #ffffff, #ffffff80 60%, #ffd2c0) 1;
-  /* border-image fights radius — use outline-ish via box-shadow instead */
-  border: none;
   outline: 1.2px solid color-mix(in srgb, #ffd2c0 55%, #fff);
   outline-offset: -1.2px;
+}
+/* Hero shell matches honza.pen OrbShell: 144×144 ceramic at (2, 0),
+   porcelain wall 6px lower so the thickness peeks out. Rim runs white → coral. */
+.hmat-orb--hero .hmat-orb-porcelain {
+  inset: 3.947% auto auto 1.351%;
+  width: 97.297%;
+  height: 94.737%;
+  box-shadow:
+    inset 0 calc(-4 * var(--orb-px, 1px)) calc(6 * var(--orb-px, 1px)) #ff5a2e80,
+    inset 0 calc(-1 * var(--orb-px, 1px)) calc(1.5 * var(--orb-px, 1px)) #ffffffb3;
+}
+.hmat-orb--hero .hmat-orb-ceramic {
+  inset: 0 auto auto 1.351%;
+  width: 97.297%;
+  height: 94.737%;
+  border: 1.2px solid transparent;
+  background-image:
+    radial-gradient(150% 150% at 38% 30%, #ffffff 0%, #fcf8f5 45%, #f3e9e1 80%, #eddfd5 100%),
+    linear-gradient(180deg, #ffffff 0%, #ffffff80 60%, #ffd2c0 100%);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  outline: none;
+  box-shadow:
+    inset calc(3 * var(--orb-px, 1px)) calc(5 * var(--orb-px, 1px)) calc(8 * var(--orb-px, 1px)) #ffffff,
+    inset calc(-5 * var(--orb-px, 1px)) calc(-9 * var(--orb-px, 1px)) calc(16 * var(--orb-px, 1px)) #e0cbbd8c,
+    inset calc(-2 * var(--orb-px, 1px)) calc(-3 * var(--orb-px, 1px)) calc(5 * var(--orb-px, 1px)) #ff7a5a4d;
+}
+.hmat-orb--hero .hmat-orb-sheen {
+  left: 8.108%;
+  right: auto;
+  top: 1.974%;
+  width: 83.784%;
+  height: 19.737%;
+}
+.hmat-orb--hero .hmat-orb-specular {
+  left: 14.865%;
+  top: 3.947%;
+  width: 22.973%;
+  height: 7.237%;
+  transform-origin: 0 0;
+}
+.hmat-orb--hero .hmat-orb-rim-right {
+  left: 91.216%;
+  right: auto;
+  top: 19.737%;
+  width: 4.73%;
+  height: 57.895%;
+}
+.hmat-orb--hero .hmat-orb-rim-bottom {
+  left: 20.27%;
+  right: auto;
+  bottom: auto;
+  top: 89.474%;
+  width: 62.162%;
+  height: 3.947%;
 }
 .hmat-orb-sheen {
   left: 8%;
@@ -829,10 +898,8 @@ body {
   .hmat-orb[data-face="speaking"] .hmat-orb-contact {
     animation: hmat-orb-contact-speak 2.15s ease-in-out infinite;
   }
-  /* Waiting — quiet along-axis drift + opacity breathe on 6–8s clocks. */
+  /* Waiting — rest pose stays put. Opacity and glow breathe only. */
   .hmat-orb[data-face="waiting"] .hmat-orb-ray {
-    --ray-floor: 0.1;
-    --ray-peak: 1;
     animation-name: hmat-orb-ray-wait;
     animation-duration: var(--ray-base, 4.6s);
     animation-timing-function: ease-in-out;
@@ -964,18 +1031,12 @@ body {
 @keyframes hmat-orb-ray-wait {
   0%,
   100% {
-    opacity: var(--ray-floor, 0.12);
-    transform: rotate(var(--ray-rot, 0deg)) translate3d(0, 0, 0) scale(0.7);
+    opacity: 0.55;
+    box-shadow: 0 0 calc(4 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.4);
   }
-  42% {
-    opacity: var(--ray-peak, 1);
-    transform: rotate(var(--ray-rot, 0deg))
-      translate3d(
-        calc(var(--ray-dx, 0px) * var(--ray-travel, 1)),
-        calc(var(--ray-dy, 0px) * var(--ray-travel, 1)),
-        0
-      )
-      scale(1.2);
+  50% {
+    opacity: 0.85;
+    box-shadow: 0 0 calc(6 * var(--orb-px, 1px)) rgb(from var(--orb-glow) r g b / 0.6);
   }
 }
 @keyframes hmat-orb-ray-speak {
