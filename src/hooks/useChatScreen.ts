@@ -8,7 +8,6 @@ import { useProviderStatus } from "@/hooks/useProviderStatus";
 import { useNeedsOnboarding, useScreenReady } from "@/hooks/useScreenReady";
 import {
   endChatSessionAction,
-  initiateOpener,
   sendUserTurn,
   startChatSession,
 } from "@/lib/client/chat-actions";
@@ -97,7 +96,7 @@ export function useChatScreen(): ChatScreen {
 
   const startChat = useCallback(() => {
     if (!llmReady) return;
-    void startChatSession().then(() => initiateOpener());
+    void startChatSession();
   }, [llmReady]);
 
   const endChat = useCallback(() => {

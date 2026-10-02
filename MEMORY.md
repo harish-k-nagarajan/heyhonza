@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-02 (unified dock tab carousel)
+## Current entry — 2026-10-02 (typed chat: learner writes first)
+
+### What was wrong
+Tapping “Start chatting” opened the composer, flashed the waiting empty state (“Honza is waiting” / “Honza’s listening”), then `initiateOpener()` fetched a bootstrap Czech line and dropped it into the thread a few seconds later. The learner never got to write first.
+
+### What changed
+`startChat` only starts the session. Honza does not send until the learner does. `initiateOpener` and the late-opener lock are gone. Call still uses `startCallOpener`; daily check-ins still generate unprompted messages.
+
+### Checked
+`npm run lint` on the touched files. Browser: start a typed chat and wait several seconds — thread stays empty with the composer, no Honza message. Did not send a turn (browser click on Send was blocked); reply path is unchanged in `sendUserTurn`.
+
+---
+
+## Previous — 2026-10-02 (unified dock tab carousel)
 
 ### What was wrong
 Chat ↔ call used a full-stage slide (`peer` travel); call ↔ settings and chat ↔ settings used an 8px fade (`soft`). Same dock, two different motion profiles.
