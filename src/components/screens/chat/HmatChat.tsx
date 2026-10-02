@@ -73,10 +73,33 @@ function HmatEmptyHint({ text }: { text: string }) {
   );
 }
 
-/** Survives dock remounts in this JS context; resets on full reload. */
-let chatBootCeremonyDone = false;
-/** Skeleton already revealed — skip replay on tab remounts / post-login navigation. */
-let chatSkelRevealed = false;
+function HmatChatSkeleton() {
+  return (
+    <div
+      className="hmat-chat-skel flex min-h-0 flex-1 flex-col gap-3 overflow-hidden"
+      aria-busy="true"
+      aria-label="Loading"
+    >
+      <div className="t-skel-skeleton is-pulsing flex h-full min-h-0 flex-col gap-3">
+        <div className="hmat-recess-hero hmat-recess-hero--idle">
+          <div className="hmat-display-module hmat-presence-shared">
+            <div className="hmat-orb-seat relative">
+              <div className="rounded-[34%] bg-muted/35" style={{ width: 120, height: 120 }} />
+            </div>
+          </div>
+          <div className="mat-channel w-[200px]" />
+          <div className="h-3.5 w-16 rounded-sm bg-muted/40" />
+        </div>
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="hmat-chat-skel-title" />
+          <div className="hmat-chat-skel-chip" />
+        </div>
+        <div className="min-h-0 flex-1" />
+        <div className="hmat-chat-skel-cta" />
+      </div>
+    </div>
+  );
+}
 
 export function HmatChat({ screen }: { screen: ChatScreen }) {
   const { t } = useLocale();
@@ -90,6 +113,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     showEmptyState,
     llmReady,
     providersLoaded,
+    ready,
   } = screen;
   const typingPreview = useChatStore((s) => s.typingPreview);
   const typingPhaseActive = typingPreview !== null;
@@ -98,16 +122,14 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   const threadRef = useRef<HTMLDivElement>(null);
   const threadAccRef = useRef<HTMLDivElement>(null);
   const { stackClassName, triggerPop } = useReactPop();
-  const [mounted, setMounted] = useState(false);
-  const [revealed, setRevealed] = useState(() => chatSkelRevealed);
-  const [presenceShown, setPresenceShown] = useState(() => chatSkelRevealed);
-  const [copyShown, setCopyShown] = useState(() => chatSkelRevealed);
   const [draft, setDraft] = useState("");
   const [composerFocused, setComposerFocused] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [stashedMessages, setStashedMessages] = useState<ChatMessage[]>([]);
   const [exitingMessages, setExitingMessages] = useState<ChatMessage[]>([]);
   const [prevWantThreadOpen, setPrevWantThreadOpen] = useState(!showStartGate);
+
+  const hydrating = !ready || !providersLoaded;
 
   useMoodReactions(triggerPop);
 
@@ -151,44 +173,17 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [threadMessages.length, showTyping]);
 
-  useEffect(() => {
-    const id = window.requestAnimationFrame(() => setMounted(true));
-    return () => window.cancelAnimationFrame(id);
-  }, []);
+  const send = useCallback(() => {
+    const text = draft.trim();
+    if (!text || composerDisabled) return;
+    setDraft("");
+    screen.send(text);
+    triggerPop();
+  }, [draft, composerDisabled, screen, triggerPop]);
 
-  useEffect(() => {
-    if (!mounted) return;
-    if (chatSkelRevealed) {
-      chatBootCeremonyDone = true;
-      return;
-    }
-
-    const skipCeremony = chatBootCeremonyDone;
-    chatBootCeremonyDone = true;
-
-    const reveal = () => {
-      chatSkelRevealed = true;
-      setRevealed(true);
-      if (skipCeremony) {
-        setPresenceShown(true);
-        setCopyShown(true);
-        return;
-      }
-      window.requestAnimationFrame(() => {
-        setPresenceShown(true);
-        setCopyShown(true);
-      });
-    };
-
-    // Don't tie this to server sync. A slow history load was cancelling the
-    // timer and holding the skeleton until old messages arrived.
-    if (skipCeremony) {
-      reveal();
-      return;
-    }
-    const timeout = window.setTimeout(reveal, 240);
-    return () => window.clearTimeout(timeout);
-  }, [mounted]);
+  if (hydrating) {
+    return <HmatChatSkeleton />;
+  }
 
   const composerMode = heroMode ? "idle" : "ongoing";
   const localizedError = localizeClientError(lastError, t.errors);
@@ -210,29 +205,21 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   const visibleMessages = threadMessages.length > 0 ? threadMessages : exitingMessages;
   const showThreadMessages = visibleMessages.length > 0;
 
-  const send = useCallback(() => {
-    const text = draft.trim();
-    if (!text || composerDisabled) return;
-    setDraft("");
-    screen.send(text);
-    triggerPop();
-  }, [draft, composerDisabled, screen, triggerPop]);
-
-  const chatBody = (
+  return (
     <div className="flex h-full min-h-0 flex-1 flex-col gap-3 overflow-hidden">
       <div className="flex shrink-0 flex-col gap-3">
         <HmatPresenceRecess
-          className={cn("hmat-orb-presence", presenceShown && "is-shown")}
+          className="hmat-orb-presence is-shown"
           orbState={orbState}
           loading={loading}
           channelPulse={typingPhaseActive}
           stackClassName={stackClassName}
           onOrbTap={triggerPop}
-          breathe={presenceShown}
+          breathe
           attentive={composerFocused && !composerDisabled}
         />
 
-        <div className={cn("t-stagger flex flex-col items-center gap-1.5", copyShown && "is-shown")}>
+        <div className="t-stagger is-shown flex flex-col items-center gap-1.5">
           <HmatScreenTitle>
             <span className="t-stagger-line t-stagger-line--1">{statusTitle}</span>
           </HmatScreenTitle>
@@ -297,10 +284,7 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
       )}
 
       <div className="shrink-0">
-        <div
-          className="t-resize hmat-chat-action-slot"
-          data-mode={actionMode}
-        >
+        <div className="t-resize hmat-chat-action-slot" data-mode={actionMode}>
           <div
             className={cn("hmat-chat-action-face", showStartGate && "is-front")}
             inert={!showStartGate || undefined}
@@ -354,35 +338,6 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
             />
           </div>
         </div>
-      </div>
-    </div>
-  );
-
-  const skeleton = (
-    <div className="t-skel-skeleton is-pulsing hmat-chat-skel-layer" aria-hidden>
-      <div className="hmat-recess-hero hmat-recess-hero--idle">
-        <div className="hmat-display-module hmat-presence-shared">
-          <div className="hmat-orb-seat relative">
-            <div className="rounded-[34%] bg-muted/35" style={{ width: 120, height: 120 }} />
-          </div>
-        </div>
-        <div className="mat-channel w-[200px]" />
-        <div className="h-3.5 w-16 rounded-sm bg-muted/40" />
-      </div>
-      <div className="flex flex-col items-center gap-1.5">
-        <div className="hmat-chat-skel-title" />
-        <div className="hmat-chat-skel-chip" />
-      </div>
-      <div className="min-h-0 flex-1" />
-      <div className="hmat-chat-skel-cta" />
-    </div>
-  );
-
-  return (
-    <div className={cn("t-skel hmat-chat-skel", revealed && "is-revealed")}>
-      {skeleton}
-      <div className="t-skel-content hmat-chat-skel-layer" aria-hidden={!revealed}>
-        {mounted ? chatBody : null}
       </div>
     </div>
   );
