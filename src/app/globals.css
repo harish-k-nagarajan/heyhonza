@@ -369,6 +369,8 @@ body {
   --orb-rotation: -4deg;
   --orb-intensity: 1;
   --orb-blink-delay: 0s;
+  /* Double-blink cycle. Short enough that a blink lands between weight-shifts. */
+  --orb-blink-clock: 5.2s;
   /* Speak loop — mouth, pills, and contact share one clock. Longer than UI durations. */
   --orb-mouth-clock: 2.2s;
   --ray-peak: 0.8;
@@ -877,17 +879,17 @@ body {
 
 /* Blink stays under reduced motion — it is how the face reads as alive. */
 .hmat-orb-eyes--open {
-  animation: hmat-orb-unblink 7.8s var(--ease-in-out) infinite;
+  animation: hmat-orb-unblink var(--orb-blink-clock) var(--ease-in-out) infinite;
   animation-delay: var(--orb-blink-delay);
 }
 .hmat-orb-eyes--blink {
-  animation: hmat-orb-blink 7.8s var(--ease-in-out) infinite;
+  animation: hmat-orb-blink var(--orb-blink-clock) var(--ease-in-out) infinite;
   animation-delay: var(--orb-blink-delay);
 }
 @media (prefers-reduced-motion: reduce) {
   .hmat-orb-eyes--open,
   .hmat-orb-eyes--blink {
-    animation-duration: 7.8s !important;
+    animation-duration: var(--orb-blink-clock) !important;
     animation-iteration-count: infinite !important;
   }
 }

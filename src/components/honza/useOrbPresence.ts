@@ -11,17 +11,19 @@ import {
 import type { CeramicFace } from "./ceramic-faces";
 
 /**
- * Ceramic presence — one heavy body spring, and a slower ground spring that
- * follows it. Wander targets are irregular so the path is settling, not a
+ * Ceramic presence — one heavy body spring, a slower chest spring while
+ * waiting, and a slower ground spring that follows the visual height.
+ * Other faces still wander on irregular targets so the path settles, not a
  * sine. State changes dip (notice), then lean into the new pose (react),
- * then the wander loop takes back over (settle). A new mood retargets the
- * same springs from the live value; nothing restarts or snaps.
+ * then the loop takes back over (settle). A new mood retargets the same
+ * springs from the live value; nothing restarts or snaps.
  *
- * Waiting is on screen for minutes, so its travel stays inside a couple of
- * pixels. Floor light stays on the card: it lags the body and does not
- * inherit tilt. Speech pills use the body's X/Y only — same springs, no
- * rotate and no scale. Lateral throw grows with height. Contact stays under
- * the rim.
+ * Waiting stays up for minutes. It does not random-wander. Y breathes
+ * (~4.5px, ~5.4s, overdamped, no tilt). X and rotation shift weight
+ * together, to either side of the −4° pen rest, then hold. Floor light
+ * stays on the card: it lags the body and does not inherit tilt. Speech
+ * pills use the body's X/Y only — no rotate, no scale. Lateral throw grows
+ * with height. Contact stays under the rim.
  */
 
 /** Heavy ceramic. Overdamped (ζ ≈ 1.11) so it settles instead of oscillating. */
@@ -30,9 +32,36 @@ const BODY_SPRING = { stiffness: 52, damping: 19, mass: 1.4 };
 const GLOW_SPRING = { stiffness: 22, damping: 18, mass: 1.5 };
 /** Scale channel. Overdamped; mood changes only, and never a bounce. */
 const SCALE_SPRING = { stiffness: 48, damping: 18, mass: 1.05 };
+/**
+ * Waiting chest. Overdamped (ζ ≈ 1.08) — the rise eases in and settles
+ * short of the target, never past it. Near Motion's visualDuration 2.6s
+ * with bounce 0, damping pushed just past critical. Half of a 5.4s breath.
+ */
+const BREATHE_SPRING = {
+  stiffness: 4.06,
+  damping: 4.35,
+  mass: 1,
+  restDelta: 0.02,
+  restSpeed: 0.02,
+};
+const BREATHE_PX = 4.5;
+/** Half-period. A full breath is 5.4s. */
+const BREATHE_HALF_MS = 2700;
+/** Pen rest through the first second, then the inhale starts. */
+const BREATHE_START_MS = 1400;
 
 const ATTENTIVE_LEAN = -2.1;
 const ATTENTIVE_LIFT = -1.25;
+const ATTENTIVE_DRIFT = 0.42;
+
+/**
+ * Offsets from the pen rest (−4°). Left deepens that tilt to −7°.
+ * Right passes through upright and stops at +1°. Same tick sets both.
+ */
+const WAITING_LEAN = {
+  left: { x: -3, rot: -3 },
+  right: { x: 3, rot: 5 },
+} as const;
 
 type Drift = {
   y: number;
@@ -55,18 +84,19 @@ function nextPace(d: Drift) {
 }
 
 function driftFor(face: CeramicFace, attentive: boolean): Drift {
-  const listen = attentive ? 0.42 : 1;
+  const listen = attentive ? ATTENTIVE_DRIFT : 1;
   const notice = attentive ? ATTENTIVE_LIFT : 0;
   switch (face) {
     case "waiting":
+      // Chest spring owns Y. Lean tick owns X/rot. `band` is the hold between leans.
       return {
-        y: 2.5 * listen,
-        x: 1.25 * listen,
-        rot: 0.4,
+        y: 0,
+        x: 0,
+        rot: 0,
         scale: 0,
         biasY: notice,
-        pace: 2700,
-        band: [2400, 3000],
+        pace: 2750,
+        band: [2000, 3500],
       };
     case "thinking":
       return { y: 1.15 * listen, x: 0.4 * listen, rot: 0.16, scale: 0, biasY: notice - 0.6, pace: 3000 };
@@ -164,6 +194,7 @@ export function useOrbPresence({
   const lockRef = useRef(0);
   const skipNotice = useRef(true);
   const prevFace = useRef(face);
+  const attentiveRef = useRef(attentive);
 
   const targetX = useMotionValue(0);
   const targetY = useMotionValue(0);
@@ -176,19 +207,28 @@ export function useOrbPresence({
   const rot = useSpring(targetRot, BODY_SPRING);
   const scale = useSpring(targetScale, SCALE_SPRING);
 
+  /** Chest. Added under the body spring so a mood change can fold it back in. */
+  const breatheTarget = useMotionValue(0);
+  const breatheY = useSpring(breatheTarget, BREATHE_SPRING);
+  const visualY = useTransform([y, breatheY], ([yv, bv]) => num(yv) + num(bv));
+
   const glowX = useSpring(x, GLOW_SPRING);
-  const glowY = useSpring(y, GLOW_SPRING);
+  const glowY = useSpring(visualY, GLOW_SPRING);
   /** Positive when the body is above its rest line. */
   const lift = useTransform(glowY, (gy) => -num(gy));
 
-  const bodyTransform = useTransform([x, y, rot, scale], ([xv, yv, rv, sv]) => {
-    const tilt = clamp(-num(yv) * 0.26, -1.35, 1.35);
-    return `translate3d(${num(xv)}px, ${num(yv)}px, 0) rotate(${num(rv)}deg) rotateX(${tilt}deg) scale(${num(sv)})`;
-  });
+  const bodyTransform = useTransform(
+    [x, visualY, rot, scale, y],
+    ([xv, vy, rv, sv, baseY]) => {
+      // Pitch follows the pose spring only. The chest rise stays a pure Y.
+      const tilt = clamp(-num(baseY) * 0.26, -1.35, 1.35);
+      return `translate3d(${num(xv)}px, ${num(vy)}px, 0) rotate(${num(rv)}deg) rotateX(${tilt}deg) scale(${num(sv)})`;
+    },
+  );
 
-  /** Pills stay beside the cheeks. Tilt and scale stay on the ceramic. */
-  const rayTransform = useTransform([x, y], ([xv, yv]) => {
-    return `translate3d(${num(xv)}px, ${num(yv)}px, 0)`;
+  /** Pills stay beside the cheeks. Tilt, rotation, and scale stay on the ceramic. */
+  const rayTransform = useTransform([x, visualY], ([xv, vy]) => {
+    return `translate3d(${num(xv)}px, ${num(vy)}px, 0)`;
   });
 
   const auraTransform = useTransform([glowX, lift], ([gx, lv]) => {
@@ -244,6 +284,10 @@ export function useOrbPresence({
   }, [intensity, intensityMv]);
 
   useEffect(() => {
+    attentiveRef.current = attentive;
+  }, [attentive]);
+
+  useEffect(() => {
     driftRef.current = driftFor(face, attentive);
     restRotRef.current = rotation + (attentive ? ATTENTIVE_LEAN : 0);
 
@@ -255,6 +299,8 @@ export function useOrbPresence({
     const bias = driftRef.current.biasY;
 
     if (!enabled || reduce !== false) {
+      breatheTarget.set(0);
+      breatheY.jump(0);
       targetX.set(0);
       targetY.set(bias);
       targetRot.set(rest);
@@ -266,6 +312,17 @@ export function useOrbPresence({
       glowX.jump(0);
       glowY.jump(bias);
       return;
+    }
+
+    // Keep the on-screen height when the chest spring drops out. The pose
+    // spring then retargets from that live value instead of popping up.
+    if (face !== "waiting") {
+      const carried = breatheY.get();
+      breatheTarget.set(0);
+      if (Math.abs(carried) > 0.001) {
+        breatheY.jump(0);
+        y.jump(y.get() + carried);
+      }
     }
 
     if (skipNotice.current) {
@@ -280,6 +337,7 @@ export function useOrbPresence({
     if (!faceChanged) {
       targetY.set(bias);
       targetRot.set(rest);
+      if (face === "waiting") targetX.set(0);
       return;
     }
 
@@ -333,6 +391,8 @@ export function useOrbPresence({
     scale,
     glowX,
     glowY,
+    breatheTarget,
+    breatheY,
   ]);
 
   useEffect(() => {
@@ -341,6 +401,8 @@ export function useOrbPresence({
     if (!enabled || reduce !== false) return;
     let timer = 0;
     let stopped = false;
+    // First move leaves the pen rest through upright, toward the right lean.
+    let leanRight = true;
 
     const tick = () => {
       if (stopped) return;
@@ -349,19 +411,59 @@ export function useOrbPresence({
         return;
       }
       const d = driftRef.current;
-      targetY.set(d.biasY + (Math.random() * 2 - 1) * d.y);
-      targetX.set((Math.random() * 2 - 1) * d.x);
-      targetRot.set(restRotRef.current + (Math.random() * 2 - 1) * d.rot);
-      targetScale.set(1 + (Math.random() * 2 - 1) * d.scale);
+      if (face === "waiting") {
+        const lean = leanRight ? WAITING_LEAN.right : WAITING_LEAN.left;
+        leanRight = !leanRight;
+        const listen = attentive ? ATTENTIVE_DRIFT : 1;
+        targetX.set(lean.x * listen);
+        targetRot.set(restRotRef.current + lean.rot * listen);
+        targetScale.set(1);
+      } else {
+        targetY.set(d.biasY + (Math.random() * 2 - 1) * d.y);
+        targetX.set((Math.random() * 2 - 1) * d.x);
+        targetRot.set(restRotRef.current + (Math.random() * 2 - 1) * d.rot);
+        targetScale.set(1 + (Math.random() * 2 - 1) * d.scale);
+      }
       timer = window.setTimeout(tick, nextPace(d));
     };
 
-    timer = window.setTimeout(tick, nextPace(driftRef.current));
+    // Waiting's first lean waits until the inhale is already underway.
+    const opening =
+      face === "waiting" ? 2800 + Math.random() * 1000 : nextPace(driftRef.current);
+    timer = window.setTimeout(tick, opening);
     return () => {
       stopped = true;
       window.clearTimeout(timer);
     };
   }, [enabled, reduce, face, attentive, rotation, targetX, targetY, targetRot, targetScale]);
+
+  useEffect(() => {
+    if (!enabled || reduce !== false || face !== "waiting") {
+      breatheTarget.set(0);
+      return;
+    }
+    let timer = 0;
+    let stopped = false;
+    let rising = true;
+
+    const tick = () => {
+      if (stopped) return;
+      if (performance.now() < lockRef.current) {
+        timer = window.setTimeout(tick, 160);
+        return;
+      }
+      const listen = attentiveRef.current ? ATTENTIVE_DRIFT : 1;
+      breatheTarget.set(rising ? -BREATHE_PX * listen : 0);
+      rising = !rising;
+      timer = window.setTimeout(tick, BREATHE_HALF_MS);
+    };
+
+    timer = window.setTimeout(tick, BREATHE_START_MS);
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+    };
+  }, [enabled, reduce, face, breatheTarget]);
 
   return {
     bodyStyle: { transform: bodyTransform },
