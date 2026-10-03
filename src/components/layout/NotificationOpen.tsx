@@ -3,17 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { useChatStore, type IncomingOpen } from "@/stores/useChatStore";
-
-const SESSION_ID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function incomingFromUrl(url: URL): IncomingOpen | null {
-  const sessionId = url.searchParams.get("session")?.trim() ?? "";
-  if (SESSION_ID.test(sessionId)) return { kind: "session", sessionId };
-  if (url.searchParams.get("checkin") === "1") return { kind: "checkin" };
-  return null;
-}
+import { incomingFromUrl } from "@/lib/client/incoming-chat";
+import { useChatStore } from "@/stores/useChatStore";
 
 /**
  * A notification tap asks the open app to show the chat Honza already started.

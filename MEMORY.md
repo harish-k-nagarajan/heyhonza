@@ -4,7 +4,20 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-03 (notification tap opens the waiting chat)
+## Current entry — 2026-10-03 (one check-in, one chat)
+
+### What broke
+Every check-in reused the open chat, so several notifications stacked as separate "Ahoj" lines in one thread. Tapping any of them loaded that whole pile, and the Start gate stayed up until `/api/sessions/resume` finished.
+
+### What changed
+Each check-in now creates its own session and push link. Opening a notification skips Start, shows that session, and ends every other open chat. Start still opens the newest unanswered check-in and leaves a conversation the learner already replied in alone. Opening the app from the icon returns to that replied conversation; unanswered check-ins wait. A piled unanswered thread is split on open: the latest line stays, earlier greetings become their own ended chats. Alerts already sent share one session id, so those taps open the latest line in that pile.
+
+### Decision
+One live chat. No chat switcher. A new check-in does not end the current conversation until its notification is opened.
+
+---
+
+## Previous — 2026-10-03 (notification tap opens the waiting chat)
 
 ### What the backend showed
 The 14:22 Prague alert was real. The minute ticker at 12:22:00 UTC returned `sent: 1`, `pushed: 1`, `errors: 0`, `vapidConfigured: true`. Honza's line is in `messages` (`Ahoj Harishi! Jak se máš odpoledne?…`, session `9ce9a042-…`). The service worker does not set `silent`, so the missing sound is the phone: Ring/Silent, Focus, or Settings → Notifications → Honza → Sounds. Web push cannot attach a custom sound on iOS; the system default plays when sound is allowed.

@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 
 import { NotificationOpen } from "@/components/layout/NotificationOpen";
 import { persistProfile } from "@/lib/client/context-actions";
+import { incomingFromLocation } from "@/lib/client/incoming-chat";
 import {
   clearLocalUserState,
   getLocalOwnerId,
@@ -77,12 +78,19 @@ function applyServerState(data: ServerState): void {
   });
   settings.setContextChunks(data.contextChunks ?? []);
 
-  // History metadata only. The live thread stays empty unless this page
-  // already started a typed chat — saved call/chat rows must not reopen it.
+  const incoming = incomingFromLocation();
+  const chat = useChatStore.getState();
+  const alreadyShowing =
+    incoming?.kind === "session" &&
+    chat.chatPhase === "active" &&
+    chat.activeSessionId === incoming.sessionId;
+  if (incoming && !alreadyShowing) chat.setIncomingOpen(incoming);
+  const restoreThread =
+    !incoming && Boolean(data.activeSessionId) && (data.messages?.length ?? 0) > 0;
   useChatStore.getState().hydrateSessions({
-    activeSessionId: null,
+    activeSessionId: restoreThread ? (data.activeSessionId ?? null) : null,
     endedSessions: data.endedSessions ?? [],
-    messages: [],
+    messages: restoreThread ? (data.messages ?? []) : [],
   });
 }
 
@@ -125,8 +133,9 @@ function shouldSkipSignedInHydrate(
 /**
  * On first mount, ask the server whether this browser is a signed-in user with
  * DB-backed state. If so, overwrite settings and context with the DB truth so
- * a second user sees their own data. The live chat thread is not restored —
- * opening the app starts at the chat gate. When not persisted (local
+ * a second user sees their own data. Opening the app returns to a chat the
+ * learner already replied in. Unanswered check-ins stay behind the Start gate
+ * until a notification or Start opens one. When not persisted (local
  * pass-through dev, or signed out), leaves the localStorage-backed stores as-is.
  *
  * Re-runs hydration when auth changes (sign-in / sign-out) without an AppShell
