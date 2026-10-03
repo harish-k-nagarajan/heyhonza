@@ -51,6 +51,7 @@ export type SettingsScreen = {
   expression: MoodExpression;
   accountEmail: string;
   accountName: string;
+  accountFullName: string;
   authConfigured: boolean;
 
   level: LevelId;
@@ -141,6 +142,7 @@ export function useSettingsScreen(): SettingsScreen {
   const formality = useSettingsStore((s) => s.formality);
   const setFormalityStore = useSettingsStore((s) => s.setFormality);
   const learnerName = useSettingsStore((s) => s.learnerName);
+  const fullName = useSettingsStore((s) => s.fullName);
   const setTimezone = useSettingsStore((s) => s.setTimezone);
 
   const [docUrlDraft, setDocUrlDraft] = useState<string | null>(null);
@@ -430,6 +432,7 @@ export function useSettingsScreen(): SettingsScreen {
     expression,
     accountEmail,
     accountName: learnerName,
+    accountFullName: fullName,
     authConfigured: isSupabaseConfigured(),
     level,
     chooseLevel,

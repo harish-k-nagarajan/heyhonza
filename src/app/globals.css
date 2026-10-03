@@ -2255,6 +2255,65 @@ body:has(.landing-page) {
     0 2px 8px rgba(196, 107, 107, 0.08);
 }
 
+/* Saved-name mark: circle settles, then the tick draws. pathLength=16 on the path. */
+.hmat-saved-mark {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+.hmat-saved-mark svg {
+  display: block;
+  overflow: visible;
+  width: 22px;
+  height: 22px;
+}
+.hmat-saved-mark .hmat-saved-ring {
+  fill: #2f8f4e;
+  transform-origin: 12px 12px;
+  opacity: 0;
+}
+.hmat-saved-mark[data-state="in"] .hmat-saved-ring {
+  animation: hmat-saved-ring 280ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.hmat-saved-mark .hmat-saved-tick {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 16;
+  stroke-dashoffset: 16;
+}
+.hmat-saved-mark[data-state="in"] .hmat-saved-tick {
+  animation: hmat-saved-draw 380ms cubic-bezier(0.22, 1, 0.36, 1) 120ms forwards;
+}
+@keyframes hmat-saved-ring {
+  0% {
+    opacity: 0;
+    transform: scale(0.45);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes hmat-saved-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hmat-saved-mark .hmat-saved-ring {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .hmat-saved-mark .hmat-saved-tick {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+}
+
 .hmat-fern-send {
   background: #4a433c;
   border: 1px solid rgba(255, 255, 255, 0.25);

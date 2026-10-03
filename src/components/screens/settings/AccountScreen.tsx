@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
+  HmatFieldSavedMark,
   HmatSettingsCard,
   HmatSettingsField,
   HmatSettingsHint,
@@ -36,9 +37,15 @@ export function AccountScreen() {
   const s = t.settings;
   const learnerName = useSettingsStore((s) => s.learnerName);
   const setLearnerName = useSettingsStore((s) => s.setLearnerName);
+  const fullNameStored = useSettingsStore((s) => s.fullName);
+  const setFullName = useSettingsStore((s) => s.setFullName);
 
   const [nameDraft, setNameDraft] = useState<string | null>(null);
+  const [fullDraft, setFullDraft] = useState<string | null>(null);
   const name = nameDraft ?? learnerName;
+  const fullName = fullDraft ?? fullNameStored;
+  const [callTick, setCallTick] = useState(0);
+  const [fullTick, setFullTick] = useState(0);
   const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -68,17 +75,31 @@ export function AccountScreen() {
 
   const configured = isSupabaseConfigured();
 
+  const saveFullName = () => {
+    const clean = fullName.trim();
+    setFullName(clean);
+    setFullDraft(null);
+    persistProfile({ fullName: clean || null });
+    if (configured) {
+      const supabase = createSupabaseBrowserClient();
+      void supabase.auth.updateUser({ data: { full_name: clean } });
+    }
+    setFullTick((n) => n + 1);
+    setNote(null);
+    setError(null);
+  };
+
   const saveName = () => {
     const clean = name.trim();
     setLearnerName(clean);
+    setNameDraft(null);
     persistProfile({ name: clean || null });
     if (configured) {
       const supabase = createSupabaseBrowserClient();
-      void supabase.auth.updateUser({
-        data: { full_name: clean, display_name: clean },
-      });
+      void supabase.auth.updateUser({ data: { display_name: clean } });
     }
-    setNote(s.accountSaved);
+    setCallTick((n) => n + 1);
+    setNote(null);
     setError(null);
   };
 
@@ -147,13 +168,65 @@ export function AccountScreen() {
 
       {!configured ? <HmatSettingsHint>{s.accountNeedAuth}</HmatSettingsHint> : null}
 
+      <HmatSettingsSection label={s.accountFullNameLabel}>
+        <HmatSettingsCard className="space-y-3 p-4">
+          <div className="relative">
+            <HmatSettingsField
+              value={fullName}
+              onChange={(e) => {
+                setFullDraft(e.target.value);
+                setFullTick(0);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  saveFullName();
+                }
+              }}
+              placeholder={s.accountFullNamePlaceholder}
+              autoComplete="name"
+              aria-label={s.accountFullNameLabel}
+              className={fullTick > 0 ? "pr-11" : undefined}
+            />
+            {fullTick > 0 ? <HmatFieldSavedMark key={fullTick} /> : null}
+            {fullTick > 0 ? (
+              <span className="sr-only" role="status">
+                {s.accountSaved}
+              </span>
+            ) : null}
+          </div>
+          <HmatSettingsPrimaryButton onClick={saveFullName}>
+            {s.accountSaveName}
+          </HmatSettingsPrimaryButton>
+        </HmatSettingsCard>
+      </HmatSettingsSection>
+
       <HmatSettingsSection label={s.accountNameLabel}>
         <HmatSettingsCard className="space-y-3 p-4">
-          <HmatSettingsField
-            value={name}
-            onChange={(e) => setNameDraft(e.target.value)}
-            aria-label={s.accountNameLabel}
-          />
+          <div className="relative">
+            <HmatSettingsField
+              value={name}
+              onChange={(e) => {
+                setNameDraft(e.target.value);
+                setCallTick(0);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  saveName();
+                }
+              }}
+              autoComplete="nickname"
+              aria-label={s.accountNameLabel}
+              className={callTick > 0 ? "pr-11" : undefined}
+            />
+            {callTick > 0 ? <HmatFieldSavedMark key={callTick} /> : null}
+            {callTick > 0 ? (
+              <span className="sr-only" role="status">
+                {s.accountSaved}
+              </span>
+            ) : null}
+          </div>
           <HmatSettingsPrimaryButton onClick={saveName}>{s.accountSaveName}</HmatSettingsPrimaryButton>
         </HmatSettingsCard>
       </HmatSettingsSection>

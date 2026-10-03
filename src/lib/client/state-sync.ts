@@ -22,6 +22,7 @@ export type ServerState = {
   userId?: string;
   profile?: {
     name: string | null;
+    fullName?: string | null;
     level: string;
     topics: string[];
     preferredModel: string | null;

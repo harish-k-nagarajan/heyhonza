@@ -21,6 +21,7 @@ import type { ContextChunk, ContextSource } from "@/types";
 type ProfileRow = {
   id: string;
   name: string | null;
+  full_name?: string | null;
   level: string | null;
   topics: string[] | null;
   preferred_model: string | null;
@@ -59,6 +60,7 @@ export async function runCheckIns(
   now = new Date(),
 ): Promise<{ sent: number; skipped: number; errors: number; pushed: number }> {
   const selects = [
+    "id, name, full_name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone, focus_topic, recent_topics, last_openers",
     "id, name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone, focus_topic, recent_topics, last_openers",
     "id, name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
   ];
@@ -227,7 +229,7 @@ async function deliverForUser(
         topics: profile.topics ?? [],
         learnerContext: prepared.contextText,
         level: profile.level ?? undefined,
-        learnerName: profile.name,
+        learnerName: profile.name?.trim() || profile.full_name?.trim().split(/\s+/)[0] || null,
         formality: profile.formality ?? undefined,
         apiKey: llm.key,
         messages: [{ role: "user", content: opener }],

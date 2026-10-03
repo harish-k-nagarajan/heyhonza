@@ -329,6 +329,26 @@ export function HmatSettingsField({
   );
 }
 
+/** Circle and drawn tick that confirms a field just saved. Remount to replay. */
+export function HmatFieldSavedMark() {
+  return (
+    <span
+      className="hmat-saved-mark pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2"
+      data-state="in"
+      aria-hidden
+    >
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+        <circle className="hmat-saved-ring" cx="12" cy="12" r="10" />
+        <path
+          className="hmat-saved-tick"
+          d="M7 12.5 L10.4 16 L17.2 8.4"
+          pathLength={16}
+        />
+      </svg>
+    </span>
+  );
+}
+
 export function HmatSettingsTextarea({
   className,
   embedded,

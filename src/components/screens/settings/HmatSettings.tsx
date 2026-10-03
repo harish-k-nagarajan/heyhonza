@@ -160,6 +160,15 @@ function UnlinkIcon() {
   );
 }
 
+function accountInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const first = parts[0];
+  if (!first) return "TY";
+  if (parts.length === 1) return first.slice(0, 2).toUpperCase();
+  const last = parts[parts.length - 1] ?? first;
+  return `${first[0] ?? ""}${last[0] ?? ""}`.toUpperCase();
+}
+
 function ConnectIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -214,18 +223,19 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
       : "";
 
   const accountEmail = screen.accountEmail || s.accountEmailFallback;
+  const accountDisplayName = (screen.accountFullName || screen.accountName).trim();
   const accountCard = (
     <HmatSettingsCard className="flex items-center gap-3 p-4">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[#FFE5DC]">
         <span className="font-display text-[13px] font-bold text-accent">
-          {(screen.accountName || "TY").slice(0, 2).toUpperCase()}
+          {accountInitials(accountDisplayName)}
         </span>
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-display text-[15px] font-bold text-[#243D2C]">{s.accountTitle}</p>
-        <p className="font-sans text-[13px] text-[#9c9089]">
-          {screen.accountName ? `${screen.accountName} · ${accountEmail}` : accountEmail}
+        <p className="truncate font-display text-[15px] font-bold text-[#243D2C]">
+          {accountDisplayName || s.accountTitle}
         </p>
+        <p className="truncate font-sans text-[13px] text-[#9c9089]">{accountEmail}</p>
       </div>
       <ChevronRightIcon />
     </HmatSettingsCard>

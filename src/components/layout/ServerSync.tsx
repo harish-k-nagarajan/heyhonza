@@ -48,6 +48,9 @@ function applyServerState(data: ServerState): void {
     settings.setOnboardingStep(data.profile.onboardingStep as 1 | 2 | 3 | 4 | 5 | 6);
   }
   settings.setLearnerName(data.profile.name ?? "");
+  if ("fullName" in data.profile) {
+    settings.setFullName(data.profile.fullName ?? "");
+  }
   if (data.profile.formality) settings.setFormality(data.profile.formality);
   if (typeof data.profile.scheduleEnabled === "boolean") {
     settings.setScheduleEnabled(data.profile.scheduleEnabled);
@@ -74,6 +77,24 @@ function applyServerState(data: ServerState): void {
     endedSessions: data.endedSessions ?? [],
     messages: [],
   });
+}
+
+/**
+ * `profiles.full_name` may not exist yet. Auth metadata still has a full name
+ * when it was saved, and we only copy it when it is not just the call name.
+ */
+async function seedFullNameFromAuth(): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  if (useSettingsStore.getState().fullName.trim()) return;
+  const supabase = createSupabaseBrowserClient();
+  const { data } = await supabase.auth.getUser();
+  const meta = data.user?.user_metadata?.full_name;
+  if (typeof meta !== "string") return;
+  const full = meta.trim();
+  if (!full) return;
+  const callName = useSettingsStore.getState().learnerName.trim();
+  if (full.toLowerCase() === callName.toLowerCase()) return;
+  useSettingsStore.getState().setFullName(full);
 }
 
 function shouldSkipTokenRefresh(session: Session | null, lastHydratedUserId: string | null): boolean {
@@ -120,6 +141,7 @@ export function ServerSync() {
       if (useSyncStore.getState().signingOut) return;
 
       applyServerState(data);
+      await seedFullNameFromAuth();
 
       if (generation !== syncGenerationRef.current) return;
       if (useSyncStore.getState().signingOut) return;

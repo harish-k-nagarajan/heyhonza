@@ -4,7 +4,17 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-03 (call captions stay ink, larger type)
+## Current entry — 2026-10-03 (account card shows full name)
+
+### What changed
+The settings account card title is the full name in Doto (`font-display`), with the email on the line under it. `profiles.name` stays the name Honza uses (“What should Honza call you?”). A new `profiles.full_name` column (migration `0007_profile_full_name.sql`, applied on Hey Honza) holds the card name. Saving either name draws a green circle and a white tick inside that field; editing the field clears it.
+
+### Checked
+`/settings` at the phone stage: card reads `HN` / `Harish Nagarajan` / `harishnokia@gmail.com`. Saving the full name on `/settings/account` left the tick in the field (`stroke-dashoffset: 0`). Profile row: `name = Harish`, `full_name = Harish Nagarajan`. `npx eslint` on the touched files clean. Build not run while dev is up.
+
+---
+
+## Previous — 2026-10-03 (call captions stay ink, larger type)
 
 ### What changed
 Call captions were `text-sm` (14px), and any wrapped line before the one being spoken dropped to 40% opacity. On speaker the learner is still reading the whole sentence, so earlier lines now stay full ink `#243D2C`. Size is `text-lg` (18px) for both the live reveal and the idle placeholder. The three-line window still scrolls older text out; it no longer greys what is still on screen.
