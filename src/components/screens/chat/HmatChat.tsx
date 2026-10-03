@@ -287,7 +287,6 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
             aria-hidden={showStartGate}
           >
             <HmatChatComposerRow
-              mode={composerMode}
               value={draft}
               onChange={setDraft}
               onSend={send}

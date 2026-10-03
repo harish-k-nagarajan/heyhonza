@@ -4,7 +4,17 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-03 (one check-in, one chat)
+## Current entry — 2026-10-03 (chat composer density)
+
+### What changed
+A live chat no longer grows a second row of End chat and Send. The composer is one frost field: the fern send arrow sits inside it, and a frost end icon sits where the send button was. Enter sends. The thread on this phone went from about 133px to 209px.
+
+### Decision
+End chat is a session action on the composer, available as soon as the chat is open, including before the first reply.
+
+---
+
+## Previous — 2026-10-03 (one check-in, one chat)
 
 ### What broke
 Every check-in reused the open chat, so several notifications stacked as separate "Ahoj" lines in one thread. Tapping any of them loaded that whole pile, and the Start gate stayed up until `/api/sessions/resume` finished.
