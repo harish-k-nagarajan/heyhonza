@@ -232,6 +232,8 @@ export type SettingsCopy = {
   accountEmailFallback: string;
   accountPageKicker: string;
   accountPageTitle: string;
+  accountFullNameLabel: string;
+  accountFullNamePlaceholder: string;
   accountNameLabel: string;
   accountEmailLabel: string;
   accountCurrentPassword: string;
@@ -460,7 +462,9 @@ const en: LocaleStrings = {
     accountEmailFallback: "you@email.com",
     accountPageKicker: "ACCOUNT",
     accountPageTitle: "Name, email, password",
-    accountNameLabel: "What Honza should call you",
+    accountFullNameLabel: "Full name",
+    accountFullNamePlaceholder: "Your full name",
+    accountNameLabel: "What should Honza call you?",
     accountEmailLabel: "Email",
     accountCurrentPassword: "Current password",
     accountNewPassword: "New password",
@@ -699,7 +703,9 @@ const cs: LocaleStrings = {
     accountEmailFallback: "ahoj@honza.app",
     accountPageKicker: "ÚČET",
     accountPageTitle: "Jméno, e-mail, heslo",
-    accountNameLabel: "Jak ti má Honza říkat",
+    accountFullNameLabel: "Celé jméno",
+    accountFullNamePlaceholder: "Tvé celé jméno",
+    accountNameLabel: "Jak ti má Honza říkat?",
     accountEmailLabel: "E-mail",
     accountCurrentPassword: "Současné heslo",
     accountNewPassword: "Nové heslo",

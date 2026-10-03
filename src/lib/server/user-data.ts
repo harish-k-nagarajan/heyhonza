@@ -41,6 +41,8 @@ export type PersistedSession = {
 
 export type PersistedProfile = {
   name: string | null;
+  /** Absent when the `full_name` column is not on this database yet. */
+  fullName?: string | null;
   level: string;
   topics: string[];
   preferredModel: string | null;
@@ -169,12 +171,14 @@ export async function loadUserState(): Promise<UserState | null> {
   await migrateOrphanMessages(user.id, supabase);
 
   const profileColumnSets = [
+    "full_name, name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone, focus_topic, recent_topics, last_openers",
     "name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone, focus_topic, recent_topics, last_openers",
     "name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
     "name, level, topics, preferred_model, onboarding_completed, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
   ];
 
   let p: Record<string, unknown> | null = null;
+  let fullNameKnown = false;
   for (const cols of profileColumnSets) {
     const profileRes = await supabase
       .from("profiles")
@@ -183,6 +187,7 @@ export async function loadUserState(): Promise<UserState | null> {
       .maybeSingle();
     if (!profileRes.error) {
       p = (profileRes.data as Record<string, unknown> | null) ?? null;
+      fullNameKnown = cols.startsWith("full_name");
       break;
     }
   }
@@ -213,6 +218,9 @@ export async function loadUserState(): Promise<UserState | null> {
   const daily = Number(p?.daily_message_count ?? 1);
   const profile: PersistedProfile = {
     name: (p?.name as string | null) ?? null,
+    ...(fullNameKnown
+      ? { fullName: (p?.full_name as string | null) ?? null }
+      : {}),
     level: typeof p?.level === "string" ? p.level : "A2",
     topics: (p?.topics as string[] | null) ?? [],
     preferredModel: (p?.preferred_model as string | null) ?? null,
@@ -285,7 +293,7 @@ export async function loadEngineContext(): Promise<{
     topics: state.profile.topics,
     level: state.profile.level,
     preferredModel: state.profile.preferredModel,
-    name: state.profile.name,
+    name: nameHonzaUses(state.profile.name, state.profile.fullName),
     formality: state.profile.formality,
     focusTopic: state.profile.focusTopic,
     recentTopics: state.profile.recentTopics,
@@ -417,8 +425,20 @@ function clampOnboardingStep(n: number): number {
   return Math.min(6, Math.max(1, Math.round(n)));
 }
 
+/** Pet name if set, otherwise the first word of the full name. */
+function nameHonzaUses(
+  callName: string | null | undefined,
+  fullName: string | null | undefined,
+): string | null {
+  const call = callName?.trim();
+  if (call) return call;
+  const first = fullName?.trim().split(/\s+/)[0];
+  return first || null;
+}
+
 export type ProfilePatch = Partial<{
   name: string | null;
+  fullName: string | null;
   level: string;
   topics: string[];
   preferredModel: string | null;
@@ -441,6 +461,7 @@ export async function updateProfile(patch: ProfilePatch): Promise<boolean> {
   const supabase = await createSupabaseServerClient();
   const row: Record<string, unknown> = {};
   if ("name" in patch) row.name = patch.name;
+  if ("fullName" in patch) row.full_name = patch.fullName;
   if ("level" in patch) row.level = patch.level;
   if ("topics" in patch) row.topics = patch.topics;
   if ("preferredModel" in patch) row.preferred_model = patch.preferredModel;
@@ -462,17 +483,19 @@ export async function updateProfile(patch: ProfilePatch): Promise<boolean> {
   if (Object.keys(row).length === 0) return true;
 
   const optional = [
+    "full_name",
     "focus_topic",
     "recent_topics",
     "last_openers",
     "onboarding_step",
   ];
   let payload = { ...row };
-  for (let i = 0; i <= optional.length; i += 1) {
+  const droppable = optional.filter((key) => key in payload);
+  for (let i = 0; i <= droppable.length; i += 1) {
     const { error } = await supabase.from("profiles").update(payload).eq("id", userId);
     if (!error) return true;
-    const drop = optional[i];
-    if (!drop || !(drop in payload)) return false;
+    const drop = droppable[i];
+    if (!drop) return false;
     delete payload[drop];
     if (Object.keys(payload).length === 0) return false;
   }

@@ -36,6 +36,8 @@ export type SettingsState = {
   preferredModel: ModelId;
   level: LevelId;
   learnerName: string;
+  /** Legal / full name shown on the account card. `learnerName` is what Honza says. */
+  fullName: string;
   timezone: string;
   scheduleEnabled: boolean;
   dailyMessageCount: DailyMessageCount;
@@ -55,6 +57,7 @@ export type SettingsState = {
   setPreferredModel: (m: ModelId) => void;
   setLevel: (l: LevelId) => void;
   setLearnerName: (name: string) => void;
+  setFullName: (name: string) => void;
   setTimezone: (tz: string) => void;
   setScheduleEnabled: (enabled: boolean) => void;
   setDailyMessageCount: (count: DailyMessageCount) => void;
@@ -89,6 +92,7 @@ const initial = {
   preferredModel: DEFAULT_MODEL_ID as ModelId,
   level: DEFAULT_LEVEL_ID as LevelId,
   learnerName: "",
+  fullName: "",
   timezone: "UTC",
   scheduleEnabled: true,
   dailyMessageCount: DEFAULT_DAILY_MESSAGE_COUNT,
@@ -118,6 +122,7 @@ export const useSettingsStore = create<SettingsState>()(
       setPreferredModel: (m) => set({ preferredModel: m }),
       setLevel: (l) => set({ level: l }),
       setLearnerName: (learnerName) => set({ learnerName }),
+      setFullName: (fullName) => set({ fullName }),
       setTimezone: (timezone) => set({ timezone }),
       setScheduleEnabled: (scheduleEnabled) => set({ scheduleEnabled }),
       setDailyMessageCount: (dailyMessageCount) => set({ dailyMessageCount }),
