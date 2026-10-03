@@ -56,7 +56,11 @@ export type ChatState = {
   incomingOpen: IncomingOpen | null;
   setIncomingOpen: (incoming: IncomingOpen | null) => void;
   /** Continue a server thread that already contains Honza's check-in. */
-  resumeSession: (sessionId: string, messages: ChatMessage[]) => void;
+  resumeSession: (
+    sessionId: string,
+    messages: ChatMessage[],
+    closedSessions?: ChatSessionMeta[],
+  ) => void;
   setTypingPreview: (text: string | null) => void;
   addUserMessage: (content: string, kind?: MessageKind) => void;
   addAssistantMessage: (content: string, kind?: MessageKind) => void;
@@ -142,7 +146,35 @@ export const useChatStore = create<ChatState>()(
       chatPhase: "idle",
       incomingOpen: null,
       setIncomingOpen: (incomingOpen) => set({ incomingOpen }),
-      resumeSession: (sessionId, messages) =>
+      resumeSession: (sessionId, messages, closedSessions) => {
+        const prev = get();
+        let endedSessions = prev.endedSessions.filter((session) => session.id !== sessionId);
+        let archivedMessages = prev.archivedMessages;
+        if (prev.activeSessionId && prev.activeSessionId !== sessionId) {
+          const thread = liveTypedMessages(prev.messages, prev.activeSessionId);
+          if (thread.length > 0) {
+            endedSessions = [
+              {
+                id: prev.activeSessionId,
+                startedAt: thread[0]!.createdAt,
+                endedAt: Date.now(),
+                preview: previewFromMessages(thread),
+                messageCount: thread.length,
+              },
+              ...endedSessions.filter((session) => session.id !== prev.activeSessionId),
+            ];
+            archivedMessages = { ...archivedMessages, [prev.activeSessionId]: thread };
+          }
+        }
+        if (closedSessions && closedSessions.length > 0) {
+          const closedIds = new Set(closedSessions.map((session) => session.id));
+          endedSessions = [
+            ...closedSessions.filter(
+              (session) => session.id !== sessionId && session.messageCount > 0,
+            ),
+            ...endedSessions.filter((session) => !closedIds.has(session.id)),
+          ];
+        }
         set({
           activeSessionId: sessionId,
           messages,
@@ -151,7 +183,10 @@ export const useChatStore = create<ChatState>()(
           typingPreview: null,
           status: "idle",
           incomingOpen: null,
-        }),
+          endedSessions: endedSessions.slice(0, ENDED_SESSION_CAP),
+          archivedMessages,
+        });
+      },
       setTypingPreview: (typingPreview) => set({ typingPreview }),
       addUserMessage: (content, kind = "chat") => {
         const sessionId = get().activeSessionId;
@@ -259,26 +294,49 @@ export const useChatStore = create<ChatState>()(
           });
         }
       },
-      hydrateSessions: ({ endedSessions, archivedMessages }) => {
+      hydrateSessions: ({
+        activeSessionId,
+        endedSessions,
+        messages,
+        archivedMessages,
+      }) => {
         const current = get();
-        // A typed chat the learner started in this page stays. Server history
-        // must not become that thread — call transcripts and old rows were
-        // showing up as "in chat" and blocking the dock.
+        // A typed chat already open on this page stays. Otherwise restore the
+        // conversation the learner already replied in. Unanswered check-ins
+        // stay behind the Start gate until a notification or Start opens one.
         const inProgress =
           current.chatPhase === "active" && Boolean(current.activeSessionId);
+        if (current.incomingOpen && !inProgress) {
+          set({
+            endedSessions: endedSessions.slice(0, ENDED_SESSION_CAP),
+            archivedMessages: archivedMessages ?? current.archivedMessages,
+          });
+          return;
+        }
+        const restore =
+          !inProgress && Boolean(activeSessionId) && messages.length > 0;
         set({
           endedSessions: endedSessions.slice(0, ENDED_SESSION_CAP),
           archivedMessages: archivedMessages ?? current.archivedMessages,
           ...(inProgress
             ? {}
-            : {
-                activeSessionId: null,
-                messages: [],
-                chatPhase: "idle" as const,
-                lastError: null,
-                typingPreview: null,
-                status: "idle" as const,
-              }),
+            : restore
+              ? {
+                  activeSessionId,
+                  messages,
+                  chatPhase: "active" as const,
+                  lastError: null,
+                  typingPreview: null,
+                  status: "idle" as const,
+                }
+              : {
+                  activeSessionId: null,
+                  messages: [],
+                  chatPhase: "idle" as const,
+                  lastError: null,
+                  typingPreview: null,
+                  status: "idle" as const,
+                }),
         });
       },
       setArchivedSessionMessages: (sessionId, messages) =>

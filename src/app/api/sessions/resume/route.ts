@@ -9,8 +9,8 @@ const SESSION_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * Reopen the chat a check-in already wrote, so the learner replies to that
- * message instead of starting a blank thread.
+ * Open the chat a notification named, or the newest unanswered check-in.
+ * Other open chats end so only this one is live.
  */
 export async function POST(req: Request) {
   const userId = await getUserId();

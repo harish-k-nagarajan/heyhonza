@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { buildLearnerContextText } from "@/lib/context";
@@ -109,11 +110,14 @@ function refForMeta(meta: ContextSource): string {
   return meta.label;
 }
 
+function clipPreview(text: string): string {
+  return text.length > 80 ? `${text.slice(0, 77)}…` : text;
+}
+
 function previewFromMessages(messages: PersistedMessage[]): string {
   const firstUser = messages.find((m) => m.role === "user");
   const firstAssistant = messages.find((m) => m.role === "assistant");
-  const text = (firstUser ?? firstAssistant)?.content ?? "";
-  return text.length > 80 ? `${text.slice(0, 77)}…` : text;
+  return clipPreview((firstUser ?? firstAssistant)?.content ?? "");
 }
 
 /** One-time backfill: orphan chat rows become a single ended session. */
@@ -206,10 +210,7 @@ export async function loadUserState(): Promise<UserState | null> {
       .from("chat_sessions")
       .select("id")
       .eq("user_id", user.id)
-      .is("ended_at", null)
-      .order("started_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .is("ended_at", null),
     supabase
       .from("chat_sessions")
       .select("id, started_at, ended_at, preview, message_count")
@@ -253,7 +254,26 @@ export async function loadUserState(): Promise<UserState | null> {
   };
 
   const contextChunks = (contextRes.data ?? []).map(chunkFromRow);
-  const activeSessionId = (openRes.data?.id as string | undefined) ?? null;
+  const openIds = (openRes.data ?? []).map((row) => row.id as string);
+  let activeSessionId: string | null = null;
+  let messages: PersistedMessage[] = [];
+  if (openIds.length > 0) {
+    const { data: reply } = await supabase
+      .from("messages")
+      .select("session_id")
+      .eq("user_id", user.id)
+      .eq("role", "user")
+      .eq("kind", "chat")
+      .in("session_id", openIds)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const replySessionId = (reply?.session_id as string | undefined) ?? null;
+    if (replySessionId) {
+      activeSessionId = replySessionId;
+      messages = (await loadSessionMessages(replySessionId)) ?? [];
+    }
+  }
 
   const endedSessions: PersistedSession[] = (endedRes.data ?? []).map((s) => ({
     id: s.id as string,
@@ -263,9 +283,8 @@ export async function loadUserState(): Promise<UserState | null> {
     messageCount: (s.message_count as number) ?? 0,
   }));
 
-  // The live thread is whatever the learner starts now. Old rows — especially
-  // call turns saved with no session — must not come back as the current chat.
-  const messages: PersistedMessage[] = [];
+  // An open chat the learner already replied in comes back. An unanswered
+  // check-in stays put until they tap its notification or Start.
 
   return {
     persisted: true,
@@ -436,24 +455,28 @@ export async function loadSessionMessages(
 /** How long an unanswered check-in stays the chat Start should reopen. */
 const CHECK_IN_REPLY_WINDOW_MS = 24 * 60 * 60 * 1000;
 
+type UserDb = Awaited<ReturnType<typeof createSupabaseServerClient>>;
+
 /**
- * Open the chat a check-in already wrote into, so a notification tap (or Start)
- * continues that thread instead of beginning a blank one.
- *
- * An explicit session id is the one named on the push. With `checkin`, pick the
- * newest typed session that is only Honza's lines and still inside the reply window.
- * Reopens it if Start already closed it, and closes any other empty open session
- * so the next check-in does not land in that blank thread.
+ * Open one chat. A notification names its session. Start (`checkin`) opens the
+ * newest unanswered check-in. That chat becomes the only live one: other open
+ * chats end, except a conversation the learner already replied in, which Start
+ * leaves alone so a check-in does not throw it away.
  */
 export async function resumeReplySession(input: {
   sessionId?: string | null;
   checkin?: boolean;
-}): Promise<{ sessionId: string; messages: PersistedMessage[] } | null> {
+}): Promise<{
+  sessionId: string;
+  messages: PersistedMessage[];
+  endedSessions: PersistedSession[];
+} | null> {
   const userId = await getUserId();
   if (!userId) return null;
   const supabase = await createSupabaseServerClient();
-  const sessionId = input.sessionId?.trim()
-    ? input.sessionId.trim()
+  const explicit = input.sessionId?.trim() ?? "";
+  const sessionId = explicit
+    ? explicit
     : input.checkin
       ? await findUnansweredCheckIn(supabase, userId)
       : null;
@@ -467,38 +490,180 @@ export async function resumeReplySession(input: {
     .maybeSingle();
   if (!session) return null;
 
-  const now = new Date().toISOString();
+  const splitSessions = await separateStackedCheckIn(supabase, userId, sessionId);
+
   await supabase
     .from("chat_sessions")
     .update({ ended_at: null })
     .eq("id", sessionId)
     .eq("user_id", userId);
 
-  const { data: others } = await supabase
-    .from("chat_sessions")
-    .select("id")
+  const endedSessions = await endOtherOpenSessions(
+    supabase,
+    userId,
+    sessionId,
+    !explicit,
+  );
+
+  const messages = await loadSessionMessages(sessionId);
+  if (!messages || messages.length === 0) return null;
+  return { sessionId, messages, endedSessions: [...splitSessions, ...endedSessions] };
+}
+
+/**
+ * Older check-ins used to append into one open chat. Keep the latest line on
+ * this session and file each earlier greeting as its own ended chat.
+ */
+async function separateStackedCheckIn(
+  supabase: UserDb,
+  userId: string,
+  sessionId: string,
+): Promise<PersistedSession[]> {
+  const { data } = await supabase
+    .from("messages")
+    .select("id, role, content, kind, created_at")
     .eq("user_id", userId)
-    .is("ended_at", null)
-    .neq("id", sessionId);
-  for (const row of others ?? []) {
-    const otherId = row.id as string;
-    const { count } = await supabase
-      .from("messages")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("session_id", otherId);
-    if ((count ?? 0) === 0) {
-      await supabase
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: true });
+  const list = data ?? [];
+  if (list.some((message) => message.role === "user")) return [];
+  const lines = list.filter(
+    (message) => message.role === "assistant" && (message.kind ?? "chat") === "chat",
+  );
+  if (lines.length <= 1) return [];
+
+  const earlier = lines.slice(0, -1);
+  const latest = lines[lines.length - 1]!;
+  const admin = createSupabaseAdminClient();
+  const split: PersistedSession[] = [];
+
+  for (const message of earlier) {
+    const preview = clipPreview(message.content as string);
+    const createdAt = message.created_at as string;
+    const startedAt = new Date(createdAt).getTime();
+    let moved = false;
+    if (admin) {
+      const { data: created, error } = await admin
         .from("chat_sessions")
-        .update({ ended_at: now })
-        .eq("id", otherId)
+        .insert({
+          user_id: userId,
+          started_at: createdAt,
+          ended_at: createdAt,
+          preview,
+          message_count: 1,
+        })
+        .select("id")
+        .single();
+      if (!error && created?.id) {
+        const { data: movedRows, error: moveErr } = await admin
+          .from("messages")
+          .update({ session_id: created.id })
+          .eq("id", message.id as string)
+          .eq("user_id", userId)
+          .eq("session_id", sessionId)
+          .select("id");
+        moved = !moveErr && (movedRows?.length ?? 0) > 0;
+        if (moved) {
+          split.push({
+            id: created.id as string,
+            startedAt,
+            endedAt: startedAt,
+            preview,
+            messageCount: 1,
+          });
+        } else {
+          await admin.from("chat_sessions").delete().eq("id", created.id as string);
+        }
+      }
+    }
+    if (!moved) {
+      await supabase
+        .from("messages")
+        .delete()
+        .eq("id", message.id as string)
         .eq("user_id", userId);
     }
   }
 
-  const messages = await loadSessionMessages(sessionId);
-  if (!messages || messages.length === 0) return null;
-  return { sessionId, messages };
+  await supabase
+    .from("chat_sessions")
+    .update({ preview: clipPreview(latest.content as string), message_count: 1 })
+    .eq("id", sessionId)
+    .eq("user_id", userId);
+  return split;
+}
+
+/** End every other open chat. Start keeps a thread the learner already answered. */
+async function endOtherOpenSessions(
+  supabase: UserDb,
+  userId: string,
+  keepId: string,
+  keepReplied: boolean,
+): Promise<PersistedSession[]> {
+  const now = new Date().toISOString();
+  const { data: others } = await supabase
+    .from("chat_sessions")
+    .select("id, started_at")
+    .eq("user_id", userId)
+    .is("ended_at", null)
+    .neq("id", keepId);
+  const rows = others ?? [];
+  if (rows.length === 0) return [];
+
+  const ids = rows.map((row) => row.id as string);
+  const { data: messageRows } = await supabase
+    .from("messages")
+    .select("role, content, kind, session_id, created_at")
+    .eq("user_id", userId)
+    .in("session_id", ids)
+    .order("created_at", { ascending: true });
+
+  const bySession = new Map<string, PersistedMessage[]>();
+  for (const message of messageRows ?? []) {
+    const id = message.session_id as string;
+    const list = bySession.get(id) ?? [];
+    list.push({
+      id: `${id}-${list.length}`,
+      role: message.role as "user" | "assistant",
+      content: message.content as string,
+      kind: (message.kind as "chat" | "call") ?? "chat",
+      createdAt: new Date(message.created_at as string).getTime(),
+    });
+    bySession.set(id, list);
+  }
+
+  const ended: PersistedSession[] = [];
+  for (const row of rows) {
+    const id = row.id as string;
+    const messages = (bySession.get(id) ?? []).filter(
+      (message) => message.kind !== "call",
+    );
+    const hasUser = messages.some((message) => message.role === "user");
+    if (keepReplied && hasUser) continue;
+
+    const preview = previewFromMessages(messages);
+    const startedAt = messages[0]?.createdAt ?? new Date(row.started_at as string).getTime();
+    const endedAt = Date.now();
+    await supabase
+      .from("chat_sessions")
+      .update({
+        ended_at: now,
+        preview,
+        message_count: messages.length,
+      })
+      .eq("id", id)
+      .eq("user_id", userId);
+    if (messages.length > 0) {
+      ended.push({
+        id,
+        startedAt,
+        endedAt,
+        preview,
+        messageCount: messages.length,
+      });
+    }
+  }
+  return ended;
 }
 
 async function findUnansweredCheckIn(

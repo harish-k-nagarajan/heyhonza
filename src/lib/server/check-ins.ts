@@ -164,7 +164,7 @@ async function deliverForUser(
       continue;
     }
 
-    const [contextRes, lastRes, sessionRes] = await Promise.all([
+    const [contextRes, lastRes] = await Promise.all([
       supabase
         .from("user_context")
         .select("id, source_kind, source_ref, content, synced_at")
@@ -176,25 +176,16 @@ async function deliverForUser(
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      supabase
-        .from("chat_sessions")
-        .select("id")
-        .eq("user_id", profile.id)
-        .is("ended_at", null)
-        .order("started_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
     ]);
 
-    let sessionId = (sessionRes.data?.id as string | undefined) ?? null;
-    if (!sessionId) {
-      const { data: created } = await supabase
-        .from("chat_sessions")
-        .insert({ user_id: profile.id, preview: "", message_count: 0 })
-        .select("id")
-        .single();
-      sessionId = (created?.id as string | undefined) ?? null;
-    }
+    // Each check-in is its own chat. A conversation already in progress stays
+    // open until the learner taps this notification.
+    const { data: created } = await supabase
+      .from("chat_sessions")
+      .insert({ user_id: profile.id, preview: "", message_count: 0 })
+      .select("id")
+      .single();
+    const sessionId = (created?.id as string | undefined) ?? null;
 
     const chunks = (contextRes.data ?? []).map(chunkFromRow);
     const lastContactAt = lastRes.data?.created_at

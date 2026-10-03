@@ -16,7 +16,7 @@ import { useSettingsStore } from "@/stores/useSettingsStore";
 import { isDbMode } from "@/lib/client/state-sync";
 import { upsertContext } from "@/lib/client/context-actions";
 import { asTopicIds } from "@/lib/topic-focus";
-import type { MessageKind } from "@/types";
+import type { ChatSessionMeta, MessageKind } from "@/types";
 
 /**
  * The single client path to Honza. Chat calls these to talk to `/api/chat`,
@@ -143,11 +143,38 @@ async function endServerSession(
   });
 }
 
+/** One resume per notification, including a React strict-mode remount. */
+const incomingInflight = new Map<string, Promise<string | null>>();
+
+function incomingKey(request: IncomingOpen): string {
+  switch (request.kind) {
+    case "session":
+      return request.sessionId;
+    case "checkin":
+      return "checkin";
+    default: {
+      const _exhaustive: never = request;
+      return _exhaustive;
+    }
+  }
+}
+
 /**
  * Open the thread a check-in already wrote. Returns the session id, or null
  * when there is nothing waiting (or the server is not signed in).
  */
 export async function openIncomingChat(request: IncomingOpen): Promise<string | null> {
+  const key = incomingKey(request);
+  const existing = incomingInflight.get(key);
+  if (existing) return existing;
+  const promise = openIncomingChatOnce(request).finally(() => {
+    if (incomingInflight.get(key) === promise) incomingInflight.delete(key);
+  });
+  incomingInflight.set(key, promise);
+  return promise;
+}
+
+async function openIncomingChatOnce(request: IncomingOpen): Promise<string | null> {
   let body: { sessionId: string } | { checkin: true };
   switch (request.kind) {
     case "session":
@@ -179,6 +206,7 @@ export async function openIncomingChat(request: IncomingOpen): Promise<string | 
         sessionId?: string;
         createdAt: number;
       }[];
+      endedSessions?: ChatSessionMeta[];
     };
     if (!data.sessionId || !data.messages || data.messages.length === 0) return null;
     useChatStore.getState().resumeSession(
@@ -191,6 +219,7 @@ export async function openIncomingChat(request: IncomingOpen): Promise<string | 
         sessionId: message.sessionId ?? data.sessionId ?? undefined,
         createdAt: message.createdAt,
       })),
+      data.endedSessions,
     );
     return data.sessionId;
   } catch {
