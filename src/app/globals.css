@@ -2967,38 +2967,15 @@ body:has(.landing-page) {
   height: 52px;
   transition-duration: var(--acc-collapse);
 }
-.hmat-chat-action-slot[data-mode="idle"] {
-  /* Frost field is ~54px (input + border); 52 clipped the pill radius. */
-  height: 56px;
+.hmat-chat-action-slot[data-mode="idle"],
+.hmat-chat-action-slot[data-mode="ongoing"] {
+  /* One row: 44px field (send sits inside) + 44px end icon. */
+  height: 52px;
   transition-duration: var(--duration-fast);
 }
-.hmat-chat-action-slot[data-mode="ongoing"] {
-  /* Field (~54) + gap (10) + buttons (52) + room for the button shadow. */
-  height: 124px;
-  transition-duration: var(--acc-expand);
-}
 
-.hmat-composer-icon-slot {
-  overflow: hidden;
-  width: 48px;
-  height: 48px;
-  margin-left: 10px;
-  opacity: 1;
-  flex-shrink: 0;
-  transition:
-    width var(--resize-dur) var(--resize-ease),
-    height var(--resize-dur) var(--resize-ease),
-    margin-left var(--resize-dur) var(--resize-ease),
-    opacity var(--duration-quick) var(--ease-in-out);
-}
-.hmat-composer-icon-slot[data-open="false"] {
-  width: 0;
-  margin-left: 0;
-  opacity: 0;
-}
-
-.hmat-composer-split .t-acc-panel-inner {
-  padding-top: 10px;
+.hmat-chat-field {
+  min-height: 44px;
 }
 
 .hmat-chat-thread-acc {
@@ -3111,8 +3088,7 @@ body:has(.landing-page) {
     transition: none !important;
   }
   .hmat-chat-action-slot,
-  .hmat-chat-action-face,
-  .hmat-composer-icon-slot {
+  .hmat-chat-action-face {
     transition: none !important;
   }
 }
