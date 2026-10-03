@@ -1099,16 +1099,21 @@ body {
   }
 }
 
-/* Floating frost dock (O4 handoff). Positioned by its fixed wrapper. */
+/* Floating frost dock (O4 handoff). Positioned by its fixed wrapper.
+   Equal columns: Chat / Call / Settings labels are different widths, so
+   space-evenly kept the edge gaps even but shoved Call left of the dock
+   center (Settings is the long label). The call button is centered on the
+   stage, so it only lines up when Call's column is the middle third. */
 .fdock {
   --fdock-pad: 8px;
   position: relative;
   border-radius: 28px;
   display: flex;
   align-items: stretch;
-  justify-content: space-evenly;
+  justify-content: stretch;
   gap: 0;
   padding: var(--fdock-pad);
+  container-type: inline-size;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.69);
   backdrop-filter: blur(12px);
@@ -1142,8 +1147,10 @@ body {
 .fdock-slot {
   position: relative;
   display: flex;
-  flex: 0 1 auto;
+  flex: 1 1 0%;
+  min-width: 0;
   justify-content: center;
+  align-items: stretch;
 }
 .fdock[data-dragging="true"] .fdock-pill {
   transition: none;
@@ -1152,15 +1159,18 @@ body {
   transform: none;
 }
 .hmat-tab {
-  width: auto;
+  width: 100%;
+  min-width: 0;
   min-height: 44px;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   position: relative;
-  padding: 12px clamp(12px, 3.8vw, 20px);
+  /* Padding stays inside the equal column. vw padding tracked the desktop
+     window, not the ~430px stage, and made Settings wider than one third. */
+  padding: 12px clamp(2px, 1.2cqw, 10px);
   box-sizing: border-box;
   color: #4a433c;
   transition:
@@ -1674,19 +1684,11 @@ body:has(.landing-page) {
   }
 }
 
-/* Call tab — same recess as chat; caption flexes so controls stay in view. */
-.hmat-call-layout .hmat-caption-panel {
-  flex: 1 1 0;
-  min-height: 72px;
-  max-height: 118px;
-  height: auto;
-  flex-shrink: 1;
-}
-@media (max-height: 700px) {
-  .hmat-call-layout .hmat-caption-panel {
-    min-height: 64px;
-    max-height: 96px;
-  }
+/* Call tab — open lyric stage between the status chip and the controls. */
+.hmat-call-layout .hmat-caption-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
 }
 
 /*
@@ -2203,37 +2205,28 @@ body:has(.landing-page) {
   outline: 1px solid rgba(0, 0, 0, 0.07);
 }
 
-.hmat-caption-panel {
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-sizing: border-box;
-  height: 118px;
-  width: calc(100% - 16px);
-  max-width: 100%;
-  margin-inline: auto;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+.hmat-caption-stage {
+  background: none;
+  border: none;
+  box-shadow: none;
   overflow: hidden;
 }
-.hmat-caption-body {
-  flex: 1 1 0%;
-  min-height: 0;
-  overflow: hidden;
-}
-.hmat-caption-body:not(.hmat-caption-body--live) {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.hmat-caption-body--live {
+.hmat-caption-track {
   position: relative;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 12px, #000 100%);
-  mask-image: linear-gradient(180deg, transparent 0%, #000 12px, #000 100%);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hmat-caption-viewport--fade {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 100%);
 }
 @media (prefers-reduced-motion: reduce) {
-  .hmat-caption-body--live {
+  .hmat-caption-stage {
+    overflow-y: auto;
+  }
+  .hmat-caption-track {
+    transition: none;
+  }
+  .hmat-caption-viewport--fade {
     -webkit-mask-image: none;
     mask-image: none;
   }

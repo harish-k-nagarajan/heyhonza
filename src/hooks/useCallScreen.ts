@@ -186,6 +186,9 @@ export function useCallScreen(): CallScreen {
   const handleTranscript = useCallback(
     (text: string) => {
       if (!activeRef.current) return;
+      // The learner's words stay in chat. Clearing here starts the lyric
+      // dissolve; the call stage keeps the last line mounted until it finishes.
+      setCaption(null);
       setPhase("thinking");
       void (async () => {
         const reply = await sendUserTurn(text, "call");
