@@ -16,6 +16,7 @@ import {
   type TopicId,
 } from "@/lib/constants";
 import { buildLearnerContextText } from "@/lib/context";
+import { persistUiLocaleCookie } from "@/lib/i18n/locale-cookie";
 import { DEFAULT_LOCALE, type UiLocale } from "@/lib/i18n/locales";
 import { asTopicIds } from "@/lib/topic-focus";
 import type { ContextChunk, ContextSource } from "@/types";
@@ -101,7 +102,10 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       ...initial,
-      setUiLocale: (uiLocale) => set({ uiLocale }),
+      setUiLocale: (uiLocale) => {
+        persistUiLocaleCookie(uiLocale);
+        set({ uiLocale });
+      },
       setOnboardingComplete: (v) => set({ onboardingComplete: v }),
       setOnboardingStep: (step) => set({ onboardingStep: clampOnboardingStep(step) }),
       setTopics: (topics) => set({ selectedTopics: topics }),
@@ -146,8 +150,13 @@ export const useSettingsStore = create<SettingsState>()(
         })),
       setContextChunks: (chunks) => set({ contextChunks: chunks }),
       getLearnerContextText: () => buildLearnerContextText(get().contextChunks),
-      reset: () => set(initial),
+      reset: () => set({ ...initial, uiLocale: get().uiLocale }),
     }),
-    { name: "honza-settings" },
+    {
+      name: "honza-settings",
+      onRehydrateStorage: () => (state) => {
+        if (state?.uiLocale) persistUiLocaleCookie(state.uiLocale);
+      },
+    },
   ),
 );

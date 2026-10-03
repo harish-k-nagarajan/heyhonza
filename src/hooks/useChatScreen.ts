@@ -95,9 +95,9 @@ export function useChatScreen(): ChatScreen {
     !lastError;
 
   const startChat = useCallback(() => {
-    if (!llmReady) return;
+    if (providersLoaded && !llmReady) return;
     void startChatSession();
-  }, [llmReady]);
+  }, [llmReady, providersLoaded]);
 
   const endChat = useCallback(() => {
     void endChatSessionAction();

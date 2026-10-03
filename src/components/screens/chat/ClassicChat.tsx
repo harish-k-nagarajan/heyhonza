@@ -52,16 +52,6 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [threadMessages.length]);
 
-  if (!screen.ready || !providersLoaded) {
-    return (
-      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
-        <HonzaOrb state="idle" size="avatar" />
-        <div className="h-3 w-24 animate-pulse rounded-full bg-muted" aria-hidden />
-        <p className="font-sans text-sm text-muted-foreground">{t.common.loading}</p>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="flex h-[calc(100dvh-7rem)] flex-col gap-3">
@@ -167,7 +157,7 @@ export function ClassicChat({ screen }: { screen: ChatScreen }) {
             <Button
               type="button"
               className="w-full"
-              disabled={!providersLoaded || !llmReady}
+              disabled={providersLoaded && !llmReady}
               onClick={() => {
                 tapLight();
                 screen.startChat();
