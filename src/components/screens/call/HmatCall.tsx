@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
-import { CaptionTextReveal } from "@/components/call/CaptionTextReveal";
+import { CAPTION_TYPE, CaptionTextReveal } from "@/components/call/CaptionTextReveal";
 import { CallThinkingGlyph } from "@/components/call/CallThinkingGlyph";
 import { CallControlCluster } from "@/components/screens/call/CallControlCluster";
 import { ROUTES } from "@/lib/constants";
 import {
-  HmatCaptionPanel,
   HmatNeedsKeyEmpty,
   HmatPresenceRecess,
   HmatScreenTitle,
@@ -23,25 +23,28 @@ import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
 import { tapLight, tapMedium } from "@/lib/interaction/haptic";
 
+const DISSOLVE_MS = 300;
+const DISSOLVE_EASE = [0.22, 1, 0.36, 1] as const;
+
 function captionPlaceholder(
   phase: CallScreen["phase"],
   inCall: boolean,
   c: ReturnType<typeof useLocale>["t"]["call"],
-): string {
+): string | null {
   if (!inCall) return c.captionOffIdle;
   if (phase === "connecting") return c.captionOffConnecting;
-  return "…";
+  return null;
 }
 
 export function HmatCall({ screen }: { screen: CallScreen }) {
   const { t } = useLocale();
   const c = t.call;
+  const reducedMotion = useReducedMotion() ?? false;
   const {
     phase,
     inCall,
     orbState,
     orbLoading,
-    caption,
     error,
     listening,
     supported,
@@ -62,7 +65,6 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
     wasInCallRef.current = inCall;
   }, [inCall, triggerPop]);
 
-  const showLiveCaption = inCall && caption;
   const needsKey = providersLoaded && !inCall && (!llmReady || !ttsReady);
   const missingVoice = !ttsReady;
   const statusTitle = needsKey ? c.titleUnlinked : callTitle(phase, c);
@@ -73,6 +75,7 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
   const keyCta = missingVoice ? c.addElevenLabsKey : t.chat.addOpenRouterKey;
 
   const hydrating = !screen.ready || !providersLoaded;
+  const placeholder = captionPlaceholder(phase, inCall, c);
 
   return (
     <div className="hmat-call-layout flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
@@ -109,17 +112,44 @@ export function HmatCall({ screen }: { screen: CallScreen }) {
         {needsKey ? (
           <HmatNeedsKeyEmpty title={emptyTitle} body={emptyBody} icon="callUnlinked" />
         ) : (
-          <HmatCaptionPanel
-            kicker={c.captionKicker}
-            muted={!showLiveCaption}
-            live={Boolean(showLiveCaption)}
+          <div
+            className="hmat-caption-stage flex min-h-0 w-full flex-1 flex-col justify-center"
+            role="status"
+            aria-live="polite"
           >
-            {showLiveCaption ? (
-              <CaptionTextReveal key={caption} className="absolute inset-0" text={caption!} />
-            ) : (
-              captionPlaceholder(phase, inCall, c)
-            )}
-          </HmatCaptionPanel>
+            <AnimatePresence mode="wait" initial={false}>
+              {screen.caption ? (
+                <motion.div
+                  key={screen.caption}
+                  className="flex min-h-0 max-h-full w-full flex-col justify-center"
+                  initial={false}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={
+                    reducedMotion
+                      ? { opacity: 0 }
+                      : { opacity: 0, y: -10, filter: "blur(4px)" }
+                  }
+                  transition={{
+                    duration: reducedMotion ? 0 : DISSOLVE_MS / 1000,
+                    ease: DISSOLVE_EASE,
+                  }}
+                >
+                  <CaptionTextReveal text={screen.caption} />
+                </motion.div>
+              ) : placeholder ? (
+                <motion.p
+                  key="caption-placeholder"
+                  className={cn(CAPTION_TYPE, "font-normal text-center text-[#243D2C]/40")}
+                  initial={false}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.18 }}
+                >
+                  {placeholder}
+                </motion.p>
+              ) : null}
+            </AnimatePresence>
+          </div>
         )}
 
         {error ? (

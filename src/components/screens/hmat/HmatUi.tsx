@@ -433,36 +433,6 @@ export function HmatSectionLabel({ children }: { children: ReactNode }) {
   );
 }
 
-export function HmatCaptionPanel({
-  kicker,
-  children,
-  muted,
-  live,
-}: {
-  kicker: string;
-  children: ReactNode;
-  muted?: boolean;
-  live?: boolean;
-}) {
-  return (
-    <div className="hmat-caption-panel rounded-2xl px-3.5 py-3.5">
-      <p className={cn(TYPE.kicker, "mb-1.5 shrink-0 font-display tracking-[0.15em] text-[#6E8A74]")}>
-        {kicker}
-      </p>
-      <div
-        className={cn(
-          "hmat-caption-body",
-          TYPE.bodySm,
-          live && "hmat-caption-body--live",
-          muted ? "text-[#243D2C]/40" : "text-[#243D2C]",
-        )}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
 function SendArrowIcon({ className }: { className?: string }) {
   return (
     <svg

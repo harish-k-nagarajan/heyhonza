@@ -4,7 +4,27 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-03 (no Czech flash on English refresh)
+## Current entry — 2026-10-03 (call captions stay ink, larger type)
+
+### What changed
+Call captions were `text-sm` (14px), and any wrapped line before the one being spoken dropped to 40% opacity. On speaker the learner is still reading the whole sentence, so earlier lines now stay full ink `#243D2C`. Size is `text-lg` (18px) for both the live reveal and the idle placeholder. The three-line window still scrolls older text out; it no longer greys what is still on screen.
+
+### Checked
+`/call` at 430×932. Idle line is 18px / 29.25px line-height, still muted, `text-align: center`, no trailing period. Text center matches the caption stage center. A wrapped sentence (`Ahoj, jak se dneska máš…`) settles with both lines at `rgb(36, 61, 44)` and opacity 1. Preview sentence removed.
+
+---
+
+## Previous — 2026-10-03 (open call captions + dock equal columns)
+
+### What works
+Both edits are in the same tree. Dock slots are `flex: 1 1 0%` and tab padding is `1.2cqw` of the dock, so Chat, Call, and Settings are equal columns and Call sits on the phone-stage center. Call captions are an open lyric stage between the status chip and the controls: no frost box, no CAPTIONS kicker, no 118px cap. The idle line is unboxed. Honza’s words reveal about three lines (fern `#2E7D32`, then ink `#243D2C`). The learner’s transcript clears the lyric; a 300ms dissolve (opacity, slight upward drift, slight blur) plays before unmount. `HmatCaptionPanel` is gone.
+
+### Checked
+`/call` at 430×932: page loads, no 500. Stage center, Call tab center, and call button center are all 215px. Slot widths 127.33 / 127.34 / 127.34. Caption stage is transparent, no border, no shadow, `max-height: none`. Same dock centers on `/chat` and `/settings`. `npm run lint` clean. Build not run while dev is up.
+
+---
+
+## Previous — 2026-10-03 (no Czech flash on English refresh)
 
 ### What was wrong
 `DEFAULT_LOCALE` is `cs`. The first HTML and the first React paint used Czech until zustand rehydrated `uiLocale` from localStorage, so English users saw Czech for a frame on refresh.
