@@ -4,37 +4,14 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { HmatProviderKeyRow } from "@/components/screens/settings/HmatProviderKeyEditor";
-import { HmatSettingsIconWrap } from "@/components/screens/settings/HmatSettingsUi";
+import {
+  ElevenLabsMark,
+  OpenRouterMark,
+  ProviderMarkSlot,
+} from "@/components/screens/settings/ProviderMarks";
 import type { ProviderUiStatus } from "@/hooks/useSettingsScreen";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
-
-function TextIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4 6h16M4 12h10M4 18h14"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function AudioIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 3a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path d="M19 10v2a7 7 0 0 1-14 0v-2" stroke="currentColor" strokeWidth="2" />
-      <path d="M12 19v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 type ProviderBlockProps = {
   title: string;
@@ -182,9 +159,9 @@ export function OnboardingProviderFields({
           onSave={(key) => onSave("openrouter", key)}
           onDisconnect={() => onDisconnect("openrouter")}
           icon={
-            <HmatSettingsIconWrap>
-              <TextIcon />
-            </HmatSettingsIconWrap>
+            <ProviderMarkSlot>
+              <OpenRouterMark />
+            </ProviderMarkSlot>
           }
         />
         <HmatProviderKeyRow
@@ -201,9 +178,9 @@ export function OnboardingProviderFields({
           onSave={(key) => onSave("elevenlabs", key)}
           onDisconnect={() => onDisconnect("elevenlabs")}
           icon={
-            <HmatSettingsIconWrap className="bg-[#FFF0E8]">
-              <AudioIcon />
-            </HmatSettingsIconWrap>
+            <ProviderMarkSlot>
+              <ElevenLabsMark />
+            </ProviderMarkSlot>
           }
         />
       </div>

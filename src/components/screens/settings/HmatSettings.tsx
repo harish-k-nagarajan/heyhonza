@@ -5,6 +5,11 @@ import { useEffect, useRef, useState } from "react";
 
 import { HmatProviderKeyRow } from "@/components/screens/settings/HmatProviderKeyEditor";
 import {
+  ElevenLabsMark,
+  OpenRouterMark,
+  ProviderMarkSlot,
+} from "@/components/screens/settings/ProviderMarks";
+import {
   HmatSettingsCard,
   HmatSettingsConfirm,
   HmatSettingsGlyphButton,
@@ -66,29 +71,6 @@ function MessageIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg>
-  );
-}
-
-function TextIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M4 7h16" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
-      <path d="M4 12h11" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
-      <path d="M4 17h14" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function AudioIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M2 10v4" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
-      <path d="M6 6v12" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
-      <path d="M10 3v18" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
-      <path d="M14 8v8" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
-      <path d="M18 5v14" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
-      <path d="M22 10v4" stroke="#FF6B4A" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -390,9 +372,9 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
             onSave={(key) => screen.saveProviderKey("openrouter", key)}
             onDisconnect={() => screen.disconnectProvider("openrouter")}
             icon={
-              <HmatSettingsIconWrap>
-                <TextIcon />
-              </HmatSettingsIconWrap>
+              <ProviderMarkSlot>
+                <OpenRouterMark />
+              </ProviderMarkSlot>
             }
           />
           <div className="space-y-2">
@@ -427,9 +409,9 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
             onSave={(key) => screen.saveProviderKey("elevenlabs", key)}
             onDisconnect={() => screen.disconnectProvider("elevenlabs")}
             icon={
-              <HmatSettingsIconWrap className="bg-[#FFF0E8]">
-                <AudioIcon />
-              </HmatSettingsIconWrap>
+              <ProviderMarkSlot>
+                <ElevenLabsMark />
+              </ProviderMarkSlot>
             }
           />
         </HmatSettingsCard>
