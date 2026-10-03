@@ -301,7 +301,7 @@ async function deliverForUser(
     const push = await sendPushToUser(supabase, profile.id, {
       title: "Honza",
       body,
-      url: "/chat",
+      url: sessionId ? `/chat?session=${sessionId}` : "/chat",
     });
     pushed += push.sent;
     delivered = true;

@@ -433,6 +433,112 @@ export async function loadSessionMessages(
   }));
 }
 
+/** How long an unanswered check-in stays the chat Start should reopen. */
+const CHECK_IN_REPLY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Open the chat a check-in already wrote into, so a notification tap (or Start)
+ * continues that thread instead of beginning a blank one.
+ *
+ * An explicit session id is the one named on the push. With `checkin`, pick the
+ * newest typed session that is only Honza's lines and still inside the reply window.
+ * Reopens it if Start already closed it, and closes any other empty open session
+ * so the next check-in does not land in that blank thread.
+ */
+export async function resumeReplySession(input: {
+  sessionId?: string | null;
+  checkin?: boolean;
+}): Promise<{ sessionId: string; messages: PersistedMessage[] } | null> {
+  const userId = await getUserId();
+  if (!userId) return null;
+  const supabase = await createSupabaseServerClient();
+  const sessionId = input.sessionId?.trim()
+    ? input.sessionId.trim()
+    : input.checkin
+      ? await findUnansweredCheckIn(supabase, userId)
+      : null;
+  if (!sessionId) return null;
+
+  const { data: session } = await supabase
+    .from("chat_sessions")
+    .select("id")
+    .eq("id", sessionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!session) return null;
+
+  const now = new Date().toISOString();
+  await supabase
+    .from("chat_sessions")
+    .update({ ended_at: null })
+    .eq("id", sessionId)
+    .eq("user_id", userId);
+
+  const { data: others } = await supabase
+    .from("chat_sessions")
+    .select("id")
+    .eq("user_id", userId)
+    .is("ended_at", null)
+    .neq("id", sessionId);
+  for (const row of others ?? []) {
+    const otherId = row.id as string;
+    const { count } = await supabase
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("session_id", otherId);
+    if ((count ?? 0) === 0) {
+      await supabase
+        .from("chat_sessions")
+        .update({ ended_at: now })
+        .eq("id", otherId)
+        .eq("user_id", userId);
+    }
+  }
+
+  const messages = await loadSessionMessages(sessionId);
+  if (!messages || messages.length === 0) return null;
+  return { sessionId, messages };
+}
+
+async function findUnansweredCheckIn(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("messages")
+    .select("session_id")
+    .eq("user_id", userId)
+    .eq("kind", "chat")
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  const seen = new Set<string>();
+  const cutoff = Date.now() - CHECK_IN_REPLY_WINDOW_MS;
+  for (const row of data ?? []) {
+    const id = row.session_id as string | null;
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    if (seen.size > 6) break;
+
+    const { data: roles } = await supabase
+      .from("messages")
+      .select("role, created_at")
+      .eq("user_id", userId)
+      .eq("session_id", id)
+      .eq("kind", "chat")
+      .order("created_at", { ascending: false });
+    const list = roles ?? [];
+    if (list.length === 0) continue;
+    const newestAt = new Date(list[0]!.created_at as string).getTime();
+    if (!Number.isFinite(newestAt) || newestAt < cutoff) continue;
+    const hasAssistant = list.some((m) => m.role === "assistant");
+    const hasUser = list.some((m) => m.role === "user");
+    if (hasAssistant && !hasUser) return id;
+  }
+  return null;
+}
+
 function clampOnboardingStep(n: number): number {
   return Math.min(6, Math.max(1, Math.round(n)));
 }

@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { useProviderStatus } from "@/hooks/useProviderStatus";
 import { useNeedsOnboarding, useScreenReady } from "@/hooks/useScreenReady";
 import {
   endChatSessionAction,
+  openIncomingChat,
   sendUserTurn,
   startChatSession,
 } from "@/lib/client/chat-actions";
@@ -15,11 +16,25 @@ import { chatHistoryRoute, ROUTES } from "@/lib/constants";
 import { DESIGNS } from "@/lib/design/registry";
 import type { DesignFamily, DesignId } from "@/lib/design/registry";
 import type { MoodExpression } from "@/lib/mood/expression";
-import { useChatStore } from "@/stores/useChatStore";
+import { useChatStore, type IncomingOpen } from "@/stores/useChatStore";
 import { useDesignStore } from "@/stores/useDesignStore";
 import { useMoodStore } from "@/stores/useMoodStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import type { ChatMessage, ChatSessionMeta } from "@/types";
+
+const SESSION_ID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Deep link left by a notification tap. The service worker also posts this. */
+function incomingFromLocation(): IncomingOpen | null {
+  if (typeof window === "undefined") return null;
+  const url = new URL(window.location.href);
+  if (url.pathname !== ROUTES.chat) return null;
+  const sessionId = url.searchParams.get("session")?.trim() ?? "";
+  if (SESSION_ID.test(sessionId)) return { kind: "session", sessionId };
+  if (url.searchParams.get("checkin") === "1") return { kind: "checkin" };
+  return null;
+}
 
 export type ChatScreen = {
   ready: boolean;
@@ -67,6 +82,32 @@ export function useChatScreen(): ChatScreen {
   const { llmReady, loaded: providersLoaded } = useProviderStatus();
 
   const [historyOpen, setHistoryOpen] = useState(false);
+  const incomingOpen = useChatStore((s) => s.incomingOpen);
+  const openedCheckIn = useRef<string | null>(null);
+
+  const screenReady = ready && onboardingComplete;
+
+  useEffect(() => {
+    if (!screenReady) return;
+    const request = incomingOpen ?? incomingFromLocation();
+    if (!request) return;
+    const key = request.kind === "session" ? request.sessionId : "checkin";
+    if (openedCheckIn.current === key) return;
+
+    let cancelled = false;
+    void (async () => {
+      const sessionId = await openIncomingChat(request);
+      if (cancelled || !sessionId) return;
+      openedCheckIn.current = key;
+      if (window.location.pathname === ROUTES.chat && window.location.search) {
+        router.replace(ROUTES.chat);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [incomingOpen, router, screenReady]);
 
   useEffect(() => {
     if (needsOnboarding) router.replace(ROUTES.onboarding);

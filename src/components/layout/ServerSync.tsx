@@ -3,6 +3,7 @@
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { useEffect, useRef } from "react";
 
+import { NotificationOpen } from "@/components/layout/NotificationOpen";
 import { persistProfile } from "@/lib/client/context-actions";
 import {
   clearLocalUserState,
@@ -209,5 +210,5 @@ export function ServerSync() {
     };
   }, [markChecked, resetChecked]);
 
-  return null;
+  return <NotificationOpen />;
 }
