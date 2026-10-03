@@ -6,7 +6,11 @@ import {
   clearReplyChoreography,
   scheduleAssistantReveal,
 } from "@/hooks/useReplyChoreography";
-import { previewFromThread, useChatStore } from "@/stores/useChatStore";
+import {
+  previewFromThread,
+  useChatStore,
+  type IncomingOpen,
+} from "@/stores/useChatStore";
 import { useMoodStore } from "@/stores/useMoodStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { isDbMode } from "@/lib/client/state-sync";
@@ -139,20 +143,79 @@ async function endServerSession(
   });
 }
 
-/** Start a new typed-chat session locally and on the server when persisted. */
-export function startChatSession(): Promise<string> {
-  const state = useChatStore.getState();
-  if (state.chatPhase === "active" && state.activeSessionId) {
-    return sessionReady ?? Promise.resolve(state.activeSessionId);
+/**
+ * Open the thread a check-in already wrote. Returns the session id, or null
+ * when there is nothing waiting (or the server is not signed in).
+ */
+export async function openIncomingChat(request: IncomingOpen): Promise<string | null> {
+  let body: { sessionId: string } | { checkin: true };
+  switch (request.kind) {
+    case "session":
+      body = { sessionId: request.sessionId };
+      break;
+    case "checkin":
+      body = { checkin: true };
+      break;
+    default: {
+      const _exhaustive: never = request;
+      return _exhaustive;
+    }
   }
 
-  // Flip to the composer before any network wait. The server id replaces this
-  // one when it arrives.
-  const localId = state.startSession();
+  try {
+    const res = await fetch("/api/sessions/resume", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      sessionId?: string | null;
+      messages?: {
+        id: string;
+        role: "user" | "assistant";
+        content: string;
+        kind?: "chat" | "call";
+        sessionId?: string;
+        createdAt: number;
+      }[];
+    };
+    if (!data.sessionId || !data.messages || data.messages.length === 0) return null;
+    useChatStore.getState().resumeSession(
+      data.sessionId,
+      data.messages.map((message) => ({
+        id: message.id,
+        role: message.role,
+        content: message.content,
+        kind: message.kind ?? "chat",
+        sessionId: message.sessionId ?? data.sessionId ?? undefined,
+        createdAt: message.createdAt,
+      })),
+    );
+    return data.sessionId;
+  } catch {
+    return null;
+  }
+}
+
+/** Start a typed chat. If Honza already wrote and is waiting, continue that thread. */
+export function startChatSession(): Promise<string> {
+  if (sessionReady) return sessionReady;
+  const state = useChatStore.getState();
+  if (state.chatPhase === "active" && state.activeSessionId) {
+    return Promise.resolve(state.activeSessionId);
+  }
+
   // Assigned before the async body reads it. A const cannot refer to itself.
   let ready: Promise<string> | null = null;
   ready = (async () => {
     try {
+      const waiting = await openIncomingChat({ kind: "checkin" });
+      if (waiting) return waiting;
+
+      // Flip to the composer before any network wait. The server id replaces this
+      // one when it arrives.
+      const localId = useChatStore.getState().startSession();
       const serverId = await createServerSession();
       const current = useChatStore.getState();
       if (

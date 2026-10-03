@@ -3,6 +3,11 @@ import { persist } from "zustand/middleware";
 
 import type { ChatMessage, ChatSessionMeta, MessageKind } from "@/types";
 
+/** A notification tap, or Start, should open this waiting check-in. Not persisted. */
+export type IncomingOpen =
+  | { kind: "session"; sessionId: string }
+  | { kind: "checkin" };
+
 function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
@@ -47,6 +52,11 @@ export type ChatState = {
   /** Assistant reply held during typing-phase reveal (ephemeral, not persisted). */
   typingPreview: string | null;
   chatPhase: ChatPhase;
+  /** Set when a notification asks the app to open Honza's waiting message. */
+  incomingOpen: IncomingOpen | null;
+  setIncomingOpen: (incoming: IncomingOpen | null) => void;
+  /** Continue a server thread that already contains Honza's check-in. */
+  resumeSession: (sessionId: string, messages: ChatMessage[]) => void;
   setTypingPreview: (text: string | null) => void;
   addUserMessage: (content: string, kind?: MessageKind) => void;
   addAssistantMessage: (content: string, kind?: MessageKind) => void;
@@ -130,6 +140,18 @@ export const useChatStore = create<ChatState>()(
       lastError: null,
       typingPreview: null,
       chatPhase: "idle",
+      incomingOpen: null,
+      setIncomingOpen: (incomingOpen) => set({ incomingOpen }),
+      resumeSession: (sessionId, messages) =>
+        set({
+          activeSessionId: sessionId,
+          messages,
+          chatPhase: "active",
+          lastError: null,
+          typingPreview: null,
+          status: "idle",
+          incomingOpen: null,
+        }),
       setTypingPreview: (typingPreview) => set({ typingPreview }),
       addUserMessage: (content, kind = "chat") => {
         const sessionId = get().activeSessionId;
@@ -281,6 +303,7 @@ export const useChatStore = create<ChatState>()(
           lastError: null,
           typingPreview: null,
           chatPhase: "idle",
+          incomingOpen: null,
         }),
     }),
     {

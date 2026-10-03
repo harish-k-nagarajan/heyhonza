@@ -4,7 +4,23 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-03 (specific-time check-ins)
+## Current entry — 2026-10-03 (notification tap opens the waiting chat)
+
+### What the backend showed
+The 14:22 Prague alert was real. The minute ticker at 12:22:00 UTC returned `sent: 1`, `pushed: 1`, `errors: 0`, `vapidConfigured: true`. Honza's line is in `messages` (`Ahoj Harishi! Jak se máš odpoledne?…`, session `9ce9a042-…`). The service worker does not set `silent`, so the missing sound is the phone: Ring/Silent, Focus, or Settings → Notifications → Honza → Sounds. Web push cannot attach a custom sound on iOS; the system default plays when sound is allowed.
+
+### What broke
+Tapping the alert focused whatever screen was already open. Chat then showed the Start gate. Start called `createChatSession`, which closed the thread that already held Honza's line (ended 12:25:17 UTC) and opened an empty one (`26d71390-…`, 0 messages). The model credit was spent on a message the composer never showed.
+
+### What changed
+Check-in pushes now link to `/chat?session=<id>`. The service worker tells the open app to go there (and treats an older `/chat` alert as `?checkin=1`). That reopens the thread, shows Honza's message, and leaves the composer ready. Start does the same when an unanswered check-in from the last 24 hours is still waiting, instead of throwing it away. Files: `public/push-sw.js`, `worker/index.js`, `src/app/api/sessions/resume/route.ts`, `src/lib/server/user-data.ts`, `src/lib/server/check-ins.ts`, `src/lib/client/chat-actions.ts`, `src/hooks/useChatScreen.ts`, `src/components/layout/NotificationOpen.tsx`.
+
+### Decision
+A normal app open still starts at the chat gate. Only a notification tap, or Start while Honza is waiting on a reply, continues that thread.
+
+---
+
+## Previous — 2026-10-03 (specific-time check-ins)
 
 ### What broke
 A test alert calls `/api/push/test` immediately. A chosen clock time only sends when something POSTs `/api/cron/check-ins`. Vercel Hobby cron is once a day at 08:00 UTC, so a 12:54 Europe/Prague slot was stored correctly and then waited until the next morning. The GitHub Action that was supposed to tick every 15 minutes is **disabled**, and its last runs failed because repo secret `CRON_SECRET` was empty.
@@ -21,7 +37,7 @@ Do not turn the GitHub Action back on for a private repo. It bills one minute pe
 
 ---
 
-## Previous — 2026-10-03 (account card shows full name)
+## 2026-10-03 (account card shows full name)
 
 ### What changed
 The settings account card title is the full name in Doto (`font-display`), with the email on the line under it. `profiles.name` stays the name Honza uses (“What should Honza call you?”). A new `profiles.full_name` column (migration `0007_profile_full_name.sql`, applied on Hey Honza) holds the card name. Saving either name draws a green circle and a white tick inside that field; editing the field clears it.
