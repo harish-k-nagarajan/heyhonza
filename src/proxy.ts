@@ -12,6 +12,6 @@ export const config = {
    * worker files, and the auth callback (which manages its own cookies).
    */
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon|manifest.json|sw.js|workbox-|worker-|.*\\.(?:png|jpg|jpeg|svg|gif|webp|ico|txt)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icon|manifest.json|sw.js|push-sw.js|workbox-|worker-|.*\\.(?:png|jpg|jpeg|svg|gif|webp|ico|txt)$).*)",
   ],
 };

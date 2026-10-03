@@ -44,7 +44,7 @@ export async function POST() {
     return NextResponse.json({
       ok: false,
       reason:
-        "No device is subscribed yet. Turn daily check-ins on from an installed PWA (not local next dev).",
+        "No device is subscribed yet. Turn daily check-ins on and allow notifications.",
     });
   }
 
