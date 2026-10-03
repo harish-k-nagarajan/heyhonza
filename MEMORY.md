@@ -4,7 +4,33 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-03 (waiting: breathe + bilateral weight-shift)
+## Current entry — 2026-10-03 (no Czech flash on English refresh)
+
+### What was wrong
+`DEFAULT_LOCALE` is `cs`. The first HTML and the first React paint used Czech until zustand rehydrated `uiLocale` from localStorage, so English users saw Czech for a frame on refresh.
+
+### What changed
+UI language is also stored in `honza-ui-locale`. The root layout reads it and SSRs that locale. A blocking script copies localStorage → cookie so the next request matches. `useLocale` uses the cookie locale until settings persist hydrates.
+
+### Checked
+`fetch('/chat')` with the English cookie: HTML has “Start chatting” / “Chat with Honza”, no Czech chrome strings. Reload stays English. `npx eslint` on the locale files clean. Build not run while dev is up.
+
+---
+
+## Previous — 2026-10-03 (chat paints immediately after login)
+
+### What was wrong
+After login / “Go to chat”, `/chat` sat on the pulsing skeleton until `/api/state` (~0.9s) and `/api/providers/status` finished. `HmatChat` gated the whole screen on `ready && providersLoaded`. The Oct 2 “real readiness” commit replaced a 240ms overlay with that wait, so the placeholder lasted as long as the APIs.
+
+### What changed
+Chat paints the real gate (orb, title, Start chatting) immediately. The missing-key empty state still waits until provider status returns. Start chatting is enabled unless status has already confirmed there is no LLM.
+
+### Checked
+Reload `/chat`: no `.hmat-chat-skel`; Start chatting is on first paint. Tap opens the composer. `npx eslint` on the three files clean. Build not run while dev is up.
+
+---
+
+## Previous — 2026-10-03 (waiting: breathe + bilateral weight-shift)
 
 ### What was wrong
 Waiting home rotation is −4°. Wander rotation was ±0.4°, so the live range stayed −4.4° to −3.6° — it could only lean left. X/Y wander (1.25 / 2.5px on the heavy body spring) was below perception, and scale was 0. The random tick was not a weight shift.

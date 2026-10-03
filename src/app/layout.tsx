@@ -1,10 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { Doto, Inter } from "next/font/google";
+import { cookies } from "next/headers";
 
 import { DesignRoot } from "@/components/design/DesignRoot";
 import { DesignScript } from "@/components/design/DesignScript";
+import { LocaleProvider } from "@/components/i18n/LocaleProvider";
+import { LocaleScript } from "@/components/i18n/LocaleScript";
 import { AppShell } from "@/components/layout/AppShell";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { parseUiLocale, UI_LOCALE_COOKIE } from "@/lib/i18n/locale-cookie";
 
 import "./globals.css";
 
@@ -55,18 +59,24 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const locale = parseUiLocale(cookieStore.get(UI_LOCALE_COOKIE)?.value);
+
   return (
-    <html lang="en" className={FONT_VARS} suppressHydrationWarning>
+    <html lang={locale} className={FONT_VARS} suppressHydrationWarning>
       <body className="font-sans">
         <DesignScript />
+        <LocaleScript />
         <DesignRoot />
-        <AppShell>{children}</AppShell>
-        <InstallPrompt />
+        <LocaleProvider locale={locale}>
+          <AppShell>{children}</AppShell>
+          <InstallPrompt />
+        </LocaleProvider>
       </body>
     </html>
   );

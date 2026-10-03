@@ -73,34 +73,6 @@ function HmatEmptyHint({ text }: { text: string }) {
   );
 }
 
-function HmatChatSkeleton() {
-  return (
-    <div
-      className="hmat-chat-skel flex min-h-0 flex-1 flex-col gap-3 overflow-hidden"
-      aria-busy="true"
-      aria-label="Loading"
-    >
-      <div className="t-skel-skeleton is-pulsing flex h-full min-h-0 flex-col gap-3">
-        <div className="hmat-recess-hero hmat-recess-hero--idle">
-          <div className="hmat-display-module hmat-presence-shared">
-            <div className="hmat-orb-seat relative">
-              <div className="rounded-[34%] bg-muted/35" style={{ width: 120, height: 120 }} />
-            </div>
-          </div>
-          <div className="mat-channel w-[200px]" />
-          <div className="h-3.5 w-16 rounded-sm bg-muted/40" />
-        </div>
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="hmat-chat-skel-title" />
-          <div className="hmat-chat-skel-chip" />
-        </div>
-        <div className="min-h-0 flex-1" />
-        <div className="hmat-chat-skel-cta" />
-      </div>
-    </div>
-  );
-}
-
 export function HmatChat({ screen }: { screen: ChatScreen }) {
   const { t } = useLocale();
   const {
@@ -113,7 +85,6 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     showEmptyState,
     llmReady,
     providersLoaded,
-    ready,
   } = screen;
   const typingPreview = useChatStore((s) => s.typingPreview);
   const typingPhaseActive = typingPreview !== null;
@@ -128,8 +99,6 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
   const [stashedMessages, setStashedMessages] = useState<ChatMessage[]>([]);
   const [exitingMessages, setExitingMessages] = useState<ChatMessage[]>([]);
   const [prevWantThreadOpen, setPrevWantThreadOpen] = useState(!showStartGate);
-
-  const hydrating = !ready || !providersLoaded;
 
   useMoodReactions(triggerPop);
 
@@ -180,10 +149,6 @@ export function HmatChat({ screen }: { screen: ChatScreen }) {
     screen.send(text);
     triggerPop();
   }, [draft, composerDisabled, screen, triggerPop]);
-
-  if (hydrating) {
-    return <HmatChatSkeleton />;
-  }
 
   const composerMode = heroMode ? "idle" : "ongoing";
   const localizedError = localizeClientError(lastError, t.errors);
