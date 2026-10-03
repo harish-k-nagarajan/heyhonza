@@ -20,7 +20,7 @@ Preview). Names only are documented in [`.env.example`](.env.example).
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public | ✅ (for auth) | Supabase anon/publishable key. Public-safe (RLS protects data). |
 | `ELEVENLABS_API_KEY` | **Server only** | ✅ (for voice) | Honza's voice (Phase 8). From elevenlabs.io → Profile → API Keys. Never `NEXT_PUBLIC_`. Read only by `src/lib/server/tts.ts`; the browser only ever receives audio bytes from `/api/tts`. Without it `/call` still loads but Honza is mute and `/api/health` reports `ttsConfigured:false`. |
 | `ELEVENLABS_VOICE_ID` | Server | optional | Defaults to a free-tier-safe premade voice. **Free tier can't use library voices via the API** — see §5's accent note. |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Public | ✅ (for phone alerts) | Public half of `npx web-push generate-vapid-keys`. Must be present **at build time** so the client bundle can subscribe. |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Public | ✅ (for phone alerts) | Public half of `npx web-push generate-vapid-keys`. The installed app fetches it at runtime from `/api/push/vapid` (public key only). Keep it in env so that route can answer; the client also falls back to the value baked at **build time**. |
 | `VAPID_PRIVATE_KEY` | **Server only** | ✅ (for phone alerts) | Private half of the same pair. Never `NEXT_PUBLIC_`. |
 | `VAPID_SUBJECT` | Server | recommended | `mailto:` or `https:` contact. Default `mailto:honza@localhost`. |
 | `CRON_SECRET` | **Server only** | ✅ (for check-ins) | Bearer token for `GET`/`POST /api/cron/check-ins`. Vercel Cron sends it automatically when the var is named `CRON_SECRET`. Also set it as a GitHub Actions secret so the 15-minute workflow can tick (Hobby Vercel cron is once a day and misses most slots). |
@@ -75,7 +75,7 @@ green-check belongs on prod with the real key in place).
 
 - [ ] `npm run build` is green (also runs in CI on Vercel).
 - [ ] `GET /api/health` → `{ ok: true, llmConfigured: true, vapidConfigured: true, cronConfigured: true, adminConfigured: true }`.
-- [ ] **Push:** install the PWA, turn Daily check-ins on, tap **Send a test alert**. A Honza notification appears. Check-ins also land in Chat after the GitHub Action ticks.
+- [ ] **Push (after this branch is on production):** on the **already installed** Android PWA, Settings → Daily check-ins **off then on** → allow notifications → **Send a test alert**. A Honza notification appears and a `push_subscriptions` row exists (live DB was **0** on 2026-10-03). Check-ins in Chat also need GitHub secret `CRON_SECRET` (still unset).
 - [ ] **Chat round-trip:** open `/chat`, send a Czech message, Honza replies in Czech
       with a correction/continuation. (This is the Phase-3 "live end-to-end" item.)
 - [ ] **Google-Doc route:** in `/onboarding` or `/settings`, import a public Google
@@ -220,15 +220,28 @@ reason is in the server log.
 
 Phone alerts only fire when **all** of these are true:
 
-1. The learner is signed in, daily check-ins are on, and they allowed notifications **from an installed PWA** (iPhone: Add to Home Screen, then open that icon). `next dev` has no service worker — use production or `npm run build && npm start`.
-2. `NEXT_PUBLIC_VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` are set, and the public key was present when that deployment was **built**.
-3. `SUPABASE_SERVICE_ROLE_KEY` + `CRON_SECRET` are set on the server so `/api/cron/check-ins` can run.
-4. Something actually hits that route near the learner's slot. Vercel Hobby only allows **one daily cron** (`0 8 * * *` UTC in `vercel.json`), which cannot cover a 09:00 slot. Ship the GitHub Action in `.github/workflows/check-ins.yml` and set repo secret `CRON_SECRET` (same value as Vercel). Optional `CHECK_INS_URL` if production is not `https://heyhonza.vercel.app`.
-5. `/api/health` reports `vapidConfigured`, `cronConfigured`, and `adminConfigured` all `true`. Settings → Daily check-ins → **Send a test alert** should ping the device immediately.
+1. The learner is signed in, daily check-ins are **on** in the DB (`schedule_enabled`), and they allowed notifications. **iPhone:** open from the home-screen icon (Safari tabs cannot subscribe). **Android:** allow notifications; the installed PWA is what we verify (a normal HTTPS tab can also subscribe). `next-pwa` does not register `/sw.js` in `next-dev`; this branch registers `/push-sw.js` as a fallback so localhost Chrome can subscribe, but **the gate is the installed production app**.
+2. `NEXT_PUBLIC_VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` are set. After this branch deploys, the client reads the **public** key from `GET /api/push/vapid` (never the private key). Until that deploy, production **404s** `/api/push/vapid` and `/push-sw.js`; prod `/sw.js` is the older next-pwa worker (custom chunk still has `push` / `notificationclick`).
+3. `SUPABASE_SERVICE_ROLE_KEY` + `CRON_SECRET` are set on **Vercel** so `/api/cron/check-ins` can run. As of 2026-10-03, GitHub Actions **Daily check-ins** is **failing** because repository secret `CRON_SECRET` is unset (empty in the job). Set it in GitHub to the same value as Vercel — do not put it in the repo. Optional `CHECK_INS_URL` if production is not `https://heyhonza.vercel.app`.
+4. Something actually hits that route near the learner's slot. Vercel Hobby only allows **one daily cron** (`0 8 * * *` UTC in `vercel.json`) — backup only. The GitHub Action in `.github/workflows/check-ins.yml` is the 15-minute ticker.
+5. `/api/health` reports `vapidConfigured`, `cronConfigured`, and `adminConfigured` all `true` (production already does). That is **not** enough: live Postgres still had **0** `push_subscriptions` (and **5** `scheduled_deliveries`) on 2026-10-03. `sendPushToUser` has nobody to ping until a device POST `/api/push/subscribe`.
 
-If the production host is `*.vercel.app` with **Deployment Protection / SSO** on, phones and GitHub Actions will see a Vercel login wall. Turn that off for production, or use a custom domain (this project’s protection setting excludes custom domains).
+**SSO:** Production `heyhonza.vercel.app` Deployment Protection is **preview-only** (2026-10-03). Production `/api/health` returns JSON 200, not a Vercel login HTML wall. Keep Preview protected. If Production SSO is turned back on, the installed PWA cannot save a subscription.
 
 `GET /api/health` is public booleans only — it never echoes keys.
+
+### Phone walk (Harish — after this branch deploys)
+
+Do this on the **already installed** Android PWA at `https://heyhonza.vercel.app`, not on local next-dev:
+
+1. Open the installed app. Sign in if asked. You must **not** see a Vercel SSO page.
+2. Settings → Daily check-ins: turn **off**, then **on**.
+3. Allow notifications when the browser/OS asks.
+4. Tap **Send a test alert**.
+5. A Honza notification should appear (shade / lock screen). Tap it — Chat should open.
+6. Confirm a `push_subscriptions` row exists for your user (it was 0). The Prague profile with `first_message_time = 14:30` had `schedule_enabled=false` until this toggle.
+
+Until that walk succeeds, Phase 5 / leftover primitives stay 🟡. A test alert proves the phone path; daily 14:30 pings also need `schedule_enabled=true` **and** GitHub `CRON_SECRET` so the 15-minute job can tick.
 
 ---
 

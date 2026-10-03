@@ -227,7 +227,7 @@ export async function loadUserState(): Promise<UserState | null> {
     onboardingCompleted: Boolean(p?.onboarding_completed),
     onboardingStep: clampOnboardingStep(Number(p?.onboarding_step ?? 1)),
     formality: p?.formality === "vy" ? "vy" : "ty",
-    scheduleEnabled: p?.schedule_enabled !== false,
+    scheduleEnabled: p?.schedule_enabled === true,
     dailyMessageCount: daily === 2 || daily === 3 ? daily : 1,
     scheduleMode: p?.schedule_mode === "random" ? "random" : "specific",
     firstMessageTime:

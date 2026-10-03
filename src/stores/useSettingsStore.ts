@@ -94,7 +94,7 @@ const initial = {
   learnerName: "",
   fullName: "",
   timezone: "UTC",
-  scheduleEnabled: true,
+  scheduleEnabled: false,
   dailyMessageCount: DEFAULT_DAILY_MESSAGE_COUNT,
   scheduleMode: DEFAULT_SCHEDULE_MODE,
   firstMessageTime: DEFAULT_FIRST_MESSAGE_TIME,

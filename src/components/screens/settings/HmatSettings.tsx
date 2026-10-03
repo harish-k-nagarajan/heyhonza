@@ -44,6 +44,7 @@ import { TYPE } from "@/lib/design/typography";
 import { signOutToWelcome } from "@/lib/client/sign-out";
 import type { SettingsScreen } from "@/hooks/useSettingsScreen";
 import { useLocale } from "@/lib/i18n/useLocale";
+import { isIosPushDevice } from "@/lib/push/client";
 
 const TOPIC_ROWS: TopicId[][] = [
   ["daily", "travel", "food"],
@@ -265,7 +266,9 @@ export function HmatSettings({ screen }: { screen: SettingsScreen }) {
 
       <HmatSettingsSection label={s.sections.schedule}>
         <HmatSettingsCard className="space-y-3 p-4">
-          <HmatSettingsHint>{s.scheduleHint}</HmatSettingsHint>
+          <HmatSettingsHint>
+            {isIosPushDevice() ? s.scheduleHintIos : s.scheduleHintAndroid}
+          </HmatSettingsHint>
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 flex-1 items-center gap-2.5">
               <HmatSettingsIconWrap>

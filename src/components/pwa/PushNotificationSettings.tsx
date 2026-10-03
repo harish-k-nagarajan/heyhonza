@@ -7,7 +7,9 @@ import { cn } from "@/lib/cn";
 import { DESIGNS } from "@/lib/design/registry";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
+import { explainPushFailure } from "@/lib/i18n/locales";
 import {
+  isIosPushDevice,
   pushSupport,
   subscribeToPush,
   unsubscribeFromPush,
@@ -31,12 +33,12 @@ export function PushNotificationSettings() {
   const [note, setNote] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
-      void navigator.serviceWorker.ready.then(async (reg) => {
-        const sub = await reg.pushManager.getSubscription();
-        setEnabled(!!sub);
-      });
-    }
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    void navigator.serviceWorker.getRegistration().then(async (reg) => {
+      if (!reg) return;
+      const sub = await reg.pushManager.getSubscription();
+      setEnabled(!!sub);
+    });
   }, []);
 
   const toggle = useCallback(async () => {
@@ -53,7 +55,7 @@ export function PushNotificationSettings() {
           setEnabled(true);
           setNote(s.notificationsReady);
         } else {
-          setNote(result.reason ?? s.notificationsEnableFailed);
+          setNote(explainPushFailure(result.reason, s));
         }
       }
     } finally {
@@ -72,7 +74,9 @@ export function PushNotificationSettings() {
           {`// ${s.sections.notifications}`}
         </p>
       )}
-      <p className={isHmat ? TYPE.subtitle : cn(TYPE.helper)}>{s.notificationsHint}</p>
+      <p className={isHmat ? TYPE.subtitle : cn(TYPE.helper)}>
+        {isIosPushDevice() ? s.notificationsHintIos : s.notificationsHintAndroid}
+      </p>
       <Button
         type="button"
         disabled={busy || support === "denied"}
