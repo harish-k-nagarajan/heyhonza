@@ -53,6 +53,10 @@ export type PersistedProfile = {
   dailyMessageCount: DailyMessageCount;
   scheduleMode: ScheduleMode;
   firstMessageTime: string;
+  /** Null until the learner picks a second clock time. The scheduler then uses first + 4h. */
+  secondMessageTime: string | null;
+  /** Null until the learner picks a third clock time. The scheduler then uses first + 8h. */
+  thirdMessageTime: string | null;
   timezone: string | null;
   focusTopic: string | null;
   recentTopics: string[];
@@ -171,7 +175,7 @@ export async function loadUserState(): Promise<UserState | null> {
   await migrateOrphanMessages(user.id, supabase);
 
   const profileColumnSets = [
-    "full_name, name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone, focus_topic, recent_topics, last_openers",
+    "full_name, name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, second_message_time, third_message_time, timezone, focus_topic, recent_topics, last_openers",
     "name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone, focus_topic, recent_topics, last_openers",
     "name, level, topics, preferred_model, onboarding_completed, onboarding_step, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
     "name, level, topics, preferred_model, onboarding_completed, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
@@ -234,6 +238,14 @@ export async function loadUserState(): Promise<UserState | null> {
       typeof p?.first_message_time === "string" && p.first_message_time
         ? p.first_message_time
         : "09:00",
+    secondMessageTime:
+      typeof p?.second_message_time === "string" && p.second_message_time
+        ? p.second_message_time
+        : null,
+    thirdMessageTime:
+      typeof p?.third_message_time === "string" && p.third_message_time
+        ? p.third_message_time
+        : null,
     timezone: (p?.timezone as string | null) ?? null,
     focusTopic: typeof p?.focus_topic === "string" ? p.focus_topic : null,
     recentTopics: asTopicIds((p?.recent_topics as string[] | null) ?? []),
@@ -449,6 +461,8 @@ export type ProfilePatch = Partial<{
   dailyMessageCount: DailyMessageCount;
   scheduleMode: ScheduleMode;
   firstMessageTime: string;
+  secondMessageTime: string | null;
+  thirdMessageTime: string | null;
   timezone: string | null;
   focusTopic: string | null;
   recentTopics: string[];
@@ -475,6 +489,8 @@ export async function updateProfile(patch: ProfilePatch): Promise<boolean> {
     row.daily_message_count = patch.dailyMessageCount;
   if ("scheduleMode" in patch) row.schedule_mode = patch.scheduleMode;
   if ("firstMessageTime" in patch) row.first_message_time = patch.firstMessageTime;
+  if ("secondMessageTime" in patch) row.second_message_time = patch.secondMessageTime;
+  if ("thirdMessageTime" in patch) row.third_message_time = patch.thirdMessageTime;
   if ("timezone" in patch) row.timezone = patch.timezone;
   if ("focusTopic" in patch) row.focus_topic = patch.focusTopic;
   if ("recentTopics" in patch) row.recent_topics = asTopicIds(patch.recentTopics ?? []);
@@ -488,6 +504,8 @@ export async function updateProfile(patch: ProfilePatch): Promise<boolean> {
     "recent_topics",
     "last_openers",
     "onboarding_step",
+    "second_message_time",
+    "third_message_time",
   ];
   let payload = { ...row };
   const droppable = optional.filter((key) => key in payload);

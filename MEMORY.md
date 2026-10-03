@@ -4,7 +4,24 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-03 (account card shows full name)
+## Current entry — 2026-10-03 (specific-time check-ins)
+
+### What broke
+A test alert calls `/api/push/test` immediately. A chosen clock time only sends when something POSTs `/api/cron/check-ins`. Vercel Hobby cron is once a day at 08:00 UTC, so a 12:54 Europe/Prague slot was stored correctly and then waited until the next morning. The GitHub Action that was supposed to tick every 15 minutes is **disabled**, and its last runs failed because repo secret `CRON_SECRET` was empty.
+
+`1× / 2× / 3×` only stored `first_message_time`. The second and third messages were invented as +4h and +8h, with no pickers.
+
+### What changed
+Supabase `pg_cron` job `honza-check-ins` runs every minute and POSTs the production check-in route. The bearer is Vault secret `honza_cron_secret` (not in git). At 11:14 UTC the 12:54 Prague slot for `harishnokia@gmail.com` was delivered: `sent: 1`, `pushed: 1`, chat line written. Later ticks are `errors: 0`.
+
+Settings and onboarding now show one time row per count (1, 2, or 3). Blank later times still default to +4h / +8h. Columns: `profiles.second_message_time`, `profiles.third_message_time` (`0008`). The ticker SQL is `0009`. Catch-up is 3 hours, not 26, so changing today's time does not replay yesterday. A model auth failure keeps the slot claim so a bad key is not retried every minute.
+
+### Decision
+Do not turn the GitHub Action back on for a private repo. It bills one minute per run and was never given `CRON_SECRET`. The Supabase minute job is the ticker. Vercel’s daily cron stays as a backup only.
+
+---
+
+## Previous — 2026-10-03 (account card shows full name)
 
 ### What changed
 The settings account card title is the full name in Doto (`font-display`), with the email on the line under it. `profiles.name` stays the name Honza uses (“What should Honza call you?”). A new `profiles.full_name` column (migration `0007_profile_full_name.sql`, applied on Hey Honza) holds the card name. Saving either name draws a green circle and a white tick inside that field; editing the field clears it.

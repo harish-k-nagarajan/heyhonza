@@ -267,6 +267,10 @@ export type SettingsCopy = {
   scheduleRandom: string;
   scheduleFirstMessage: string;
   scheduleFirstMessageAria: string;
+  scheduleSecondMessage: string;
+  scheduleSecondMessageAria: string;
+  scheduleThirdMessage: string;
+  scheduleThirdMessageAria: string;
   scheduleHint: string;
   appLanguageHint: string;
   aiTextHint: string;
@@ -497,6 +501,10 @@ const en: LocaleStrings = {
     scheduleRandom: "Random",
     scheduleFirstMessage: "First message",
     scheduleFirstMessageAria: "First message time",
+    scheduleSecondMessage: "Second message",
+    scheduleSecondMessageAria: "Second message time",
+    scheduleThirdMessage: "Third message",
+    scheduleThirdMessageAria: "Third message time",
     scheduleHint:
       "You'll be asked to allow notifications. Add Honza to your home screen first — then check-ins ping this device on iPhone and Android.",
     appLanguageHint: "Which language should the app use?",
@@ -738,6 +746,10 @@ const cs: LocaleStrings = {
     scheduleRandom: "Náhodně",
     scheduleFirstMessage: "První zpráva",
     scheduleFirstMessageAria: "Čas první zprávy",
+    scheduleSecondMessage: "Druhá zpráva",
+    scheduleSecondMessageAria: "Čas druhé zprávy",
+    scheduleThirdMessage: "Třetí zpráva",
+    scheduleThirdMessageAria: "Čas třetí zprávy",
     scheduleHint:
       "Požádá o povolení oznámení. Nejdřív přidej Honzu na plochu — funguje stejně na iPhonu i Androidu.",
     appLanguageHint: "V jakém jazyce chceš rozhraní?",

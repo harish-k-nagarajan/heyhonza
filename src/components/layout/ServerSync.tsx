@@ -62,6 +62,12 @@ function applyServerState(data: ServerState): void {
   if (data.profile.firstMessageTime) {
     settings.setFirstMessageTime(data.profile.firstMessageTime);
   }
+  settings.setSecondMessageTime(
+    typeof data.profile.secondMessageTime === "string" ? data.profile.secondMessageTime : null,
+  );
+  settings.setThirdMessageTime(
+    typeof data.profile.thirdMessageTime === "string" ? data.profile.thirdMessageTime : null,
+  );
   if (data.profile.timezone) settings.setTimezone(data.profile.timezone);
   settings.setEngineFocus({
     focusTopic: (data.profile.focusTopic as TopicId | null) ?? null,

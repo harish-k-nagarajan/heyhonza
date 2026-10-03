@@ -51,6 +51,10 @@ export type OnboardingScreen = {
   setScheduleMode: (mode: ScheduleMode) => void;
   firstMessageTime: string;
   setFirstMessageTime: (time: string) => void;
+  secondMessageTime: string | null;
+  setSecondMessageTime: (time: string) => void;
+  thirdMessageTime: string | null;
+  setThirdMessageTime: (time: string) => void;
 
   llm: ProviderUiStatus | null;
   tts: ProviderUiStatus | null;
@@ -97,6 +101,10 @@ export function useOnboardingScreen(): OnboardingScreen {
   const setScheduleMode = useSettingsStore((s) => s.setScheduleMode);
   const firstMessageTime = useSettingsStore((s) => s.firstMessageTime);
   const setFirstMessageTime = useSettingsStore((s) => s.setFirstMessageTime);
+  const secondMessageTime = useSettingsStore((s) => s.secondMessageTime);
+  const setSecondMessageTime = useSettingsStore((s) => s.setSecondMessageTime);
+  const thirdMessageTime = useSettingsStore((s) => s.thirdMessageTime);
+  const setThirdMessageTime = useSettingsStore((s) => s.setThirdMessageTime);
   const setScheduleEnabled = useSettingsStore((s) => s.setScheduleEnabled);
 
   const design = useDesignStore((s) => s.design);
@@ -171,9 +179,11 @@ export function useOnboardingScreen(): OnboardingScreen {
         dailyMessageCount,
         scheduleMode,
         firstMessageTime,
+        secondMessageTime,
+        thirdMessageTime,
       });
     },
-    [dailyMessageCount, firstMessageTime, scheduleMode],
+    [dailyMessageCount, firstMessageTime, scheduleMode, secondMessageTime, thirdMessageTime],
   );
 
   const toggleTopic = (id: TopicId) => {
@@ -287,6 +297,8 @@ export function useOnboardingScreen(): OnboardingScreen {
         dailyMessageCount,
         scheduleMode,
         firstMessageTime,
+        secondMessageTime,
+        thirdMessageTime,
         timezone: detectTimezone(),
       });
       setOnboardingComplete(true);
@@ -378,6 +390,10 @@ export function useOnboardingScreen(): OnboardingScreen {
     setScheduleMode,
     firstMessageTime,
     setFirstMessageTime,
+    secondMessageTime,
+    setSecondMessageTime,
+    thirdMessageTime,
+    setThirdMessageTime,
     llm,
     tts,
     providerBusy,

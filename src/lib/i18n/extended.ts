@@ -85,6 +85,10 @@ export type OnboardingCopy = {
   random: string;
   firstMessage: string;
   firstMessageTimeAria: string;
+  secondMessage: string;
+  secondMessageTimeAria: string;
+  thirdMessage: string;
+  thirdMessageTimeAria: string;
   googleDoc: string;
   googleDocShare: string;
   fileOrPaste: string;
@@ -296,6 +300,10 @@ const enExtended: ExtendedCopy = {
     random: "Random",
     firstMessage: "First message",
     firstMessageTimeAria: "First message time",
+    secondMessage: "Second message",
+    secondMessageTimeAria: "Second message time",
+    thirdMessage: "Third message",
+    thirdMessageTimeAria: "Third message time",
     googleDoc: "GOOGLE DOC",
     googleDocShare: "Share the doc so anyone with the link can view it",
     fileOrPaste: "FILE OR PASTE",
@@ -532,6 +540,10 @@ const csExtended: ExtendedCopy = {
     random: "Náhodně",
     firstMessage: "První zpráva",
     firstMessageTimeAria: "Čas první zprávy",
+    secondMessage: "Druhá zpráva",
+    secondMessageTimeAria: "Čas druhé zprávy",
+    thirdMessage: "Třetí zpráva",
+    thirdMessageTimeAria: "Čas třetí zprávy",
     googleDoc: "GOOGLE DOC",
     googleDocShare: "Sdílej dokument tak, aby ho kdokoli s odkazem mohl jen číst",
     fileOrPaste: "SOUBOR NEBO TEXT",

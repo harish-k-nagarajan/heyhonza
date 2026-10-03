@@ -102,7 +102,7 @@ Prints an `/auth/callback` URL you can open in any browser. It mints the token t
 
 ## Deployment
 
-Deploy to Vercel and set environment variables in the project dashboard (see `.env.example` and `DEPLOY.md` §1 + §6). The `next-pwa` plugin generates the service worker automatically at build time. For phone alerts, also set GitHub Action secret `CRON_SECRET` so check-ins tick every 15 minutes — Vercel Hobby’s daily cron is not enough.
+Deploy to Vercel and set environment variables in the project dashboard (see `.env.example` and `DEPLOY.md` §1 + §6). The `next-pwa` plugin generates the service worker automatically at build time. Phone alerts at a chosen time need the Supabase minute ticker in `DEPLOY.md` §6 — Vercel Hobby’s daily cron cannot hit that clock time.
 
 ## Scope
 

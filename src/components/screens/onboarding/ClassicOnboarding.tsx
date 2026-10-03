@@ -14,6 +14,7 @@ import {
 import { OnboardingProviderFields } from "@/components/screens/onboarding/OnboardingProviderFields";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import type { OnboardingScreen } from "@/hooks/useOnboardingScreen";
+import { specificMessageTimes } from "@/lib/schedule-times";
 import { useLocale } from "@/lib/i18n/useLocale";
 
 const TOPIC_ROWS: TopicId[][] = [
@@ -219,20 +220,55 @@ export function ClassicOnboarding({ screen }: { screen: OnboardingScreen }) {
           </div>
 
           {screen.scheduleMode === "specific" ? (
-            <div className="flex items-center justify-between rounded-card border border-border bg-muted px-4 py-3">
-              <span className="text-sm text-foreground">{o.firstMessage}</span>
-              <label className="relative">
-                <span className="text-sm font-semibold text-accent">
-                  {formatDisplayTime(screen.firstMessageTime)}
-                </span>
-                <input
-                  type="time"
-                  value={screen.firstMessageTime}
-                  onChange={(e) => screen.setFirstMessageTime(e.target.value)}
-                  aria-label={o.firstMessageTimeAria}
-                  className="absolute inset-0 opacity-0"
-                />
-              </label>
+            <div className="flex flex-col gap-2">
+              {(
+                [
+                  {
+                    label: o.firstMessage,
+                    aria: o.firstMessageTimeAria,
+                    set: screen.setFirstMessageTime,
+                  },
+                  {
+                    label: o.secondMessage,
+                    aria: o.secondMessageTimeAria,
+                    set: screen.setSecondMessageTime,
+                  },
+                  {
+                    label: o.thirdMessage,
+                    aria: o.thirdMessageTimeAria,
+                    set: screen.setThirdMessageTime,
+                  },
+                ] as const
+              )
+                .slice(0, screen.dailyMessageCount)
+                .map((row, index) => {
+                  const time = specificMessageTimes({
+                    count: screen.dailyMessageCount,
+                    first: screen.firstMessageTime,
+                    second: screen.secondMessageTime,
+                    third: screen.thirdMessageTime,
+                  })[index];
+                  return (
+                    <div
+                      key={row.label}
+                      className="flex items-center justify-between rounded-card border border-border bg-muted px-4 py-3"
+                    >
+                      <span className="text-sm text-foreground">{row.label}</span>
+                      <label className="relative">
+                        <span className="text-sm font-semibold text-accent">
+                          {formatDisplayTime(time)}
+                        </span>
+                        <input
+                          type="time"
+                          value={time}
+                          onChange={(e) => row.set(e.target.value)}
+                          aria-label={row.aria}
+                          className="absolute inset-0 opacity-0"
+                        />
+                      </label>
+                    </div>
+                  );
+                })}
             </div>
           ) : null}
 
