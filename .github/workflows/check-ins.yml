@@ -1,7 +1,8 @@
-# Vercel Hobby only allows one daily cron, which cannot hit a 09:00 slot
-# from an 08:00 UTC job. This workflow ticks every 15 minutes instead.
-# Add repository secrets: CRON_SECRET (same as Vercel) and optionally
-# CHECK_INS_URL (defaults to the production heyhonza app).
+# Backup ticker. Production check-ins are scheduled in Supabase with pg_cron
+# (every minute → POST /api/cron/check-ins). This workflow stays off unless
+# that job is down: it needs repo secret CRON_SECRET, and a private repo
+# bills one GitHub minute per run.
+# Optional CHECK_INS_URL (defaults to the production heyhonza app).
 name: Daily check-ins
 
 on:

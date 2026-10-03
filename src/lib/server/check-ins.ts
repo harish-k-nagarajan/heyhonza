@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
   buildOpenerPrompt,
+  EngineError,
   generateReply,
 } from "@/lib/server/conversation-engine";
 import { prepareEngineTurn } from "@/lib/server/engine-turn";
@@ -30,6 +31,8 @@ type ProfileRow = {
   daily_message_count: number | null;
   schedule_mode: string | null;
   first_message_time: string | null;
+  second_message_time?: string | null;
+  third_message_time?: string | null;
   timezone: string | null;
   focus_topic?: string | null;
   recent_topics?: string[] | null;
@@ -60,7 +63,7 @@ export async function runCheckIns(
   now = new Date(),
 ): Promise<{ sent: number; skipped: number; errors: number; pushed: number }> {
   const selects = [
-    "id, name, full_name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone, focus_topic, recent_topics, last_openers",
+    "id, name, full_name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, second_message_time, third_message_time, timezone, focus_topic, recent_topics, last_openers",
     "id, name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone, focus_topic, recent_topics, last_openers",
     "id, name, level, topics, preferred_model, formality, schedule_enabled, daily_message_count, schedule_mode, first_message_time, timezone",
   ];
@@ -128,6 +131,8 @@ async function deliverForUser(
     count,
     mode,
     firstMessageTime: profile.first_message_time || "09:00",
+    secondMessageTime: profile.second_message_time,
+    thirdMessageTime: profile.third_message_time,
   }, now);
   if (due.length === 0) return { delivered: false, pushed: 0 };
 
@@ -239,6 +244,12 @@ async function deliverForUser(
         lastOpeners: prepared.lastOpeners,
       }));
     } catch (e) {
+      // A bad key will not start working a minute later. Keep the claim so the
+      // ticker does not call the model again for this same slot.
+      if (e instanceof EngineError && (e.kind === "auth" || e.kind === "not_configured")) {
+        console.error("[check-ins] model auth, slot kept", profile.id, e.kind);
+        continue;
+      }
       await releaseClaim(supabase, profile.id, slotAt);
       throw e;
     }

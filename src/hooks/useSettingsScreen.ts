@@ -33,6 +33,7 @@ import {
   unsubscribeFromPush,
   type PushSupport,
 } from "@/lib/push/client";
+import { normalizeHm } from "@/lib/schedule-times";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useDesignStore } from "@/stores/useDesignStore";
@@ -69,6 +70,10 @@ export type SettingsScreen = {
   setScheduleMode: (mode: ScheduleMode) => void;
   firstMessageTime: string;
   setFirstMessageTime: (time: string) => void;
+  secondMessageTime: string | null;
+  setSecondMessageTime: (time: string) => void;
+  thirdMessageTime: string | null;
+  setThirdMessageTime: (time: string) => void;
   pushHint: string | null;
   pushSupport: PushSupport;
   sendTestPush: () => void;
@@ -139,6 +144,10 @@ export function useSettingsScreen(): SettingsScreen {
   const setScheduleModeStore = useSettingsStore((s) => s.setScheduleMode);
   const firstMessageTime = useSettingsStore((s) => s.firstMessageTime);
   const setFirstMessageTimeStore = useSettingsStore((s) => s.setFirstMessageTime);
+  const secondMessageTime = useSettingsStore((s) => s.secondMessageTime);
+  const setSecondMessageTimeStore = useSettingsStore((s) => s.setSecondMessageTime);
+  const thirdMessageTime = useSettingsStore((s) => s.thirdMessageTime);
+  const setThirdMessageTimeStore = useSettingsStore((s) => s.setThirdMessageTime);
   const formality = useSettingsStore((s) => s.formality);
   const setFormalityStore = useSettingsStore((s) => s.setFormality);
   const learnerName = useSettingsStore((s) => s.learnerName);
@@ -238,6 +247,8 @@ export function useSettingsScreen(): SettingsScreen {
       dailyMessageCount?: DailyMessageCount;
       scheduleMode?: ScheduleMode;
       firstMessageTime?: string;
+      secondMessageTime?: string | null;
+      thirdMessageTime?: string | null;
     }) => {
       const tz = detectTimezone();
       setTimezone(tz);
@@ -247,12 +258,16 @@ export function useSettingsScreen(): SettingsScreen {
         dailyMessageCount,
         scheduleMode,
         firstMessageTime,
+        secondMessageTime,
+        thirdMessageTime,
         ...extra,
       });
     },
     [
       dailyMessageCount,
       firstMessageTime,
+      secondMessageTime,
+      thirdMessageTime,
       scheduleEnabled,
       scheduleMode,
       setTimezone,
@@ -290,8 +305,22 @@ export function useSettingsScreen(): SettingsScreen {
     schedulePatch({ scheduleMode: mode });
   };
   const setFirstMessageTime = (time: string) => {
-    setFirstMessageTimeStore(time);
-    schedulePatch({ firstMessageTime: time });
+    const normalized = normalizeHm(time);
+    if (!normalized) return;
+    setFirstMessageTimeStore(normalized);
+    schedulePatch({ firstMessageTime: normalized });
+  };
+  const setSecondMessageTime = (time: string) => {
+    const normalized = normalizeHm(time);
+    if (!normalized) return;
+    setSecondMessageTimeStore(normalized);
+    schedulePatch({ secondMessageTime: normalized });
+  };
+  const setThirdMessageTime = (time: string) => {
+    const normalized = normalizeHm(time);
+    if (!normalized) return;
+    setThirdMessageTimeStore(normalized);
+    schedulePatch({ thirdMessageTime: normalized });
   };
 
   const setScheduleEnabled = (enabled: boolean) => {
@@ -448,6 +477,10 @@ export function useSettingsScreen(): SettingsScreen {
     setScheduleMode,
     firstMessageTime,
     setFirstMessageTime,
+    secondMessageTime,
+    setSecondMessageTime,
+    thirdMessageTime,
+    setThirdMessageTime,
     pushHint,
     pushSupport: support,
     sendTestPush,

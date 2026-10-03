@@ -18,6 +18,7 @@ import {
 import { buildLearnerContextText } from "@/lib/context";
 import { persistUiLocaleCookie } from "@/lib/i18n/locale-cookie";
 import { DEFAULT_LOCALE, type UiLocale } from "@/lib/i18n/locales";
+import { normalizeHm } from "@/lib/schedule-times";
 import { asTopicIds } from "@/lib/topic-focus";
 import type { ContextChunk, ContextSource } from "@/types";
 
@@ -43,6 +44,8 @@ export type SettingsState = {
   dailyMessageCount: DailyMessageCount;
   scheduleMode: ScheduleMode;
   firstMessageTime: string;
+  secondMessageTime: string | null;
+  thirdMessageTime: string | null;
   formality: FormalityMode;
   uiLocale: UiLocale;
   setUiLocale: (locale: UiLocale) => void;
@@ -63,6 +66,8 @@ export type SettingsState = {
   setDailyMessageCount: (count: DailyMessageCount) => void;
   setScheduleMode: (mode: ScheduleMode) => void;
   setFirstMessageTime: (time: string) => void;
+  setSecondMessageTime: (time: string | null) => void;
+  setThirdMessageTime: (time: string | null) => void;
   setFormality: (mode: FormalityMode) => void;
   addContextChunk: (text: string, meta: ContextSource, id?: string) => void;
   replaceContextByKind: (text: string, meta: ContextSource, id?: string) => void;
@@ -98,6 +103,8 @@ const initial = {
   dailyMessageCount: DEFAULT_DAILY_MESSAGE_COUNT,
   scheduleMode: DEFAULT_SCHEDULE_MODE,
   firstMessageTime: DEFAULT_FIRST_MESSAGE_TIME,
+  secondMessageTime: null as string | null,
+  thirdMessageTime: null as string | null,
   formality: DEFAULT_FORMALITY as FormalityMode,
   uiLocale: DEFAULT_LOCALE as UiLocale,
 };
@@ -127,7 +134,12 @@ export const useSettingsStore = create<SettingsState>()(
       setScheduleEnabled: (scheduleEnabled) => set({ scheduleEnabled }),
       setDailyMessageCount: (dailyMessageCount) => set({ dailyMessageCount }),
       setScheduleMode: (scheduleMode) => set({ scheduleMode }),
-      setFirstMessageTime: (firstMessageTime) => set({ firstMessageTime }),
+      setFirstMessageTime: (value) => {
+        const firstMessageTime = normalizeHm(value);
+        if (firstMessageTime) set({ firstMessageTime });
+      },
+      setSecondMessageTime: (value) => set({ secondMessageTime: normalizeHm(value) }),
+      setThirdMessageTime: (value) => set({ thirdMessageTime: normalizeHm(value) }),
       setFormality: (formality) => set({ formality }),
       addContextChunk: (text, meta, id) => {
         const t = text.trim();

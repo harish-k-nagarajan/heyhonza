@@ -1,10 +1,19 @@
 import "server-only";
 
+import { specificMessageTimes } from "@/lib/schedule-times";
+
 /**
  * Compute today's check-in slot instants in UTC for a learner's timezone.
- * Specific mode: first slot at `firstMessageTime`, remaining slots spread ~4h.
+ * Specific mode: one slot per chosen clock time (1, 2, or 3).
  * Random mode: stable per (user, local date) between 08:00 and 21:00.
  */
+
+/**
+ * How long after a slot we still send it.
+ * The ticker runs every minute, so this only covers a short outage.
+ * A day-long window replayed yesterday's slot whenever today's time changed.
+ */
+export const CHECK_IN_GRACE_MS = 3 * 60 * 60 * 1000;
 
 export type ScheduleMode = "specific" | "random";
 
@@ -80,6 +89,8 @@ export function slotsForLocalDay(opts: {
   count: number;
   mode: ScheduleMode;
   firstMessageTime: string;
+  secondMessageTime?: string | null;
+  thirdMessageTime?: string | null;
 }): Date[] {
   const tz = opts.timeZone || "UTC";
   const local = partsInZone(tz, opts.now);
@@ -87,12 +98,18 @@ export function slotsForLocalDay(opts: {
   const minutes: number[] = [];
 
   if (opts.mode === "specific") {
-    const first = parseHm(opts.firstMessageTime);
-    const start = first.hour * 60 + first.minute;
-    minutes.push(start);
-    const gap = 4 * 60;
-    for (let i = 1; i < n; i++) {
-      minutes.push(Math.min(start + gap * i, 21 * 60));
+    const seen = new Set<number>();
+    for (const time of specificMessageTimes({
+      count: n,
+      first: opts.firstMessageTime,
+      second: opts.secondMessageTime,
+      third: opts.thirdMessageTime,
+    })) {
+      const parsed = parseHm(time);
+      const mins = parsed.hour * 60 + parsed.minute;
+      if (seen.has(mins)) continue;
+      seen.add(mins);
+      minutes.push(mins);
     }
   } else {
     const seed = hash32(`${opts.userId}:${local.year}-${local.month}-${local.day}`);
@@ -118,7 +135,7 @@ export function slotsForLocalDay(opts: {
 }
 
 /** Slots that should have fired by `now`, within a catch-up window. */
-export function dueSlots(slots: Date[], now: Date, graceMs = 26 * 60 * 60 * 1000): Date[] {
+export function dueSlots(slots: Date[], now: Date, graceMs = CHECK_IN_GRACE_MS): Date[] {
   return slots.filter((slot) => {
     const t = slot.getTime();
     return t <= now.getTime() && now.getTime() - t <= graceMs;
@@ -126,13 +143,13 @@ export function dueSlots(slots: Date[], now: Date, graceMs = 26 * 60 * 60 * 1000
 }
 
 /**
- * Today's slots plus yesterday's, so a once-daily Hobby cron still catches a
- * 09:00 UTC default that Vercel's 08:00 UTC job would otherwise skip forever.
+ * Today's slots plus yesterday's, so a slot just before midnight is still due
+ * in the grace window after the date rolls over.
  */
 export function slotsDueForCheckIn(
   opts: Parameters<typeof slotsForLocalDay>[0],
   now: Date,
-  graceMs = 26 * 60 * 60 * 1000,
+  graceMs = CHECK_IN_GRACE_MS,
 ): Date[] {
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const seen = new Set<string>();

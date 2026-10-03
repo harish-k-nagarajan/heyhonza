@@ -33,6 +33,8 @@ export type ServerState = {
     dailyMessageCount?: 1 | 2 | 3;
     scheduleMode?: "specific" | "random";
     firstMessageTime?: string;
+    secondMessageTime?: string | null;
+    thirdMessageTime?: string | null;
     timezone?: string | null;
     focusTopic?: string | null;
     recentTopics?: string[];
