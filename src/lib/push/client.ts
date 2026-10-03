@@ -61,18 +61,11 @@ function applicationServerKey(vapidPublic: string): Uint8Array {
 function existingApplicationServerKey(sub: PushSubscription): ArrayBuffer | null {
   const key = sub.options.applicationServerKey;
   if (!key) return null;
-  if (key instanceof ArrayBuffer) {
-    const copy = new Uint8Array(key.byteLength);
-    copy.set(new Uint8Array(key));
-    return copy.buffer;
-  }
-  if (ArrayBuffer.isView(key)) {
-    const view = key;
-    const copy = new Uint8Array(view.byteLength);
-    copy.set(new Uint8Array(view.buffer, view.byteOffset, view.byteLength));
-    return copy.buffer;
-  }
-  return null;
+  // DOM types this as ArrayBuffer; some browsers still hand back a view.
+  const source = new Uint8Array(key);
+  const copy = new Uint8Array(source.byteLength);
+  copy.set(source);
+  return copy.buffer;
 }
 
 function keysMatch(existing: ArrayBuffer | null, expected: Uint8Array): boolean {
