@@ -267,7 +267,8 @@ export type SettingsCopy = {
   scheduleRandom: string;
   scheduleFirstMessage: string;
   scheduleFirstMessageAria: string;
-  scheduleHint: string;
+  scheduleHintIos: string;
+  scheduleHintAndroid: string;
   appLanguageHint: string;
   aiTextHint: string;
   aiVoiceHint: string;
@@ -302,7 +303,8 @@ export type SettingsCopy = {
   googleDocFailed: string;
   fileUploadHint: string;
   resetChat: string;
-  notificationsHint: string;
+  notificationsHintIos: string;
+  notificationsHintAndroid: string;
   notificationsOn: string;
   notificationsOff: string;
   notificationsDenied: string;
@@ -310,6 +312,13 @@ export type SettingsCopy = {
   notificationsTurnedOff: string;
   notificationsEnableFailed: string;
   notificationsTest: string;
+  pushErrorUnsupported: string;
+  pushErrorDenied: string;
+  pushErrorIosInstall: string;
+  pushErrorVapid: string;
+  pushErrorNoSw: string;
+  pushErrorSubscribeFailed: string;
+  notificationsTestSent: string;
   serverStatus: string;
   serverChecking: string;
   serverConfigured: string;
@@ -497,8 +506,10 @@ const en: LocaleStrings = {
     scheduleRandom: "Random",
     scheduleFirstMessage: "First message",
     scheduleFirstMessageAria: "First message time",
-    scheduleHint:
-      "You'll be asked to allow notifications. Add Honza to your home screen first — then check-ins ping this device on iPhone and Android.",
+    scheduleHintIos:
+      "Open Honza from the home-screen icon, then allow notifications. iPhone won't ping a Safari tab.",
+    scheduleHintAndroid:
+      "You'll be asked to allow notifications. Adding Honza to your home screen helps alerts arrive in the background, but it isn't required.",
     appLanguageHint: "Which language should the app use?",
     aiTextHint: "Paste an OpenRouter key so Honza can reply in chat.",
     aiVoiceHint: "Paste an ElevenLabs key so Honza can speak on calls.",
@@ -541,8 +552,10 @@ const en: LocaleStrings = {
     googleDocFailed: "Couldn’t load — check the link",
     fileUploadHint: "Tap to choose a file",
     resetChat: "Reset chat",
-    notificationsHint:
-      "Get notified when Honza writes first. Needs an installed PWA — service workers are off in local next dev.",
+    notificationsHintIos:
+      "Get a ping when Honza writes first. Open the app from the home-screen icon, then allow notifications.",
+    notificationsHintAndroid:
+      "Get a ping when Honza writes first. Allow notifications — installing the app helps in the background, but it isn't required.",
     notificationsOn: "Turn on",
     notificationsOff: "Turn off",
     notificationsDenied: "Allow notifications in browser settings.",
@@ -550,6 +563,16 @@ const en: LocaleStrings = {
     notificationsTurnedOff: "Notifications turned off.",
     notificationsEnableFailed: "Could not enable notifications.",
     notificationsTest: "Send a test alert",
+    pushErrorUnsupported: "This browser can't send phone alerts.",
+    pushErrorDenied: "Notifications are blocked. Allow them in your browser or phone settings.",
+    pushErrorIosInstall:
+      "On iPhone, open Honza from the home-screen icon, then turn check-ins on.",
+    pushErrorVapid:
+      "Phone alerts aren't set up on the server yet. Daily check-ins still save; they just won't ping this device.",
+    pushErrorNoSw:
+      "Couldn't start a service worker in this tab. Use the installed app, or a production build.",
+    pushErrorSubscribeFailed: "This browser refused the push subscription.",
+    notificationsTestSent: "Test sent — you should see a Honza alert on this device.",
     serverStatus: "Server status",
     serverChecking: "…",
     serverConfigured: "configured",
@@ -738,8 +761,10 @@ const cs: LocaleStrings = {
     scheduleRandom: "Náhodně",
     scheduleFirstMessage: "První zpráva",
     scheduleFirstMessageAria: "Čas první zprávy",
-    scheduleHint:
-      "Požádá o povolení oznámení. Nejdřív přidej Honzu na plochu — funguje stejně na iPhonu i Androidu.",
+    scheduleHintIos:
+      "Otevři Honzu z ikony na ploše a povol oznámení. Ze záložky v Safari to na iPhonu nefunguje.",
+    scheduleHintAndroid:
+      "Aplikace požádá o povolení oznámení. Ikona na ploše pomůže, aby upozornění přišla na pozadí, ale není nutná.",
     appLanguageHint: "V jakém jazyce chceš rozhraní?",
     aiTextHint: "Vlož OpenRouter klíč, ať ti Honza odpovídá v chatu.",
     aiVoiceHint: "Vlož ElevenLabs klíč, ať Honza mluví v hovorech.",
@@ -782,8 +807,10 @@ const cs: LocaleStrings = {
     googleDocFailed: "Nešlo načíst — zkontroluj odkaz",
     fileUploadHint: "Klepnutím vyber soubor",
     resetChat: "Resetovat chat",
-    notificationsHint:
-      "Upozornění, když Honza napíše první. Potřebuješ nainstalovanou PWA — v lokálním next dev service worker neběží.",
+    notificationsHintIos:
+      "Pípne to, až Honza napíše první. Otevři aplikaci z ikony na ploše a povol oznámení.",
+    notificationsHintAndroid:
+      "Pípne to, až Honza napíše první. Povol oznámení — instalace na plochu pomůže na pozadí, ale není nutná.",
     notificationsOn: "Zapnout",
     notificationsOff: "Vypnout",
     notificationsDenied: "Povol oznámení v nastavení prohlížeče.",
@@ -791,6 +818,16 @@ const cs: LocaleStrings = {
     notificationsTurnedOff: "Oznámení vypnuta.",
     notificationsEnableFailed: "Oznámení se nepodařilo zapnout.",
     notificationsTest: "Poslat zkušební upozornění",
+    pushErrorUnsupported: "Tento prohlížeč neumí posílat upozornění na telefon.",
+    pushErrorDenied: "Oznámení jsou zablokovaná. Povol je v nastavení prohlížeče nebo telefonu.",
+    pushErrorIosInstall:
+      "Na iPhonu otevři Honzu z ikony na ploše a teprve pak zapni check-iny.",
+    pushErrorVapid:
+      "Upozornění na telefon ještě nejsou na serveru nastavená. Denní check-iny se uloží, ale toto zařízení zatím nepípne.",
+    pushErrorNoSw:
+      "V tomto okně se nepodařilo spustit service worker. Použij nainstalovanou aplikaci nebo produkční build.",
+    pushErrorSubscribeFailed: "Prohlížeč odmítl přihlášení k upozorněním.",
+    notificationsTestSent: "Zkušební upozornění odesláno — mělo by se objevit na tomto zařízení.",
     serverStatus: "Stav serveru",
     serverChecking: "…",
     serverConfigured: "připojeno",
@@ -831,4 +868,28 @@ export const STRINGS: Record<UiLocale, LocaleStrings> = { en, cs };
 
 export function getStrings(locale: UiLocale): LocaleStrings {
   return STRINGS[locale] ?? STRINGS.en;
+}
+
+/** Map subscribe/test failure codes (and leftover server text) to UI copy. */
+export function explainPushFailure(reason: string | undefined, s: SettingsCopy): string {
+  switch (reason) {
+    case "unsupported":
+      return s.pushErrorUnsupported;
+    case "denied":
+    case "permission-denied":
+      return s.pushErrorDenied;
+    case "ios-not-standalone":
+      return s.pushErrorIosInstall;
+    case "vapid-missing":
+      return s.pushErrorVapid;
+    case "no-sw":
+      return s.pushErrorNoSw;
+    case "subscribe-failed":
+    case "save-failed":
+      return s.pushErrorSubscribeFailed;
+    case undefined:
+      return s.notificationsEnableFailed;
+    default:
+      return reason;
+  }
 }

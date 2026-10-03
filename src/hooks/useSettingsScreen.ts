@@ -6,6 +6,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMoodExpression } from "@/hooks/useMoodExpression";
 import { rememberProviderStatusFromResponse } from "@/hooks/useProviderStatus";
 import { useNeedsOnboarding, useScreenReady } from "@/hooks/useScreenReady";
+import { explainPushFailure } from "@/lib/i18n/locales";
+import { useLocale } from "@/lib/i18n/useLocale";
 import { isLikelyGoogleDocUrl } from "@/lib/validators";
 import {
   persistProfile,
@@ -159,6 +161,8 @@ export function useSettingsScreen(): SettingsScreen {
   const [support] = useState<PushSupport>(() =>
     typeof window === "undefined" ? "unsupported" : pushSupport(),
   );
+  const { t } = useLocale();
+  const settingsCopy = t.settings;
 
   const pastedChunk = useMemo(
     () => contextChunks.find((c) => c.meta.kind === "pasted") ?? null,
@@ -233,7 +237,7 @@ export function useSettingsScreen(): SettingsScreen {
   }, []);
 
   const schedulePatch = useCallback(
-    (extra: {
+    async (extra: {
       scheduleEnabled?: boolean;
       dailyMessageCount?: DailyMessageCount;
       scheduleMode?: ScheduleMode;
@@ -241,7 +245,7 @@ export function useSettingsScreen(): SettingsScreen {
     }) => {
       const tz = detectTimezone();
       setTimezone(tz);
-      persistProfile({
+      await persistProfile({
         timezone: tz,
         scheduleEnabled,
         dailyMessageCount,
@@ -283,21 +287,33 @@ export function useSettingsScreen(): SettingsScreen {
 
   const setDailyMessageCount = (count: DailyMessageCount) => {
     setDailyMessageCountStore(count);
-    schedulePatch({ dailyMessageCount: count });
+    void schedulePatch({ dailyMessageCount: count });
   };
   const setScheduleMode = (mode: ScheduleMode) => {
     setScheduleModeStore(mode);
-    schedulePatch({ scheduleMode: mode });
+    void schedulePatch({ scheduleMode: mode });
   };
   const setFirstMessageTime = (time: string) => {
     setFirstMessageTimeStore(time);
-    schedulePatch({ firstMessageTime: time });
+    void schedulePatch({ firstMessageTime: time });
   };
+
+  useEffect(() => {
+    if (!ready || !scheduleEnabled) return;
+    let cancelled = false;
+    void subscribeToPush().then((result) => {
+      if (cancelled || result.ok) return;
+      setPushHint(explainPushFailure(result.reason, settingsCopy));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, scheduleEnabled, settingsCopy]);
 
   const setScheduleEnabled = (enabled: boolean) => {
     void (async () => {
       setScheduleEnabledStore(enabled);
-      schedulePatch({ scheduleEnabled: enabled });
+      await schedulePatch({ scheduleEnabled: enabled });
       setPushHint(null);
       if (!enabled) {
         await unsubscribeFromPush();
@@ -305,7 +321,7 @@ export function useSettingsScreen(): SettingsScreen {
       }
       const result = await subscribeToPush();
       if (!result.ok) {
-        setPushHint(result.reason ?? "Notifications could not be enabled.");
+        setPushHint(explainPushFailure(result.reason, settingsCopy));
       }
     })();
   };
@@ -318,8 +334,8 @@ export function useSettingsScreen(): SettingsScreen {
         const result = await requestTestPush();
         setPushHint(
           result.ok
-            ? "Test sent — you should see a Honza alert on this device."
-            : (result.reason ?? "Could not send a test alert."),
+            ? settingsCopy.notificationsTestSent
+            : explainPushFailure(result.reason, settingsCopy),
         );
       } finally {
         setTestPushBusy(false);

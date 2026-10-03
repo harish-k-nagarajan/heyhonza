@@ -4,7 +4,26 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-03 (account card shows full name)
+## Current entry — 2026-10-03 (push subscribe path; phone walk still open)
+
+### What changed
+Subscribe no longer waits forever on `navigator.serviceWorker.ready`. It uses an existing registration, or registers `/push-sw.js` (same push + click handlers as `worker/index.js`), waits until that worker is **active**, then subscribes. The VAPID **public** key is fetched from `/api/push/vapid` at runtime (private key never leaves the server). Settings persists `schedule_enabled` before subscribe, auto-subscribes when check-ins are on, and **Send a test alert** subscribes first. Client `scheduleEnabled` defaults to **off**. Android vs iOS copy is honest: iPhone needs the home-screen icon; Android can allow notifications from HTTPS (install helps background delivery). Notification click opens `/chat` via `clients.openWindow` with an absolute URL. `src/proxy.ts` excludes `/push-sw.js`.
+
+### Ops (not this branch’s code)
+Production `heyhonza` SSO / Deployment Protection is **preview-only**. `GET https://heyhonza.vercel.app/api/health` returns JSON 200 (not a Vercel login wall). GitHub Actions **Daily check-ins** still fails because repository secret `CRON_SECRET` is **unset** (empty in the workflow env; do not invent or print it). Set it in GitHub to the same value as the Vercel env var.
+
+### What is not live yet
+The new subscribe path is **not on production** until this branch deploys. Prod `/api/health` already has `vapidConfigured`, `cronConfigured`, `adminConfigured` all true. Prod `/sw.js` exists and its custom worker chunk handles `push` / `notificationclick`. Prod `/push-sw.js` and `/api/push/vapid` **404** today. Live DB: **0** `push_subscriptions`, **5** `scheduled_deliveries`. Prague profile `first_message_time = 14:30` still has `schedule_enabled = false`.
+
+### Checked (this session)
+Local `next-dev` (port 3000; **did not** run `npm run build`): `/api/health` all infra booleans true; `/push-sw.js` 200 `application/javascript`; `/api/push/vapid` `{ configured: true, publicKeyPresent: true }` (key not logged). Settings UI at ~430px: signed-out `/settings` correctly redirects to `/login?next=/settings` — could not walk the check-in toggle or a real Android notification from this browser. `npx eslint` on the touched TS/JS files clean (`worker/index.js` is eslint-ignored).
+
+### Decision
+Do not call the branch done until Harish walks the installed Android app after deploy: Settings → check-ins **off then on** → allow → **Send a test alert** → a `push_subscriptions` row exists and the phone shows a Honza alert. Desktop next-dev is not that gate.
+
+---
+
+## Previous — 2026-10-03 (account card shows full name)
 
 ### What changed
 The settings account card title is the full name in Doto (`font-display`), with the email on the line under it. `profiles.name` stays the name Honza uses (“What should Honza call you?”). A new `profiles.full_name` column (migration `0007_profile_full_name.sql`, applied on Hey Honza) holds the card name. Saving either name draws a green circle and a white tick inside that field; editing the field clears it.
