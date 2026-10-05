@@ -345,7 +345,8 @@ export function HmatDock() {
           onEnd={() => {
             const href = leaveTarget;
             setLeaveTarget(null);
-            void endChatSessionAction().then(() => commitHref(href, true));
+            endChatSessionAction();
+            if (href) commitHref(href, true);
           }}
         />
       ) : null}

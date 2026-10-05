@@ -143,8 +143,27 @@ async function endServerSession(
   });
 }
 
-/** One resume per notification, including a React strict-mode remount. */
-const incomingInflight = new Map<string, Promise<string | null>>();
+type ResumePayload = {
+  sessionId: string;
+  messages: {
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+    kind?: "chat" | "call";
+    sessionId?: string;
+    createdAt: number;
+  }[];
+  endedSessions?: ChatSessionMeta[];
+};
+
+/** One resume fetch per notification, including a React strict-mode remount. */
+const incomingInflight = new Map<string, Promise<ResumePayload | null>>();
+
+/**
+ * Bumped when the learner ends a chat. A resume that started before End must
+ * not apply afterwards and put the thread back on screen.
+ */
+let openEpoch = 0;
 
 function incomingKey(request: IncomingOpen): string {
   switch (request.kind) {
@@ -159,22 +178,45 @@ function incomingKey(request: IncomingOpen): string {
   }
 }
 
-/**
- * Open the thread a check-in already wrote. Returns the session id, or null
- * when there is nothing waiting (or the server is not signed in).
- */
-export async function openIncomingChat(request: IncomingOpen): Promise<string | null> {
+function applyResumePayload(data: ResumePayload): void {
+  useChatStore.getState().resumeSession(
+    data.sessionId,
+    data.messages.map((message) => ({
+      id: message.id,
+      role: message.role,
+      content: message.content,
+      kind: message.kind ?? "chat",
+      sessionId: message.sessionId ?? data.sessionId,
+      createdAt: message.createdAt,
+    })),
+    data.endedSessions,
+  );
+}
+
+function loadIncoming(request: IncomingOpen): Promise<ResumePayload | null> {
   const key = incomingKey(request);
   const existing = incomingInflight.get(key);
   if (existing) return existing;
-  const promise = openIncomingChatOnce(request).finally(() => {
+  const promise = fetchIncomingOnce(request).finally(() => {
     if (incomingInflight.get(key) === promise) incomingInflight.delete(key);
   });
   incomingInflight.set(key, promise);
   return promise;
 }
 
-async function openIncomingChatOnce(request: IncomingOpen): Promise<string | null> {
+/**
+ * Open the thread a check-in already wrote. Returns the session id, or null
+ * when there is nothing waiting (or the server is not signed in).
+ */
+export async function openIncomingChat(request: IncomingOpen): Promise<string | null> {
+  const epoch = openEpoch;
+  const data = await loadIncoming(request);
+  if (!data || epoch !== openEpoch) return null;
+  applyResumePayload(data);
+  return data.sessionId;
+}
+
+async function fetchIncomingOnce(request: IncomingOpen): Promise<ResumePayload | null> {
   let body: { sessionId: string } | { checkin: true };
   switch (request.kind) {
     case "session":
@@ -198,30 +240,15 @@ async function openIncomingChatOnce(request: IncomingOpen): Promise<string | nul
     if (!res.ok) return null;
     const data = (await res.json()) as {
       sessionId?: string | null;
-      messages?: {
-        id: string;
-        role: "user" | "assistant";
-        content: string;
-        kind?: "chat" | "call";
-        sessionId?: string;
-        createdAt: number;
-      }[];
+      messages?: ResumePayload["messages"];
       endedSessions?: ChatSessionMeta[];
     };
     if (!data.sessionId || !data.messages || data.messages.length === 0) return null;
-    useChatStore.getState().resumeSession(
-      data.sessionId,
-      data.messages.map((message) => ({
-        id: message.id,
-        role: message.role,
-        content: message.content,
-        kind: message.kind ?? "chat",
-        sessionId: message.sessionId ?? data.sessionId ?? undefined,
-        createdAt: message.createdAt,
-      })),
-      data.endedSessions,
-    );
-    return data.sessionId;
+    return {
+      sessionId: data.sessionId,
+      messages: data.messages,
+      endedSessions: data.endedSessions,
+    };
   } catch {
     return null;
   }
@@ -235,24 +262,32 @@ export function startChatSession(): Promise<string> {
     return Promise.resolve(state.activeSessionId);
   }
 
+  // Composer and the waiting hint flip before the check-in lookup. A waiting
+  // check-in replaces this empty thread; otherwise the server id swaps in later.
+  const localId = state.startSession();
+
   // Assigned before the async body reads it. A const cannot refer to itself.
   let ready: Promise<string> | null = null;
   ready = (async () => {
     try {
-      const waiting = await openIncomingChat({ kind: "checkin" });
-      if (waiting) return waiting;
-
-      // Flip to the composer before any network wait. The server id replaces this
-      // one when it arrives.
-      const localId = useChatStore.getState().startSession();
-      const serverId = await createServerSession();
+      const waiting = await loadIncoming({ kind: "checkin" });
       const current = useChatStore.getState();
+      if (current.chatPhase !== "active" || current.activeSessionId !== localId) {
+        return current.activeSessionId ?? localId;
+      }
+      if (waiting) {
+        applyResumePayload(waiting);
+        return waiting.sessionId;
+      }
+
+      const serverId = await createServerSession();
+      const after = useChatStore.getState();
       if (
         serverId &&
-        current.chatPhase === "active" &&
-        current.activeSessionId === localId
+        after.chatPhase === "active" &&
+        after.activeSessionId === localId
       ) {
-        current.replaceActiveSessionId(serverId);
+        after.replaceActiveSessionId(serverId);
         return serverId;
       }
       return useChatStore.getState().activeSessionId ?? localId;
@@ -264,8 +299,12 @@ export function startChatSession(): Promise<string> {
   return ready;
 }
 
-/** End the active session and archive it for history. */
-export async function endChatSessionAction(): Promise<void> {
+/**
+ * Close the active session on screen first, then PATCH the archive.
+ * Callers must not wait on the save before changing the screen.
+ */
+export function endChatSessionAction(): void {
+  openEpoch += 1;
   const chat = useChatStore.getState();
   const { activeSessionId, messages } = chat;
   if (!activeSessionId) {
@@ -275,14 +314,16 @@ export async function endChatSessionAction(): Promise<void> {
   const thread = messages.filter(
     (m) => (m.kind ?? "chat") !== "call" && (m.role === "user" || m.role === "assistant"),
   );
-  if (thread.length > 0) {
-    await endServerSession(
-      activeSessionId,
-      previewFromThread(thread),
-      thread.length,
-    );
-  }
+  const sessionId = activeSessionId;
+  const preview = thread.length > 0 ? previewFromThread(thread) : "";
+  const messageCount = thread.length;
   chat.endSession();
+  if (messageCount > 0) {
+    void endServerSession(sessionId, preview, messageCount).catch(() => {
+      // The thread is already closed on screen. A missed save stays open on
+      // the server until the next end or resume.
+    });
+  }
 }
 
 export async function sendUserTurn(

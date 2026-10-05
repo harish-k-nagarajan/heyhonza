@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { useMoodExpression } from "@/hooks/useMoodExpression";
@@ -12,12 +12,12 @@ import {
   sendUserTurn,
   startChatSession,
 } from "@/lib/client/chat-actions";
-import { incomingFromLocation } from "@/lib/client/incoming-chat";
+import { incomingFromLocation, incomingFromUrl } from "@/lib/client/incoming-chat";
 import { chatHistoryRoute, ROUTES } from "@/lib/constants";
 import { DESIGNS } from "@/lib/design/registry";
 import type { DesignFamily, DesignId } from "@/lib/design/registry";
 import type { MoodExpression } from "@/lib/mood/expression";
-import { useChatStore } from "@/stores/useChatStore";
+import { useChatStore, type IncomingOpen } from "@/stores/useChatStore";
 import { useDesignStore } from "@/stores/useDesignStore";
 import { useMoodStore } from "@/stores/useMoodStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
@@ -51,6 +51,25 @@ export type ChatScreen = {
   openHistorySession: (sessionId: string) => void;
 };
 
+function incomingFromSearch(search: string): IncomingOpen | null {
+  const path = search ? `${ROUTES.chat}?${search}` : ROUTES.chat;
+  return incomingFromUrl(new URL(path, "http://localhost"));
+}
+
+function incomingIdentity(request: IncomingOpen | null): string | null {
+  if (!request) return null;
+  switch (request.kind) {
+    case "session":
+      return request.sessionId;
+    case "checkin":
+      return "checkin";
+    default: {
+      const _exhaustive: never = request;
+      return _exhaustive;
+    }
+  }
+}
+
 export function useChatScreen(openingNotification = false): ChatScreen {
   const router = useRouter();
   const ready = useScreenReady();
@@ -71,29 +90,70 @@ export function useChatScreen(openingNotification = false): ChatScreen {
   const [historyOpen, setHistoryOpen] = useState(false);
   const incomingOpen = useChatStore((s) => s.incomingOpen);
   const openedCheckIn = useRef<string | null>(null);
+  const searchParams = useSearchParams();
+  const searchKey = searchParams?.toString() ?? "";
+  const urlIncoming = useMemo(() => incomingFromSearch(searchKey), [searchKey]);
+  /** Resume for this open key has finished, so End can show Start again. */
+  const [settledOpenKey, setSettledOpenKey] = useState<string | null>(null);
+  const [seenSearchKey, setSeenSearchKey] = useState(searchKey);
+  if (searchKey !== seenSearchKey) {
+    setSeenSearchKey(searchKey);
+    // A deep link that arrives after /chat was clean is a new open, even when
+    // this session id already settled. Otherwise End, then the same link, stays
+    // on Start.
+    if (seenSearchKey === "" && searchKey !== "" && settledOpenKey !== null) {
+      setSettledOpenKey(null);
+    }
+  }
+
+  const openKey = incomingIdentity(incomingOpen) ?? incomingIdentity(urlIncoming);
+  /** URL open still waiting on resume. Hides Start on this paint. */
+  const openingQuiet =
+    chatPhase === "idle" &&
+    openKey !== null &&
+    (settledOpenKey !== openKey || status === "loading");
 
   useLayoutEffect(() => {
-    const request = incomingFromLocation();
-    if (!openingNotification && !request) return;
+    const request = urlIncoming ?? incomingFromLocation();
+    const key = incomingIdentity(request);
+    if (!request || (key && settledOpenKey === key)) return;
+    // useSearchParams is the first-render source. If it is empty, the live URL
+    // still has to hide Start before paint. The store update re-renders first.
+    if (!urlIncoming && !incomingOpen) {
+      useChatStore.getState().setIncomingOpen(request);
+    }
     const chat = useChatStore.getState();
     const alreadyShowing =
-      request?.kind === "session" &&
+      request.kind === "session" &&
       chat.chatPhase === "active" &&
-      chat.activeSessionId === request.sessionId;
+      chat.activeSessionId === request.sessionId &&
+      chat.messages.some((message) => message.role === "assistant");
     if (alreadyShowing) return;
-    chat.setStatus("loading");
-  }, [openingNotification]);
+    if (chat.status !== "loading") chat.setStatus("loading");
+  }, [incomingOpen, searchKey, settledOpenKey, urlIncoming]);
 
   useEffect(() => {
-    const request = incomingOpen ?? incomingFromLocation();
+    const request = incomingOpen ?? urlIncoming ?? incomingFromLocation();
     if (!request) return;
-    const key = request.kind === "session" ? request.sessionId : "checkin";
+    const key = incomingIdentity(request);
+    if (!key) return;
     const chat = useChatStore.getState();
     const alreadyShowing =
       chat.chatPhase === "active" &&
       (request.kind === "checkin"
         ? chat.messages.some((message) => message.role === "assistant")
-        : chat.activeSessionId === request.sessionId);
+        : chat.activeSessionId === request.sessionId &&
+          chat.messages.some((message) => message.role === "assistant"));
+    if (settledOpenKey === key && alreadyShowing) {
+      const chatNow = useChatStore.getState();
+      chatNow.setIncomingOpen(null);
+      if (chatNow.status === "loading") chatNow.setStatus("idle");
+      if (window.location.pathname === ROUTES.chat && window.location.search) {
+        router.replace(ROUTES.chat);
+      }
+      return;
+    }
+    if (settledOpenKey === key && !incomingOpen) return;
     if (openedCheckIn.current === key && alreadyShowing) {
       const chatNow = useChatStore.getState();
       chatNow.setIncomingOpen(null);
@@ -116,8 +176,11 @@ export function useChatScreen(openingNotification = false): ChatScreen {
           router.replace(ROUTES.chat);
         }
       } finally {
-        if (!cancelled && useChatStore.getState().status === "loading") {
-          useChatStore.getState().setStatus("idle");
+        if (!cancelled) {
+          setSettledOpenKey(key);
+          if (useChatStore.getState().status === "loading") {
+            useChatStore.getState().setStatus("idle");
+          }
         }
       }
     })();
@@ -125,7 +188,7 @@ export function useChatScreen(openingNotification = false): ChatScreen {
     return () => {
       cancelled = true;
     };
-  }, [incomingOpen, router]);
+  }, [incomingOpen, router, settledOpenKey, urlIncoming]);
 
   useEffect(() => {
     if (needsOnboarding) router.replace(ROUTES.onboarding);
@@ -145,7 +208,7 @@ export function useChatScreen(openingNotification = false): ChatScreen {
   }, [chatPhase, messages]);
 
   const heroMode = !threadMessages.some((m) => m.role === "user");
-  const showStartGate = chatPhase === "idle" && !openingNotification && !incomingOpen;
+  const showStartGate = chatPhase === "idle" && !openingQuiet && !openingNotification;
 
   const showEmptyState =
     chatPhase === "active" &&
@@ -180,7 +243,7 @@ export function useChatScreen(openingNotification = false): ChatScreen {
     endedSessions,
     status,
     lastError,
-    loading: status === "loading",
+    loading: status === "loading" || openingQuiet,
     chatPhase,
     heroMode,
     showStartGate,

@@ -4,7 +4,31 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-03 (chat composer density)
+## Current entry — 2026-10-04 (chat open, end, and tab swap)
+
+### What changed
+Opening `/chat?session=…` or `?checkin=1` hides Start chatting immediately. The composer is up while that thread loads. Start chatting flips the composer and the waiting hint before the check-in lookup. End chat closes the thread on screen and PATCHes the archive in the background. The dock leave dialog navigates on that same tap. Chat, Call, and Settings stay mounted and swap with no fade, blur, or slide. The dock pill still moves.
+
+Two holes in that path: a resume still in flight could apply after End and put the thread back, and opening the same session link again after the URL was cleaned stayed on Start. End now invalidates that in-flight resume. A deep link that arrives after `/chat` is clean loads again, including the same id.
+
+### Checked
+430×932, signed in. Session `51b479a2-384a-469c-95d5-b79cee8f39fe`.
+
+- While resume was in flight the screen was “Honza is thinking” with the composer up. Start chatting was opacity 0. Honza’s stored lines then showed without pressing Start. `/api/sessions/resume` was 336ms.
+- Idle Start chatting: “Honza is waiting” and the listening hint were on screen at 5ms. The check-in request had only just started.
+- Composer End on that thread (it has messages): Start was back at 20ms. The archive PATCH finished at 222ms, HTTP 200.
+- Dock Call → Leave chat → End chat: Call was fully on screen at 14ms (chat opacity 0, call opacity 1, no in-between). The PATCH was still in flight. Landed on `/call`.
+- Settings, Chat, Call, Settings, Chat: inactive pages stayed opacity 0, visibility hidden, transition none, filter none. No fractional opacity across those frames. Dock pill transition is still 0.25s.
+- After End, opening the same session link loaded the thread again.
+
+`npm run lint` clean. Build not run: `next dev` was already on port 3000. Did not kill it.
+
+### Decision
+Do not wait on the archive PATCH before changing the screen. A missed save stays open on the server until the next end or resume.
+
+---
+
+## Previous — 2026-10-03 (chat composer density)
 
 ### What changed
 A live chat no longer grows a second row of End chat and Send. The composer is one frost field: the fern send arrow sits inside it, and a frost end icon sits where the send button was. Enter sends. The thread on this phone went from about 133px to 209px.
