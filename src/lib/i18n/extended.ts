@@ -111,6 +111,7 @@ export type InstallCopy = {
 
 export type WelcomeCopy = {
   logIn: string;
+  viewOnGithub: string;
   heroHeadline: string;
   heroSubcopy: string;
   heroCta: string;
@@ -326,6 +327,7 @@ const enExtended: ExtendedCopy = {
   },
   welcome: {
     logIn: "Log in",
+    viewOnGithub: "View on GitHub",
     heroHeadline: "Learn Czech by texting a friend",
     heroSubcopy:
       "No streak, no leaderboard. Open the app and Honza is already writing to you in Czech",
@@ -566,6 +568,7 @@ const csExtended: ExtendedCopy = {
   },
   welcome: {
     logIn: "Přihlásit se",
+    viewOnGithub: "Na GitHubu",
     heroHeadline: "Uč se česky psaním s kamarádem",
     heroSubcopy:
       "Žádná série, žádný žebříček. Otevři appku a Honza ti už píše česky",

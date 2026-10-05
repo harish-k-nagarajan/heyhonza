@@ -4,7 +4,19 @@ Short-lived log of **what works**, **what broke**, and **decisions not to revisi
 
 ---
 
-## Current entry — 2026-10-04 (chat open, end, and tab swap)
+## Current entry — 2026-10-05 (showcase mode, not deployed)
+
+### What changed
+`release-prep` adds `NEXT_PUBLIC_SITE_MODE=showcase`. Unset, the app is unchanged. Set, the nav, footer, and phone bar link to GitHub. The hero has no button. `/`, login, signup, chat, call, settings, onboarding, and `/auth` redirect to `/welcome`. Star count is omitted while the GitHub repo is private.
+
+Public GitHub page files are on this branch: README, MIT license, SECURITY, CONTRIBUTING, `docs/github/social-card.png`, `docs/github/phone-strip.png`. The settings shot uses `ahoj@honza.app`, not a real inbox. Repo stays private. Social preview has no API; it is uploaded in GitHub Settings.
+
+### Decision
+One repo, two Vercel projects later. Do not set the flag on the private app. Do not flip the repo public from this step.
+
+---
+
+## Previous — 2026-10-04 (chat open, end, and tab swap)
 
 ### What changed
 Opening `/chat?session=…` or `?checkin=1` hides Start chatting immediately. The composer is up while that thread loads. Start chatting flips the composer and the waiting hint before the check-in lookup. End chat closes the thread on screen and PATCHes the archive in the background. The dock leave dialog navigates on that same tap. Chat, Call, and Settings stay mounted and swap with no fade, blur, or slide. The dock pill still moves.

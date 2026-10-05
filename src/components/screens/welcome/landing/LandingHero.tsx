@@ -7,6 +7,7 @@ import {
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
+import { isShowcaseMode } from "@/lib/site-mode";
 
 import { LandingAuthButtons, LandingCtaHint } from "./LandingAuthButtons";
 import {
@@ -16,7 +17,13 @@ import {
 import { LandingChatBubble } from "./LandingChatBubble";
 import type { LandingVisitor } from "./useLandingVisitor";
 
-export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
+export function LandingHero({
+  visitor,
+  githubStars = null,
+}: {
+  visitor: LandingVisitor;
+  githubStars?: number | null;
+}) {
   const morph = useLandingBubbleMorph();
   const { t } = useLocale();
   const w = t.welcome;
@@ -80,10 +87,12 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
             {copy.subcopy}
           </p>
 
-          <div className="mt-2 flex flex-col items-center gap-7">
-            <LandingAuthButtons visitor={visitor} />
-            <LandingCtaHint visitor={visitor} />
-          </div>
+          {isShowcaseMode() ? null : (
+            <div className="mt-2 flex flex-col items-center gap-7">
+              <LandingAuthButtons visitor={visitor} githubStars={githubStars} />
+              <LandingCtaHint visitor={visitor} />
+            </div>
+          )}
         </LandingHeroHeadlineScanner>
       </div>
     </section>
