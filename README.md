@@ -1,22 +1,14 @@
 # Honza
 
-Learn Czech by texting a friend.
+**Czech practice from the notes you and your teacher already share.**
 
-Honza writes first. You reply in Czech. He corrects you gently, then the conversation keeps going.
+Honza is a Czech practice app designed for students who already have a teacher. The notes from those lessons live in a shared Google Doc, and the hard part is remembering what was taught. Honza brings those notes back as conversation, so vocabulary stays sharp and grammar stays in shape, without starting from another app's curriculum.
 
 ![Honza](docs/github/social-card.png)
 
 ![Chat, a call, and settings](docs/github/phone-strip.png)
 
 [heyhonza.vercel.app](https://heyhonza.vercel.app) is a tour of the project. It links here. To practice with Honza, run the app yourself.
-
-## Why this exists
-
-Most students already have a teacher. Lesson notes usually live in a shared Google Doc. The problem is forgetting what was taught.
-
-Honza is a way to use that material again. You upload the notes you and your teacher already made, and they come back as practice. That jogs your memory and rebuilds what you already learned, so vocabulary stays sharp and grammar stays in shape.
-
-Other apps start from their own curriculum. This one starts from the notes you already have.
 
 ## What it does
 
