@@ -10,6 +10,14 @@ Honza writes first. You reply in Czech. He corrects you gently, then the convers
 
 [heyhonza.vercel.app](https://heyhonza.vercel.app) is a tour of the project. It links here. To practice with Honza, run the app yourself.
 
+## Why this exists
+
+Most students already have a teacher. Lesson notes usually live in a shared Google Doc. The problem is forgetting what was taught.
+
+Honza is a way to use that material again. You upload the notes you and your teacher already made, and they come back as practice. That jogs your memory and rebuilds what you already learned, so vocabulary stays sharp and grammar stays in shape.
+
+Other apps start from their own curriculum. This one starts from the notes you already have.
+
 ## What it does
 
 - **Chat.** Honza opens in Czech. You type back. Corrections stay inside the conversation.
