@@ -458,10 +458,27 @@ const CHECK_IN_REPLY_WINDOW_MS = 24 * 60 * 60 * 1000;
 type UserDb = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
 /**
+ * Ids of older unanswered greetings stacked onto one session. Empty unless
+ * this thread is actually that stack (no learner reply, more than one greeting).
+ */
+function earlierStackedGreetingIds(messages: PersistedMessage[]): string[] {
+  if (messages.some((message) => message.role === "user")) return [];
+  const lines = messages.filter(
+    (message) => message.role === "assistant" && message.kind === "chat",
+  );
+  if (lines.length <= 1) return [];
+  return lines.slice(0, -1).map((message) => message.id);
+}
+
+/**
  * Open one chat. A notification names its session. Start (`checkin`) opens the
  * newest unanswered check-in. That chat becomes the only live one: other open
  * chats end, except a conversation the learner already replied in, which Start
  * leaves alone so a check-in does not throw it away.
+ *
+ * Messages load and the session reopens together. A stacked check-in is split
+ * only when this session is actually unanswered greetings, using those rows —
+ * the thread is not loaded again.
  */
 export async function resumeReplySession(input: {
   sessionId?: string | null;
@@ -481,54 +498,81 @@ export async function resumeReplySession(input: {
       ? await findUnansweredCheckIn(supabase, userId)
       : null;
   if (!sessionId) return null;
+  return finishReplySession(supabase, userId, sessionId, !explicit);
+}
 
-  const { data: session } = await supabase
-    .from("chat_sessions")
-    .select("id")
-    .eq("id", sessionId)
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (!session) return null;
+async function finishReplySession(
+  supabase: UserDb,
+  userId: string,
+  sessionId: string,
+  keepReplied: boolean,
+): Promise<{
+  sessionId: string;
+  messages: PersistedMessage[];
+  endedSessions: PersistedSession[];
+} | null> {
+  const [messageRes, sessionRes] = await Promise.all([
+    supabase
+      .from("messages")
+      .select("id, role, content, kind, created_at")
+      .eq("user_id", userId)
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("chat_sessions")
+      .update({ ended_at: null })
+      .eq("id", sessionId)
+      .eq("user_id", userId)
+      .select("id"),
+  ]);
+  if (sessionRes.error || !sessionRes.data?.length || messageRes.error) return null;
 
-  const splitSessions = await separateStackedCheckIn(supabase, userId, sessionId);
+  const messages: PersistedMessage[] = (messageRes.data ?? []).map((m) => ({
+    id: m.id as string,
+    role: m.role as "user" | "assistant",
+    content: m.content as string,
+    kind: (m.kind as "chat" | "call") ?? "chat",
+    sessionId,
+    createdAt: new Date(m.created_at as string).getTime(),
+  }));
 
-  await supabase
-    .from("chat_sessions")
-    .update({ ended_at: null })
-    .eq("id", sessionId)
-    .eq("user_id", userId);
+  const stackedIds = earlierStackedGreetingIds(messages);
+  const splitSessions =
+    stackedIds.length > 0
+      ? await separateStackedCheckIn(supabase, userId, sessionId, messages)
+      : [];
+  const removed = new Set(stackedIds);
+  const live =
+    removed.size > 0 ? messages.filter((message) => !removed.has(message.id)) : messages;
 
   const endedSessions = await endOtherOpenSessions(
     supabase,
     userId,
     sessionId,
-    !explicit,
+    keepReplied,
   );
-
-  const messages = await loadSessionMessages(sessionId);
-  if (!messages || messages.length === 0) return null;
-  return { sessionId, messages, endedSessions: [...splitSessions, ...endedSessions] };
+  if (live.length === 0) return null;
+  return {
+    sessionId,
+    messages: live,
+    endedSessions: [...splitSessions, ...endedSessions],
+  };
 }
 
 /**
  * Older check-ins used to append into one open chat. Keep the latest line on
  * this session and file each earlier greeting as its own ended chat.
+ * `messages` is the load from `finishReplySession` — this does not query again.
  */
 async function separateStackedCheckIn(
   supabase: UserDb,
   userId: string,
   sessionId: string,
+  messages: PersistedMessage[],
 ): Promise<PersistedSession[]> {
-  const { data } = await supabase
-    .from("messages")
-    .select("id, role, content, kind, created_at")
-    .eq("user_id", userId)
-    .eq("session_id", sessionId)
-    .order("created_at", { ascending: true });
-  const list = data ?? [];
-  if (list.some((message) => message.role === "user")) return [];
-  const lines = list.filter(
-    (message) => message.role === "assistant" && (message.kind ?? "chat") === "chat",
+  if (messages.some((message) => message.role === "user")) return [];
+  const lines = messages.filter(
+    (message) => message.role === "assistant" && message.kind === "chat",
   );
   if (lines.length <= 1) return [];
 
@@ -538,9 +582,9 @@ async function separateStackedCheckIn(
   const split: PersistedSession[] = [];
 
   for (const message of earlier) {
-    const preview = clipPreview(message.content as string);
-    const createdAt = message.created_at as string;
-    const startedAt = new Date(createdAt).getTime();
+    const preview = clipPreview(message.content);
+    const createdAt = new Date(message.createdAt).toISOString();
+    const startedAt = message.createdAt;
     let moved = false;
     if (admin) {
       const { data: created, error } = await admin
@@ -558,7 +602,7 @@ async function separateStackedCheckIn(
         const { data: movedRows, error: moveErr } = await admin
           .from("messages")
           .update({ session_id: created.id })
-          .eq("id", message.id as string)
+          .eq("id", message.id)
           .eq("user_id", userId)
           .eq("session_id", sessionId)
           .select("id");
@@ -580,14 +624,14 @@ async function separateStackedCheckIn(
       await supabase
         .from("messages")
         .delete()
-        .eq("id", message.id as string)
+        .eq("id", message.id)
         .eq("user_id", userId);
     }
   }
 
   await supabase
     .from("chat_sessions")
-    .update({ preview: clipPreview(latest.content as string), message_count: 1 })
+    .update({ preview: clipPreview(latest.content), message_count: 1 })
     .eq("id", sessionId)
     .eq("user_id", userId);
   return split;

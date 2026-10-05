@@ -2505,61 +2505,33 @@ body:has(.landing-page) {
   }
 }
 
-/* Dock tabs — page side-by-side (transitions.dev #08), three-up */
+/* Dock tabs — instant swap. Fade, blur, and horizontal slide are off so the
+   outgoing page never stays on screen. The dock pill (.fdock-pill) is separate. */
 .hmat-tab-slide {
   position: relative;
-  --page-slide-steps: 1;
-  --page-slide-dur: calc(var(--duration-medium) * var(--page-slide-steps));
-  --page-fade-dur: calc(var(--duration-medium) * var(--page-slide-steps));
 }
 
 .hmat-tab-slide .hmat-tab-page {
   position: absolute;
   inset: 0;
+  z-index: 0;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transform: translateX(0);
-  filter: blur(calc(var(--page-blur) * var(--page-exit-enabled)));
-  transition:
-    opacity var(--page-fade-dur) var(--page-fade-ease),
-    transform var(--page-slide-dur) var(--page-slide-ease),
-    filter var(--page-slide-dur) var(--page-slide-ease);
-  will-change: opacity, transform, filter;
-}
-
-/* Inactive tabs sit one stage apart on the dock order (1 chat · 2 call · 3 settings). */
-.hmat-tab-slide[data-page="1"] .hmat-tab-page[data-page-id="2"] {
-  transform: translateX(100%);
-}
-
-.hmat-tab-slide[data-page="1"] .hmat-tab-page[data-page-id="3"] {
-  transform: translateX(200%);
-}
-
-.hmat-tab-slide[data-page="2"] .hmat-tab-page[data-page-id="1"] {
-  transform: translateX(-100%);
-}
-
-.hmat-tab-slide[data-page="2"] .hmat-tab-page[data-page-id="3"] {
-  transform: translateX(100%);
-}
-
-.hmat-tab-slide[data-page="3"] .hmat-tab-page[data-page-id="1"] {
-  transform: translateX(-200%);
-}
-
-.hmat-tab-slide[data-page="3"] .hmat-tab-page[data-page-id="2"] {
-  transform: translateX(-100%);
+  transform: none;
+  filter: none;
+  transition: none;
 }
 
 .hmat-tab-slide[data-page="1"] .hmat-tab-page[data-page-id="1"],
 .hmat-tab-slide[data-page="2"] .hmat-tab-page[data-page-id="2"],
 .hmat-tab-slide[data-page="3"] .hmat-tab-page[data-page-id="3"] {
+  z-index: 1;
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
-  transform: translateX(0);
-  filter: blur(0);
-  transition-delay: var(--page-stagger);
+  transform: none;
+  filter: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
