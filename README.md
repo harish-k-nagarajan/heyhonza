@@ -6,7 +6,7 @@ You already have a teacher. After class, the lesson sits in a Google Doc the two
 
 Honza is that gap. He reads the notes you already have and brings a word or a grammar point back as a short conversation. You answer in Czech. He corrects you inside the same thread and keeps going. There is no second curriculum to start.
 
-Saying it, fixing it, and hearing it is what makes the note stick. A check-in during the day means the practice happens on the days you would otherwise only scroll the doc.
+Saying it, fixing it, and hearing it is what makes the note stick. Turn notifications on and Honza starts the conversation for you, so the habit does not depend on you remembering to open the app.
 
 ![License](https://img.shields.io/badge/license-MIT-3d6b4f)
 ![Next.js](https://img.shields.io/badge/Next.js-16-111111?logo=nextdotjs&logoColor=white)
@@ -31,7 +31,11 @@ You speak Czech. Honza speaks back. The whole exchange is saved with your chats,
 
 ### 🌿 Daily check-ins
 
-He writes once, twice, or three times a day, at times you pick. The notification is the reminder. The message is another short turn with the Czech from your notes.
+Turn notifications on and Honza writes first. You do not keep a reminder list. He starts the conversation, and the notification brings you to it.
+
+Once a day, twice a day, or three times a day. Pick the clock times yourself, or leave them random. Random means he reaches out somewhere between 8 in the morning and 9 at night, and the time is different each day, the way a friend texts when they think of you.
+
+Each message is another short turn with the Czech from your notes. That is how the habit gets built: the practice shows up, and you answer. On a phone, add Honza to the home screen first, or the notification cannot arrive.
 
 ### 📱 Home screen
 
@@ -41,7 +45,7 @@ Add it to your phone and it behaves like an app. Practice is a conversation you 
 
 A course app starts from someone else's word list. Your teacher already chose what you are working on. Honza uses that.
 
-You remember a phrase by using it again, out loud and in writing, before the next class. The correction is part of the talk, so you do not stop to open a separate drill. The check-in is there so a Tuesday lesson does not wait until the following Tuesday.
+You remember a phrase by using it again, out loud and in writing, before the next class. The correction is part of the talk, so you do not stop to open a separate drill. Because Honza is the one who reaches out, a Tuesday lesson does not sit in the doc until the following Tuesday.
 
 ## 🚀 Run it
 
