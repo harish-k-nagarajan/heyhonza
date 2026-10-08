@@ -29,10 +29,14 @@ export const LANDING_BUBBLE_MAX_BY_INDEX = [
   "max-w-[min(120px,28vw)] md:max-w-[min(176px,36vw)]",
 ] as const;
 
-/** Absolute placement in the hero orbit. Position only — width lives on `LandingChatBubble`. */
+/**
+ * Absolute placement in the hero cluster (the box around the wide recess).
+ * Position only — width lives on `LandingChatBubble`. Inset enough that each
+ * line overlaps the well without covering the face.
+ */
 export const LANDING_HERO_BUBBLE_LAYOUT = [
-  "left-[4%] top-[12%] md:left-[2%] md:top-[8%]",
-  "right-[2%] top-[10%] md:right-[4%] md:top-[6%]",
-  "left-[2%] top-[52%] md:left-[1%] md:top-[62%]",
-  "right-[2%] top-[48%] md:right-[4%] md:top-[58%]",
+  "left-0 top-[6%] sm:left-[2%] sm:top-[14%] md:left-[8%] md:top-[18%]",
+  "right-0 top-[4%] sm:right-[4%] sm:top-[11%] md:right-[8%] md:top-[16%]",
+  "left-0 top-[72%] sm:left-[1%] sm:top-[60%] md:left-[6%] md:top-[60%]",
+  "right-0 top-[68%] sm:right-[3%] sm:top-[56%] md:right-[7%] md:top-[56%]",
 ] as const;

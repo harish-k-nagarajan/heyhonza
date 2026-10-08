@@ -42,7 +42,7 @@ export function LandingHero({
       <div className="relative mx-auto w-full max-w-[880px] flex-1 px-6 md:px-10">
         <div
           ref={morph?.orbitRef}
-          className="relative z-20 mx-auto h-[min(420px,max(280px,52vw))] max-h-[480px] w-full"
+          className="relative z-20 mx-auto h-[min(460px,max(400px,52vw))] max-h-[480px] w-full max-w-[860px]"
         >
           {LANDING_HERO_BUBBLES.map((bubble, index) => (
             <div
@@ -63,8 +63,8 @@ export function LandingHero({
             </div>
           ))}
 
-          <div className="absolute left-1/2 top-1/2 z-[10] -translate-x-1/2 -translate-y-1/2">
-            <HmatPresenceRecess orbState="idle" variant="display" />
+          <div className="absolute left-1/2 top-1/2 z-[10] w-[clamp(280px,78%,640px)] -translate-x-1/2 -translate-y-1/2">
+            <HmatPresenceRecess orbState="idle" variant="display" size={148} />
           </div>
         </div>
 

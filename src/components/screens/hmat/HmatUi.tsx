@@ -52,7 +52,7 @@ export function HmatPresenceRecess({
   breathe = true,
   /** Composer focus / call listening — lean without changing mood. */
   attentive = false,
-  /** `display` = compact rectangular recess + orb for the landing hero. */
+  /** `display` = wide landing-hero well. Ceramic art stays the shared orb. */
   variant = "presence",
   compact = false,
 }: {
