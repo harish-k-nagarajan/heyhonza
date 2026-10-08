@@ -2,6 +2,7 @@
   "name": "honza",
   "version": "0.1.0",
   "private": true,
+  "description": "Czech practice from the notes you and your teacher already share.",
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",

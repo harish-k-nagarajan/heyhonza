@@ -7,9 +7,13 @@ import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
+import { isShowcaseMode } from "@/lib/site-mode";
 
-export function LandingNav() {
+import { GithubCta } from "./GithubCta";
+
+export function LandingNav({ githubStars = null }: { githubStars?: number | null }) {
   const { t } = useLocale();
+  const showcase = isShowcaseMode();
 
   return (
     <nav className="landing-nav sticky top-4 z-50 px-5 py-5 md:px-6">
@@ -22,16 +26,20 @@ export function LandingNav() {
         </Link>
         <div className="flex min-w-0 items-center gap-4 sm:gap-5">
           <LanguageSwitcher variant="nav" />
-          <Link
-            href={ROUTES.login}
-            className={cn(
-              "auth-cta-secondary inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full px-3 py-2 sm:px-[18px]",
-              TYPE.bodySm,
-              "font-semibold",
-            )}
-          >
-            {t.welcome.logIn}
-          </Link>
+          {showcase ? (
+            <GithubCta stars={githubStars} variant="nav" />
+          ) : (
+            <Link
+              href={ROUTES.login}
+              className={cn(
+                "auth-cta-secondary inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full px-3 py-2 sm:px-[18px]",
+                TYPE.bodySm,
+                "font-semibold",
+              )}
+            >
+              {t.welcome.logIn}
+            </Link>
+          )}
         </div>
       </div>
     </nav>

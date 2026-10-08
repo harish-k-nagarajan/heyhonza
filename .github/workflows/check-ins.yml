@@ -1,8 +1,6 @@
 # Backup ticker. Production check-ins are scheduled in Supabase with pg_cron
 # (every minute → POST /api/cron/check-ins). This workflow stays off unless
-# that job is down: it needs repo secret CRON_SECRET, and a private repo
-# bills one GitHub minute per run.
-# Optional CHECK_INS_URL (defaults to the production heyhonza app).
+# that job is down. It needs repository secrets CRON_SECRET and CHECK_INS_URL.
 name: Daily check-ins
 
 on:
@@ -21,8 +19,11 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${CRON_SECRET:-}" ]; then
-            echo "Set repository secret CRON_SECRET (same value as the Vercel env var)."
+            echo "Set repository secret CRON_SECRET (same value as the server env var)."
             exit 1
           fi
-          url="${CHECK_INS_URL:-https://heyhonza.vercel.app/api/cron/check-ins}"
-          curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "$url"
+          if [ -z "${CHECK_INS_URL:-}" ]; then
+            echo "Set repository secret CHECK_INS_URL to your deployment's /api/cron/check-ins route."
+            exit 1
+          fi
+          curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "$CHECK_INS_URL"
