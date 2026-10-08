@@ -2,7 +2,7 @@
 
 **Czech practice from the notes you and your teacher already share.**
 
-Honza is a Czech practice app designed for students who already have a teacher. The notes from those lessons live in a shared Google Doc, and the hard part is remembering what was taught. Honza brings those notes back as conversation, so vocabulary stays sharp and grammar stays in shape, without starting from another app's curriculum.
+You and your teacher already write the lesson into a Google Doc. Honza uses that doc for a short conversation, so the Czech from class gets used again before the next one.
 
 ![Honza](docs/github/social-card.png)
 
@@ -46,6 +46,14 @@ On ElevenLabs' free plan, Honza speaks Czech with an English accent. A paid plan
 | Accounts | Supabase |
 | Voice | Web Speech in the browser, ElevenLabs on the server |
 | Hosting | Vercel |
+
+## Credits
+
+- The motion scale and the snippets in `src/app/globals.css` are from [transitions.dev](https://transitions.dev).
+- The easing curves, the [Motion](https://motion.dev) library on the orb, and [animations.dev](https://animations.dev) are from [Emil Kowalski](https://emilkowal.ski).
+- Landing scroll is [GSAP](https://gsap.com). Smooth scroll on the landing page is [Lenis](https://lenis.darkroom.engineering).
+- The typefaces are [Doto](https://fonts.google.com/specimen/Doto) and [Inter](https://rsms.me/inter/).
+- Styling is [Tailwind CSS](https://tailwindcss.com).
 
 ## License
 
