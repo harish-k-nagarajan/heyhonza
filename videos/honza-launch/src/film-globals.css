@@ -1,0 +1,73 @@
+/* Neutralize product CSS motion so Remotion springs own every frame. */
+.message-enter,
+.message-enter--presence,
+.hmat-typing-enter,
+.t-toast,
+.t-stagger,
+.t-stagger-line,
+.hmat-orb-presence {
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+.hmat-recess-hero {
+  transition: none !important;
+}
+
+.film-root,
+.film-root * {
+  caret-color: transparent;
+}
+
+.film-root input {
+  pointer-events: none;
+}
+
+/*
+ * The product face talks and blinks on a CSS clock. That clock does not
+ * follow the frame, so a still can catch two mouths and one eye at once.
+ * One shape at a time, stepped from the composition.
+ */
+.film-root .hmat-orb-eyes--open,
+.film-root .hmat-orb-eyes--blink,
+.film-root .hmat-orb-mouth--open,
+.film-root .hmat-orb-mouth--mid,
+.film-root .hmat-orb-mouth--wide,
+.film-root .hmat-orb-ray,
+.film-root .hmat-orb-particle,
+.film-root .hmat-orb-contact {
+  animation: none !important;
+}
+
+.film-root .hmat-orb-eyes--open {
+  opacity: 1 !important;
+}
+.film-root .hmat-orb-eyes--blink {
+  opacity: 0 !important;
+}
+.film-root[data-blink="1"] .hmat-orb-eyes--open {
+  opacity: 0 !important;
+}
+.film-root[data-blink="1"] .hmat-orb-eyes--blink {
+  opacity: 1 !important;
+}
+
+.film-root .hmat-orb[data-face="speaking"] .hmat-orb-mouth--open,
+.film-root .hmat-orb[data-face="speaking"] .hmat-orb-mouth--mid,
+.film-root .hmat-orb[data-face="speaking"] .hmat-orb-mouth--wide {
+  opacity: 0 !important;
+}
+.film-root[data-talk="open"] .hmat-orb[data-face="speaking"] .hmat-orb-mouth--open,
+.film-root[data-talk="mid"] .hmat-orb[data-face="speaking"] .hmat-orb-mouth--mid,
+.film-root[data-talk="wide"] .hmat-orb[data-face="speaking"] .hmat-orb-mouth--wide {
+  opacity: 1 !important;
+}
+
+/* The level beat is one sentence. The recess keeps its color and drops the mood name. */
+.film-level .hmat-recess-hero > p,
+.film-level .mat-channel {
+  display: none;
+}
