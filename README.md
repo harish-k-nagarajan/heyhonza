@@ -15,7 +15,7 @@ Saying it, fixing it, and hearing it is what makes the note stick. Turn notifica
 
 ![Honza](docs/github/social-card.png)
 
-![Chat, a call, and settings](docs/github/phone-strip.png)
+![Chat with an in-thread correction, a live call, and daily check-in settings](docs/github/phone-strip.png)
 
 [heyhonza.vercel.app](https://heyhonza.vercel.app) is a tour of the interface. It links here. To practice with Honza, you run the app yourself.
 
