@@ -74,3 +74,8 @@ generated.webp
 assets/
 images/
 UX_COPY_AUDIT.md
+
+# Launch film sources and renders stay local (not part of the app)
+videos/
+public/audio/bed.mp3
+.cursor/

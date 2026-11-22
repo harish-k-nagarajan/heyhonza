@@ -12,6 +12,7 @@ const eslintConfig = defineConfig([
     "public/workbox-*.js",
     "worker/**",
     "videos/**",
+    ".agents/**",
   ]),
 ]);
 

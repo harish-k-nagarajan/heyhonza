@@ -1,11 +1,10 @@
 # Backup ticker. Production check-ins are scheduled in Supabase with pg_cron
-# (every minute → POST /api/cron/check-ins). This workflow stays off unless
-# that job is down. It needs repository secrets CRON_SECRET and CHECK_INS_URL.
+# (every minute → POST /api/cron/check-ins). This workflow is a manual backup:
+# run it from the Actions tab if that job is down. It needs repository secrets
+# CRON_SECRET and CHECK_INS_URL.
 name: Daily check-ins
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 jobs:

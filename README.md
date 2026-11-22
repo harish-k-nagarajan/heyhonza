@@ -61,6 +61,8 @@ Replies need an [OpenRouter](https://openrouter.ai/keys) key. Accounts need [Sup
 
 No provider key is sent to the browser. Chat and voice go through the server. The Supabase URL and anon key are public by design. Row-level security keeps each learner's rows to themselves.
 
+To set up the database, run the files in [`supabase/migrations`](supabase/migrations) in order, either with `supabase db push` from the [Supabase CLI](https://supabase.com/docs/guides/cli) or by pasting each one into the SQL editor. `0009_check_in_ticker.sql` sends check-ins on time. It needs the `pg_cron` and `pg_net` extensions turned on, plus two Vault secrets, `honza_cron_secret` (your `CRON_SECRET`) and `honza_check_ins_url` (your deployment's `/api/cron/check-ins` URL). Until both secrets exist it does nothing.
+
 Leave the Supabase variables empty to click through the interface without accounts. History then stays in this browser.
 
 On ElevenLabs' free plan, Honza speaks Czech with an English accent. A paid plan unlocks a Czech voice, with no code change.
