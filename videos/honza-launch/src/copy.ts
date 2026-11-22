@@ -1,5 +1,5 @@
 import {LANDING_DEMO_CONVERSATION} from "@/components/screens/welcome/landing/landing-demo-conversation";
-import {DEMO_CHAT_BEATS} from "@/components/screens/welcome/welcome-content";
+import {DEMO_CHAT_BEATS, LANDING_HERO_FIRST} from "@/components/screens/welcome/welcome-content";
 import {getStrings} from "@/lib/i18n/locales";
 
 const cs = getStrings("cs");
@@ -9,6 +9,7 @@ export const TEACHER = "#1F6B4A";
 export const YOU = "#B4532A";
 export const GLOSS = "#8A8178";
 export const INK = "#243D2C";
+export const CORAL = "#E8432D";
 
 export type DocAuthor = "teacher" | "you";
 
@@ -56,45 +57,49 @@ export const DOC_BLOCKS: DocBlock[] = [
   },
 ];
 
-/** Marketing lines. Whole sentences, in this order. */
+export const KNEDLIKY_MARK = "Knedlíky, ne knedlík.";
+
+/** SCRIPT v8 (final) — exact on-screen English per approval list. */
 export const LINES = {
   prague: [
-    "You live in Prague.",
-    "Someone asks you something in Czech, and the answer comes out in English.",
+    "You live in Prague. Or you are trying to.",
+    "The food is good. The city is beautiful. You are building a life here on purpose.",
+    "Speaking Czech in daily life is still the hard part. Not the homework. The moment someone needs a real answer from you.",
+    "You take lessons. You mean it. You want to belong at work, at the table, and in everyday conversation.",
+    "Your colleague asks about your weekend. A waiter waits for your order. Someone asks which tram goes to Anděl. You understood. You even rehearsed.",
+    "You still answer in English. Or you go quiet. Right when Czech is what they need.",
+  ],
+  intro: [
+    "You do not need another app that drills random words while a waiter is standing in front of you.",
+    "Introducing Honza.",
+    "He is the Czech you practice with after class. On your phone. In a thread that feels like a person, not a quiz.",
+    "He writes first. He works from the same notes your teacher already gave you. Your phrases. Your corrections.",
+    "Think tutor, friend, or the one who keeps knedlíky from sliding back to knedlík.",
   ],
   notes: [
-    "You already have a teacher.",
-    "Together you keep a Google Doc of running notes: sentences you tried, exercises from class, the Czech written out with the English beside it.",
-    "You add what you managed to say.",
-    "You don't revise that doc.",
-    "Nothing asks you to produce those sentences again, so you forget the Czech you just learned.",
+    "Link the Google Doc you share with your teacher, or upload your lesson notes. Honza reads them.",
+    "Those notes are your source of truth. He knows what you covered. The verbs, the phrases, the correction you almost had.",
+    "When he messages you, he starts from that material. Same lesson. Fresh practice.",
   ],
   chat: [
-    "Paste him that doc.",
-    "He reads it, and he writes to you about your Czech, not a textbook's.",
-    "He writes first, in Czech.",
-    "You answer, even badly.",
-    "He corrects the slip, tells you why, and keeps going.",
-    "The sentences he brings back are the ones from your notes.",
+    "He writes first. You type back in Czech. He fixes the slip and keeps the chat going.",
   ],
   call: [
-    "When you want to say them, you call him.",
-    "You speak, he answers out loud, and the call stays with the chat.",
+    "Call Honza. Talk out loud like a real call. A few minutes of Czech with your voice. He hears you, corrects you on the spot, and you drill what is already in your notes.",
+    "You already paid for that Czech in class. Honza helps you keep it alive during the week. You remember more. You speak with more nerve. You walk into the next lesson ready to go further.",
   ],
-  starts: [
-    "He also starts when you had no plan to practice.",
-    "One to three Czech conversations a day, from those notes and from topics you picked.",
-    "Going over it again means he asks you for the sentence, you try, and he helps you fix it.",
+  notify: [
+    "Turn on daily notifications. Honza can message you when you want, on the days you forget to open the app.",
+    "He says hi. He starts a small conversation. He helps you pick up where you left off.",
+    "The goal is steady progress. Get better at the Czech you already know. Build on it. Stay curious for what comes next.",
   ],
-  level: ["He matches your level, and how hard the correction is."],
+  close: ["Say hi to Honza · heyhonza.vercel.app"],
 } as const;
 
-export const PLACE = "Prague";
-export const END_LINE = "Try the sentences from your last class before they go.";
-export const FREE_LINE = "Free to start. It takes a minute.";
+export const END_LINE = LINES.notify[2];
+export const CTA_LINE = LANDING_HERO_FIRST.cta;
 
 export const COPY = {
-  tryNow: "Say hi to Honza",
   url: "heyhonza.vercel.app",
   honzaOpen: LANDING_DEMO_CONVERSATION[0].text,
   userSlip: food.user,
@@ -102,6 +107,8 @@ export const COPY = {
   callCaption: "Skoro. Řekni knedlíky s omáčkou.",
   callTitle: cs.call.titleSpeaking,
   callChip: cs.call.chipSpeaking,
+  callTitleListening: cs.call.titleListening,
+  callChipListening: cs.call.chipListening,
   callEnd: cs.call.endCall,
   checkIn: cs.welcome.schedulePreviewMessage,
   notifyMessage: cs.welcome.schedulePreviewMessage,

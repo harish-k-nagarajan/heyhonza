@@ -76,17 +76,17 @@ export function FilmChat({
         <div className="flex min-h-0 flex-1 flex-col">
           <HmatChatThread watchKey={`${showHonza}-${showUser}-${showFix}`}>
             {showHonza ? (
-              <FilmEnter appearAt={honzaAt}>
+              <FilmEnter appearAt={honzaAt} fromY={8}>
                 <HmatHonzaBubble>{honzaText}</HmatHonzaBubble>
               </FilmEnter>
             ) : null}
             {showUser ? (
-              <FilmEnter appearAt={BEATS.userBubble} fromY={18} align="end">
+              <FilmEnter appearAt={BEATS.userBubble} fromY={8} align="end">
                 <HmatUserBubble>{COPY.userSlip}</HmatUserBubble>
               </FilmEnter>
             ) : null}
             {showFix ? (
-              <FilmEnter appearAt={BEATS.fix} fromY={16}>
+              <FilmEnter appearAt={BEATS.fix} fromY={8}>
                 <HmatHonzaBubble>{COPY.honzaFix}</HmatHonzaBubble>
               </FilmEnter>
             ) : null}

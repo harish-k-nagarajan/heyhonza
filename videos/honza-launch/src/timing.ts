@@ -1,4 +1,4 @@
-import {END_LINE, FREE_LINE, LINES} from "./copy";
+import {LINES} from "./copy";
 
 export const FPS = 30;
 export const WIDTH = 1920;
@@ -10,67 +10,72 @@ export const PHONE_H = 860;
 /** Chat and call stage, unscaled, beside the rail. */
 export const PHONE_SCALE = 1;
 
-/**
- * Clear aloud pace, plus a short breath so the last word is not cut.
- * The first Prague line stays up through the two-second drawing.
- */
-const WORDS_PER_MIN = 136;
-const TAIL = 16;
-const MIN_HOLD = 78;
+export const DURATION_IN_FRAMES = 1800;
 
 export type Cue = {at: number; text: string};
 
-export function holdFrames(text: string, min = MIN_HOLD) {
-  const count = text.trim().split(/\s+/).length;
-  const spoken = Math.ceil((count / WORDS_PER_MIN) * 60 * FPS) + TAIL;
-  return Math.max(min, spoken);
-}
-
-function lay(lines: readonly string[], start: number, mins: readonly number[] = []) {
-  const cues: Cue[] = [];
-  let at = start;
-  lines.forEach((text, index) => {
-    cues.push({at, text});
-    at += holdFrames(text, mins[index] ?? MIN_HOLD);
-  });
-  return {cues, end: at};
-}
-
-const prague = lay(LINES.prague, 0, [96]);
-const notes = lay(LINES.notes, prague.end);
-const chat = lay(LINES.chat, notes.end);
-const call = lay(LINES.call, chat.end);
-const starts = lay(LINES.starts, call.end);
-const level = lay(LINES.level, starts.end);
-
-const lockup = level.end;
-const endCta = lockup + holdFrames(END_LINE);
-
 export const RAILS = {
-  prague: prague.cues,
-  notes: notes.cues,
-  chat: chat.cues,
-  call: call.cues,
-  starts: starts.cues,
-  level: level.cues,
+  prague: [
+    {at: 0, text: LINES.prague[0]},
+    {at: 45, text: LINES.prague[1]},
+    {at: 120, text: LINES.prague[2]},
+    {at: 165, text: LINES.prague[3]},
+    {at: 230, text: LINES.prague[4]},
+    {at: 280, text: LINES.prague[5]},
+  ],
+  intro: [
+    {at: 310, text: LINES.intro[0]},
+    {at: 360, text: LINES.intro[1]},
+    {at: 400, text: LINES.intro[2]},
+    {at: 460, text: LINES.intro[3]},
+    {at: 520, text: LINES.intro[4]},
+  ],
+  notes: [
+    {at: 540, text: LINES.notes[0]},
+    {at: 600, text: LINES.notes[1]},
+    {at: 680, text: LINES.notes[2]},
+  ],
+  chat: [{at: 760, text: LINES.chat[0]}],
+  call: [
+    {at: 840, text: LINES.call[0]},
+    {at: 920, text: LINES.call[1]},
+  ],
+  notify: [
+    {at: 1080, text: LINES.notify[0]},
+    {at: 1150, text: LINES.notify[1]},
+    {at: 1200, text: LINES.notify[2]},
+  ],
+  close: [{at: 1280, text: LINES.close[0]}],
 } as const;
 
+/**
+ * Sole frame authority for picture, copy, and mood.
+ * Chapter first-lines land on introIn / docIn / chatIn / callIn / notifyIn / lockup.
+ */
 export const BEATS = {
-  docIn: prague.end,
-  docBody: prague.end + 8,
-  chatIn: notes.end,
-  honzaOpen: chat.cues[1].at,
-  typeStart: chat.cues[3].at + 4,
-  send: chat.cues[4].at - 14,
-  userBubble: chat.cues[4].at - 8,
-  fix: chat.cues[4].at,
-  bringsBack: chat.cues[5].at,
-  callIn: chat.end,
-  callSpeak: call.cues[1].at,
-  startsIn: call.end,
-  levelIn: starts.end,
-  lockup,
-  endCta,
+  pragueExit: 300,
+  introIn: 310,
+  introSettled: 352,
+  introTitle: 360,
+  notesMove: 528,
+  docIn: 540,
+  docBody: 548,
+  knedlikyMark: 620,
+  chatMove: 748,
+  chatIn: 760,
+  honzaOpen: 764,
+  typeStart: 772,
+  send: 790,
+  userBubble: 792,
+  fix: 804,
+  /** Call morph starts just before the rail hero so the UI is dominant at 840. */
+  callMove: 820,
+  callIn: 840,
+  callSpeak: 848,
+  lockMove: 1068,
+  notifyIn: 1080,
+  bannerAt: 1150,
+  closeIn: 1280,
+  lockup: 1360,
+  endCta: 1388,
 } as const;
-
-export const DURATION_IN_FRAMES = endCta + holdFrames(FREE_LINE) + 30;

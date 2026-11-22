@@ -10,13 +10,13 @@ export function moodAt(frame: number): HonzaOrbState {
     const index = Math.floor((frame - BEATS.lockup) / step) % LOCKUP_CYCLE.length;
     return LOCKUP_CYCLE[index];
   }
-  if (frame >= BEATS.levelIn) return "idle";
-  if (frame >= BEATS.startsIn) return "speaking";
-  if (frame >= BEATS.callIn) return "speaking";
-  if (frame >= BEATS.bringsBack) return "speaking";
+  if (frame >= BEATS.notifyIn) return "idle";
+  if (frame >= BEATS.callSpeak) return "speaking";
+  if (frame >= BEATS.callMove) return "idle";
   if (frame >= BEATS.fix) return "oops";
   if (frame >= BEATS.typeStart) return "thinking";
-  if (frame >= BEATS.chatIn) return "speaking";
+  if (frame >= BEATS.honzaOpen) return "speaking";
   if (frame >= BEATS.docIn) return "speaking";
+  if (frame >= BEATS.introIn) return "excited";
   return "idle";
 }

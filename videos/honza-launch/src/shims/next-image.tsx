@@ -1,5 +1,5 @@
 import type {CSSProperties, ImgHTMLAttributes} from "react";
-import {staticFile} from "remotion";
+import {Img, staticFile} from "remotion";
 
 type StaticImport = {src: string} | string;
 
@@ -61,7 +61,7 @@ export default function NextImage({
   const file = path.startsWith("/") ? staticFile(path.replace(/^\//, "")) : path;
 
   return (
-    <img
+    <Img
       src={file}
       alt={alt}
       width={width}
@@ -72,7 +72,6 @@ export default function NextImage({
           ? {position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", ...style}
           : style
       }
-      draggable={false}
     />
   );
 }

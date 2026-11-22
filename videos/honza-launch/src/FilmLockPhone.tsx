@@ -2,7 +2,7 @@ import {Img, staticFile} from "remotion";
 
 import {COPY} from "./copy";
 import {interFamily} from "./fonts";
-import {rise} from "./scene";
+import {notifySpring} from "./scene";
 
 const PHONE_W = 320;
 
@@ -12,8 +12,8 @@ const PHONE_W = 320;
  * used to lay a wash under the bezel). The banner is frame-driven —
  * `.t-toast` is forced visible in `film-globals.css`.
  */
-export function FilmLockPhone({frame}: {frame: number}) {
-  const open = rise(frame, 0, 16, 14);
+export function FilmLockPhone({frame, appearAt}: {frame: number; appearAt: number}) {
+  const open = notifySpring(frame, appearAt);
 
   return (
     <div className="relative shrink-0 select-none" style={{width: PHONE_W}}>
@@ -100,7 +100,8 @@ export function FilmLockPhone({frame}: {frame: number}) {
             style={{
               bottom: "13.6%",
               opacity: open.opacity,
-              translate: `0px ${(1 - open.opacity) * 28}px`,
+              translate: open.translate,
+              scale: open.scale,
             }}
           >
             <div
@@ -120,14 +121,14 @@ export function FilmLockPhone({frame}: {frame: number}) {
                 </div>
                 <div className="min-w-0 flex-1 pt-[1px]">
                   <div className="flex items-baseline justify-between gap-2">
-                    <p className="truncate text-[11px] font-semibold leading-none tracking-[0.01em] text-white">
+                    <p className="truncate text-[13px] font-semibold leading-none tracking-[0.01em] text-white">
                       {COPY.notifyApp}
                     </p>
-                    <span className="shrink-0 text-[11px] font-normal leading-none text-white/70">
+                    <span className="shrink-0 text-[12px] font-normal leading-none text-white/70">
                       {COPY.notifyTime}
                     </span>
                   </div>
-                  <p className="mt-[3px] text-[12px] font-normal leading-[1.28] tracking-[-0.01em] text-white">
+                  <p className="mt-[4px] text-[14px] font-normal leading-[1.3] tracking-[-0.01em] text-white">
                     {COPY.notifyMessage}
                   </p>
                 </div>

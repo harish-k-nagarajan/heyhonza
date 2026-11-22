@@ -14,36 +14,49 @@ The only raster the film may paint is **favicon-sized product chrome already in 
 
 | Import | Role in film |
 |--------|----------------|
-| `HmatPresenceRecess` | Chat hero well + lockup display well (`variant="display"`, size 148 — same as `LandingHero`) |
+| `HmatPresenceRecess` | Intro orb, chat/call wells, end-card display well (`variant="display"`, size 148) |
 | `HmatOrb` | (via recess) ceramic face; moods from `HonzaOrbState` |
 | `HmatHonzaBubble` / `HmatUserBubble` | Thread |
 | `HmatChatThread` | Scroll region |
 | `HmatChatComposerRow` | Composer + send |
 | `HmatScreenTitle` / `HmatStatusChip` | Czech status; never the waiting gate |
-| `LandingIphoneNotificationPreview` | Morning beat |
+| `LandingIphoneNotificationPreview` | Morning beat (via `FilmLockPhone` chrome) |
 | `HONZA_STATE_COLORS` / `CREAM_CANVAS` / `useMoodStore` | Washes + `--accent` |
-| `TYPE` | Homework panel + lockup URL |
-| `DEMO_CHAT_BEATS` / `LANDING_DEMO_CONVERSATION` / `getStrings("cs")` | Locked copy |
+| `TYPE` | Call clock |
+| `DEMO_CHAT_BEATS` / `LANDING_DEMO_CONVERSATION` / `getStrings("cs")` | Locked Czech copy |
 | `applyDesignToRoot` / `LocaleProvider` | Hmat Metal + Czech UI |
 | `chatTitle` / `chatChip` / `resolveChatStatus` | Status strings |
 
 ## One-off (allowed)
 
-`FilmGoogleDoc.tsx` is the shared-notes panel. It uses `TYPE` + Inter / Doto only. No Google logo bitmap.
+`FilmGoogleDoc.tsx` is the shared-notes panel. It uses Inter only. No Google logo bitmap. The teacher's `Knedlíky, ne knedlík.` line is marked in coral from frame 564.
 
 ## Motion
 
-Frame-driven enters and exits. A scene enters about 12px over about 18 frames, bezier (0.22, 1, 0.36, 1), no bounce. A sentence rises about 8px over 10 frames as a whole sentence. Leaving accelerates into the cut. There is no long crossfade between two busy screens.
+Frame-driven. A sentence rises about 8px over 10 frames as a whole sentence.
 
-The shared doc is two moves: the page and its title land together, then the whole body rises in once.
+Scene changes are continuity objects, not a 15-frame opacity-and-scale crossfade:
 
-Prague is `FilmPrague.tsx`. The dots turn on left to right, hill, roofs, bridge, river, then thin into the cream. They do not fly to the next scene. `FilmMotes` no longer draws a glyph.
+| Window | Move |
+|--------|------|
+| 288–330 | Prague scales to ~0.82, drifts up-left, fades in the last third. Orb rolls in from −180px / −28deg / 0.86 with a coral bloom. |
+| 498–530 | Same orb travels to the top of the notes. Page opens from that recess. |
+| 708–760 | Coral `knedlíky` travels from the notes line into the phone. Page resolves into chat. |
+| 1068–1110 | Shared phone shell. Chat recess grows into the call recess; thread leaves after. |
+| 1278–1320 | Phone pulls back into `FilmLockPhone`. Banner waits until 1428. |
+| 1560–1800 | Banner coral travels into the end-card recess. |
 
-Honza’s talk and blink are stepped from the frame. The product CSS clocks do not seek, and a still was catching two mouth shapes at once.
+The notification banner is the one spring: opacity, a 22px settle, about 1.6% scale overshoot, then rest (`notifySpring` in `scene.ts`).
+
+Prague is `FilmPrague.tsx`. Strokes draw on, then fills. Order: bridge and gothic tower (0–2s), dome and roofs (2–4s), river and tram (4–6.5s), tree / statue / bench (6.5–8.5s), learner and `Ahoj` with the fourth line (~7.1s). After that the only ongoing motion is the tram and a slight river drift. No word “PRAGUE” under the drawing.
+
+Honza’s talk and blink are stepped from the frame. The product CSS clocks do not seek.
+
+There is no voiceover. `FilmSound` plays a quiet bed and one notification at the banner. The captions carry the film if both are muted.
 
 ## Render
 
 ```bash
 cd videos/honza-launch
-npx remotion render HonzaLaunch renders/v5.mp4
+npx remotion render HonzaLaunch renders/v7.mp4
 ```

@@ -16,7 +16,7 @@ export function Sentence({
   size?: number;
   align?: "left" | "center";
 }) {
-  const motion = rise(frame, at, 10, 8);
+  const motion = rise(frame, Math.max(0, at - 10), 10, 8);
   return (
     <p
       style={{
