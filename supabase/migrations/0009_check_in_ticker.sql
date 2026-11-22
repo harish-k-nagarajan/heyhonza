@@ -1,7 +1,8 @@
--- Minute ticker for /api/cron/check-ins. The bearer lives in Vault as
--- honza_cron_secret (same value as Vercel CRON_SECRET). The job no-ops until
--- that secret exists. Vercel Hobby can only cron once a day, which misses a
--- chosen clock time until the next morning.
+-- Minute ticker for /api/cron/check-ins. Two Vault secrets are required:
+-- honza_cron_secret (same value as the server CRON_SECRET) and
+-- honza_check_ins_url (the full /api/cron/check-ins URL on your deployment).
+-- The job no-ops until both exist. Vercel Hobby can only cron once a day,
+-- which misses a chosen clock time until the next morning.
 
 create schema if not exists private;
 
@@ -16,10 +17,16 @@ set search_path = ''
 as $$
 declare
   secret text;
+  target text;
 begin
   select decrypted_secret into secret
   from vault.decrypted_secrets
   where name = 'honza_cron_secret'
+  limit 1;
+
+  select decrypted_secret into target
+  from vault.decrypted_secrets
+  where name = 'honza_check_ins_url'
   limit 1;
 
   if secret is null or length(btrim(secret)) = 0 then
@@ -27,8 +34,13 @@ begin
     return;
   end if;
 
+  if target is null or length(btrim(target)) = 0 then
+    raise warning 'honza_check_ins_url is not set';
+    return;
+  end if;
+
   perform net.http_post(
-    url := 'https://heyhonza.vercel.app/api/cron/check-ins',
+    url := btrim(target),
     body := '{}'::jsonb,
     headers := jsonb_build_object(
       'Content-Type', 'application/json',

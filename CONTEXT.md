@@ -10,8 +10,8 @@ People who want to **learn or maintain Czech** through short, daily interactions
 
 ## Core loop
 
-1. **Honza initiates contact** — he writes first, unprompted, in a message-style thread. A **real spoken call** is v1 scope (BUILD_SPEC Phase 8), gated on a TTS key.
-2. The **user replies in Czech** — typed today; spoken once Phase 8 lands.
+1. **Honza initiates contact** — he writes first, unprompted, in a message-style thread. A **real spoken call** is in scope when a TTS key is configured.
+2. The **user replies in Czech** — typed in chat, or spoken on a call.
 3. Honza responds with corrections, encouragement, and the next conversational beat so the loop continues.
 
 The product goal is habitual practice driven by Honza’s presence, not passive content consumption.
@@ -21,13 +21,13 @@ The product goal is habitual practice driven by Honza’s presence, not passive 
 | Decision | Rationale |
 |----------|-----------|
 | **Secrets live only in Vercel environment variables** | No secrets in the client or repo; `.env.example` documents names only. |
-| **All model calls go through Next.js Route Handlers** | Server-side proxy keeps keys safe and gives one place for logging, validation, and model policy. Applies to TTS too, when Phase 8 lands. |
+| **All model calls go through Next.js Route Handlers** | Server-side proxy keeps keys safe and gives one place for logging, validation, and model policy. The same rule applies to TTS. |
 | **OpenRouter is the model gateway** (2026-07-14) | One key, swappable models behind a single config value. Supersedes the original OpenAI-direct decision. |
 | **Google Doc ingestion uses public URLs; no OAuth** | Simpler: fetch published/export-style content server-side when given a URL; no Google account linking. |
 | **Real accounts, on Supabase** (2026-07-15) | Email+password with email confirmation, Postgres with own-row RLS. Honza's value is continuity — history and context that persist and follow the learner — which anonymous browser storage can't give. Rejected Clerk (auth-only; the DB stays Supabase either way) and Google SSO (no new vendors before the core product is tested). |
-| **Fern Mist O4 in `honza.pen`** (2026-08) | Product chrome. `DESIGN.md` indexes it; the pen wins on pixels. Cream / dot-matrix identity still holds. Dark tokens, Inter, and the Hmat Metal inset well are legacy — don't extend them. |
+| **Fern Mist O4** (2026-08) | Product chrome. `DESIGN.md` indexes it. Cream canvas, Doto for short labels, Inter for body text, square dot-matrix Honza. Dark tokens and the Hmat Metal inset well are legacy. |
 | **Mobile first, installable PWA** | Primary use case is on-the-go practice; `next-pwa`, manifest, and install affordances support that. |
-| **`BUILD_SPEC.md` adopted, phase-gated** (2026-07-14) | Build toward its 9 phases, pausing at each boundary for Harish's OK. This is what moved real voice from out-of-scope into v1. Live status: `BUILD_SPEC_STATUS.md`. |
+| **Spoken calls are in v1** (2026-07-14) | Voice moved from out of scope into the product. `/call` shipped with typed chat. |
 
 ## Scope
 
@@ -37,14 +37,14 @@ The product goal is habitual practice driven by Honza’s presence, not passive 
 - **Home** — hub for “what Honza is doing now”; he opens the conversation here, unprompted.
 - **Chat** — main practice surface (messages, composer, Honza state).
 - **Settings** — preferences, context URL for Google Doc, model options, and a reset that clears history and re-runs onboarding.
-- **Call** — a real spoken conversation. **Not built yet:** BUILD_SPEC Phase 8, gated on a TTS key *and* Harish's explicit go-ahead.
+- **Call** — a real spoken conversation. You speak Czech and Honza answers out loud. The transcript lands in the same history as chat.
 
 ## Out of scope
 
 - **Calendar / social** (friends, leaderboards, sharing, a real calendar).
 - **Daily check-ins + Web Push are in scope** — Honza can write first on a schedule and notify an installed PWA. iOS only delivers Web Push after Add to Home Screen.
 
-**Real voice calls used to be listed here and no longer are** — adopting `BUILD_SPEC.md` on 2026-07-14 moved them into v1 as Phase 8, and **they shipped on 2026-07-15**: `/call` is a live-call screen where you speak Czech and Honza answers out loud, with the transcript landing in the same history as chat. The old double gate (TTS key + Harish's OK) is cleared. See `BUILD_SPEC_STATUS.md` row 8 for what's verified and the one gap (mic/audio confirmation) still open.
+**Real voice calls are in the product.** `/call` is a live-call screen where you speak Czech and Honza answers out loud, with the transcript landing in the same history as chat. Hearing the reply still needs a person with a speaker. A headless check cannot confirm that.
 
 ## Repository layout (high level)
 
@@ -55,4 +55,4 @@ The product goal is habitual practice driven by Honza’s presence, not passive 
 - **`supabase/migrations/`** — Schema: `profiles`, `messages`, `user_context`; own-row RLS throughout.
 - **`public/`** — Manifest, icons, generated service worker assets from `next-pwa`.
 
-This document is the single source of truth for **what Honza is and why**; implementation details belong in code and in `DESIGN.md` / `TASKS.md`. For where the build actually stands, read `BUILD_SPEC_STATUS.md` — not this file.
+This document is the single source of truth for **what Honza is and why**. Implementation details belong in the code and in `DESIGN.md`.

@@ -1,8 +1,8 @@
 # Honza — deploy & production verification (`DEPLOY.md`)
 
-Phase 4 runbook. Everything here that needs a secret or an external account is a
-**human step** (Harish) — Claude never sees or commits keys. Secrets live only in
-Vercel env vars and, for local dev, in `.env.local` (gitignored).
+Deploy runbook. Everything here that needs a secret or an external account is a
+step you do yourself. Do not commit keys. Secrets live only in Vercel env vars
+and, for local dev, in `.env.local` (gitignored).
 
 ---
 
@@ -15,7 +15,7 @@ Preview). Names only are documented in [`.env.example`](.env.example).
 |-----|-------|----------|-------|
 | `OPENROUTER_API_KEY` | **Server only** | ✅ | Gateway key from <https://openrouter.ai/keys>. Never `NEXT_PUBLIC_`. Read only by `src/lib/server/conversation-engine.ts`. |
 | `HONZA_DEFAULT_MODEL` | Server | optional | OpenRouter model slug. Default `openai/gpt-4o-mini`. Must be in the allowlist in `src/lib/constants.ts`. |
-| `NEXT_PUBLIC_SITE_URL` | Public | recommended | Canonical prod URL (e.g. `https://heyhonza.vercel.app`). Used for OpenRouter attribution headers + `metadataBase`. |
+| `NEXT_PUBLIC_SITE_URL` | Public | recommended | Public URL of the deployment you run. Used for OpenRouter attribution headers and `metadataBase`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Public | ✅ (for auth) | Supabase project URL. When this + the anon key are unset, middleware runs **pass-through** (no auth gate). |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public | ✅ (for auth) | Supabase anon/publishable key. Public-safe (RLS protects data). |
 | `ELEVENLABS_API_KEY` | **Server only** | ✅ (for voice) | Honza's voice (Phase 8). From elevenlabs.io → Profile → API Keys. Never `NEXT_PUBLIC_`. Read only by `src/lib/server/tts.ts`; the browser only ever receives audio bytes from `/api/tts`. Without it `/call` still loads but Honza is mute and `/api/health` reports `ttsConfigured:false`. |
@@ -116,15 +116,15 @@ green-check belongs on prod with the real key in place).
 Supabase's built-in email sender is explicitly **not for production**: it caps at
 roughly **2 emails per hour** and offers no deliverability guarantees. Since sign-up
 requires a confirmation email, real learners simply cannot register until a custom
-SMTP provider is attached. These steps need Harish's own accounts and a domain he
-controls — Claude cannot do them.
+SMTP provider is attached. These steps need your own accounts and a domain you
+control.
 
 Resend's free tier (3,000 emails/month, 100/day) is more than enough for launch.
 
 ### 4.1 Resend — create the account and verify a domain
 
 1. Sign up at <https://resend.com> (free tier, no card).
-2. **Domains → Add Domain** → enter a domain you control (e.g. `heyhonza.app`).
+2. **Domains → Add Domain** → enter a domain you control.
    *No domain yet?* You can test with Resend's `onboarding@resend.dev` sender, but it
    **only delivers to your own Resend account address** — fine for a smoke test,
    useless for real learners. A real domain is required for launch.
@@ -172,17 +172,12 @@ Resend's free tier (3,000 emails/month, 100/day) is more than enough for launch.
 
 ---
 
-## 5. Voice / the call screen — manual checklist (**Harish only**)
+## 5. Voice / the call screen — manual checklist
 
-Phase 8 shipped with an honest split. Everything that can be checked headlessly
-**was** checked and is green (see `BUILD_SPEC_STATUS.md` row 8): `/api/tts` returns
-real decodable audio, `kind:'call'` rows persist into the shared history, the
-transcript renders from DB truth with `localStorage` cleared, and the ElevenLabs key
-appears in **no** client bundle and in **no** browser network request.
-
-What Claude **cannot** do is hold a microphone or hear a speaker — and a headless pane
-reports `document.visibilityState: "hidden"`, so audio and mic APIs don't behave
-normally there. **Row 8 stays 🟡 until you walk this list.** It should take two minutes.
+`/api/tts` returns real decodable audio, `kind:'call'` rows persist into the shared
+history, and the ElevenLabs key stays on the server. A headless check cannot hold a
+microphone or hear a speaker. Walk this list on a phone or laptop with the sound on.
+It should take two minutes.
 
 Use **Chrome, Edge or Safari** (Web Speech API needs one of them) with the sound on.
 
@@ -223,7 +218,7 @@ Phone alerts only fire when **all** of these are true:
 1. The learner is signed in, daily check-ins are on, and they allowed notifications **from an installed PWA** (iPhone: Add to Home Screen, then open that icon). `next dev` has no service worker — use production or `npm run build && npm start`.
 2. `NEXT_PUBLIC_VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` are set, and the public key was present when that deployment was **built**.
 3. `SUPABASE_SERVICE_ROLE_KEY` + `CRON_SECRET` are set on the server so `/api/cron/check-ins` can run.
-4. Something actually hits that route near the learner's slot. Vercel Hobby only allows **one daily cron** (`0 8 * * *` UTC in `vercel.json`), which fires the next morning, not at the chosen time. The live ticker is a Supabase `pg_cron` job (`honza-check-ins`, every minute) that POSTs this route with `CRON_SECRET` from Vault. A test alert does not use that job — it calls `/api/push/test` immediately. The GitHub Action in `.github/workflows/check-ins.yml` is only a backup; it needs repo secret `CRON_SECRET` and burns a private-repo minute per run.
+4. Something actually hits that route near the learner's slot. Vercel Hobby only allows **one daily cron** (`0 8 * * *` UTC in `vercel.json`), which fires the next morning, not at the chosen time. The live ticker is a Supabase `pg_cron` job (`honza-check-ins`, every minute). It reads two Vault secrets: `honza_cron_secret` (same value as `CRON_SECRET`) and `honza_check_ins_url` (the full `/api/cron/check-ins` URL on your deployment). The job does nothing until both are set. A test alert does not use that job. It calls `/api/push/test` immediately. The GitHub Action in `.github/workflows/check-ins.yml` is only a backup. It needs repository secrets `CRON_SECRET` and `CHECK_INS_URL`.
 5. `/api/health` reports `vapidConfigured`, `cronConfigured`, and `adminConfigured` all `true`. Settings → Daily check-ins → **Send a test alert** should ping the device immediately.
 
 If the production host is `*.vercel.app` with **Deployment Protection / SSO** on, phones and GitHub Actions will see a Vercel login wall. Turn that off for production, or use a custom domain (this project’s protection setting excludes custom domains).

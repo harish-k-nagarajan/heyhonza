@@ -6,20 +6,33 @@ import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
+import { isShowcaseMode } from "@/lib/site-mode";
 
+import { GithubCta } from "./GithubCta";
 import type { LandingVisitor } from "./useLandingVisitor";
 
 export function LandingAuthButtons({
   visitor,
+  githubStars = null,
   size = "md",
   className,
 }: {
   visitor?: Pick<LandingVisitor, "isSignedOut">;
+  githubStars?: number | null;
   size?: "sm" | "md";
   className?: string;
 }) {
   const { t } = useLocale();
   const w = t.welcome;
+
+  if (isShowcaseMode()) {
+    return (
+      <div className={cn("flex flex-wrap items-center justify-center gap-5", className)}>
+        <GithubCta stars={githubStars} variant="primary" />
+      </div>
+    );
+  }
+
   const primaryLabel = visitor?.isSignedOut ? w.signedOutCta : w.heroCta;
 
   const pad = size === "sm" ? "px-5 py-2.5" : "px-7 py-3.5";
@@ -56,6 +69,7 @@ export function LandingCtaHint({
   className?: string;
 }) {
   const { t } = useLocale();
+  if (isShowcaseMode()) return null;
   const w = t.welcome;
   const hint = visitor?.isSignedOut ? w.signedOutCtaHint : w.heroCtaHint;
 

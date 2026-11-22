@@ -7,6 +7,7 @@ import {
 import { cn } from "@/lib/cn";
 import { TYPE } from "@/lib/design/typography";
 import { useLocale } from "@/lib/i18n/useLocale";
+import { isShowcaseMode } from "@/lib/site-mode";
 
 import { LandingAuthButtons, LandingCtaHint } from "./LandingAuthButtons";
 import {
@@ -16,7 +17,13 @@ import {
 import { LandingChatBubble } from "./LandingChatBubble";
 import type { LandingVisitor } from "./useLandingVisitor";
 
-export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
+export function LandingHero({
+  visitor,
+  githubStars = null,
+}: {
+  visitor: LandingVisitor;
+  githubStars?: number | null;
+}) {
   const morph = useLandingBubbleMorph();
   const { t } = useLocale();
   const w = t.welcome;
@@ -35,7 +42,7 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
       <div className="relative mx-auto w-full max-w-[880px] flex-1 px-6 md:px-10">
         <div
           ref={morph?.orbitRef}
-          className="relative z-20 mx-auto h-[min(420px,max(280px,52vw))] max-h-[480px] w-full"
+          className="relative z-20 mx-auto h-[min(460px,max(400px,52vw))] max-h-[480px] w-full max-w-[860px]"
         >
           {LANDING_HERO_BUBBLES.map((bubble, index) => (
             <div
@@ -56,8 +63,8 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
             </div>
           ))}
 
-          <div className="absolute left-1/2 top-1/2 z-[10] -translate-x-1/2 -translate-y-1/2">
-            <HmatPresenceRecess orbState="idle" variant="display" />
+          <div className="absolute left-1/2 top-1/2 z-[10] w-[clamp(280px,78%,640px)] -translate-x-1/2 -translate-y-1/2">
+            <HmatPresenceRecess orbState="idle" variant="display" size={148} />
           </div>
         </div>
 
@@ -80,10 +87,12 @@ export function LandingHero({ visitor }: { visitor: LandingVisitor }) {
             {copy.subcopy}
           </p>
 
-          <div className="mt-2 flex flex-col items-center gap-7">
-            <LandingAuthButtons visitor={visitor} />
-            <LandingCtaHint visitor={visitor} />
-          </div>
+          {isShowcaseMode() ? null : (
+            <div className="mt-2 flex flex-col items-center gap-7">
+              <LandingAuthButtons visitor={visitor} githubStars={githubStars} />
+              <LandingCtaHint visitor={visitor} />
+            </div>
+          )}
         </LandingHeroHeadlineScanner>
       </div>
     </section>

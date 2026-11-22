@@ -17,7 +17,7 @@ import { LandingTopics } from "./LandingTopics";
 import { useLandingVisitor } from "./useLandingVisitor";
 
 /** Hmat marketing landing — shown on `/welcome`. */
-export function HmatLanding() {
+export function HmatLanding({ githubStars = null }: { githubStars?: number | null }) {
   const visitor = useLandingVisitor();
   const { locale, t } = useLocale();
 
@@ -40,9 +40,9 @@ export function HmatLanding() {
         lang={locale}
         className="landing-page -mx-5 w-[calc(100%+2.5rem)] overflow-x-clip bg-[#fff8f5] md:-mx-0 md:w-full"
       >
-        <LandingNav />
+        <LandingNav githubStars={githubStars} />
         <LandingBubbleMorphProvider>
-          <LandingHero visitor={visitor} />
+          <LandingHero visitor={visitor} githubStars={githubStars} />
           <LandingChatFold />
         </LandingBubbleMorphProvider>
         <LandingCallFold />
@@ -53,10 +53,10 @@ export function HmatLanding() {
           <LandingLevels />
         </div>
 
-        <LandingFooter visitor={visitor} />
+        <LandingFooter visitor={visitor} githubStars={githubStars} />
       </div>
 
-      <LandingStickyCta visitor={visitor} />
+      <LandingStickyCta visitor={visitor} githubStars={githubStars} />
     </>
   );
 }

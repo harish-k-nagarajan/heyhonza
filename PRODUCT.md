@@ -67,14 +67,12 @@ Character-led conversational practice: the tutor persona *is* the product. Conti
 - Product/character name: **Honza**.
 - The character is the app: primary surfaces lead with Honza; he is not a small decorative icon on those screens.
 - In-app teaching copy and chat: Czech; marketing landing: English (Czech only in showcase samples), unless a future brief changes that.
-- Visual system is documented separately in `DESIGN.md` (shipped Hmat Metal); PRODUCT.md does not own aesthetics.
+- Visual system is documented separately in `DESIGN.md` (Fern Mist O4, Doto and Inter). PRODUCT.md does not own aesthetics.
 
 ## Evidence on Hand
 
 - Product intent: `CONTEXT.md`
-- Visual system: `DESIGN.md`, `design update/SHIPPED_DESIGN.md`
-- Build plan / status: `BUILD_SPEC.md`, `BUILD_SPEC_STATUS.md`, `TASKS.md`
-- Runtime notes: `MEMORY.md`, `AGENTS.md`, `CLAUDE.md`
+- Visual system: `DESIGN.md`
 - Do not fabricate testimonials, benchmarks, pricing, or press.
 
 ## Product Principles

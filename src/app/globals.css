@@ -1645,16 +1645,31 @@ body:has(.landing-page) {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
-/* Landing specimen — slightly wider ceramic seat, not phone-width. */
+/* Landing hero well — grows with the fold so the bubbles sit on it.
+   The ceramic itself is unchanged; only the seat is wider than the app. */
 .hmat-recess-hero--display {
-  width: 272px;
-  padding: 12px 38px;
+  width: 100%;
+  min-height: 280px;
+  justify-content: center;
+  padding: 18px 28px 20px;
   overflow: hidden;
   gap: 0;
 }
 .hmat-recess-hero--display .hmat-display-module {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 0;
-  padding: 0;
+  padding: 4px 8px 10px;
+}
+@media (min-width: 768px) {
+  .hmat-recess-hero--display {
+    padding: 22px 40px 24px;
+  }
+  .hmat-recess-hero--display .hmat-display-module {
+    padding-bottom: 14px;
+  }
 }
 
 /* Call screen — smaller ceramic seat so controls stay above the dock. */

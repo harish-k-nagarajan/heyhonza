@@ -7,7 +7,13 @@ import { useLocale } from "@/lib/i18n/useLocale";
 import { LandingAuthButtons } from "./LandingAuthButtons";
 import type { LandingVisitor } from "./useLandingVisitor";
 
-export function LandingFooter({ visitor }: { visitor: LandingVisitor }) {
+export function LandingFooter({
+  visitor,
+  githubStars = null,
+}: {
+  visitor: LandingVisitor;
+  githubStars?: number | null;
+}) {
   const { t } = useLocale();
   const w = t.welcome;
 
@@ -17,7 +23,7 @@ export function LandingFooter({ visitor }: { visitor: LandingVisitor }) {
         {w.footerHeadline}
       </h2>
 
-      <LandingAuthButtons visitor={visitor} />
+      <LandingAuthButtons visitor={visitor} githubStars={githubStars} />
 
       <p className={cn("max-w-[36ch] text-pretty md:max-w-[42ch]", TYPE.bodySm, "leading-[1.5] text-muted-foreground")}>
         {w.footerNote}

@@ -1,13 +1,11 @@
 # Honza — design system
 
-> **Visual source of truth:** the Pencil file **`honza.pen`** (Handoff frames:
-> Design Tokens, Components / Fern Mist O4, screens). Product chrome follows
-> that file. This markdown file is an **index** (identity, type roles, Classic
-> archive, implementation pointers). **When pixels disagree, the pen wins.**
+> **Visual source of truth:** the shipped UI (Fern Mist O4). This file indexes
+> identity, type roles, the Classic archive, and implementation pointers.
+> Screens follow `src/app/globals.css` and `src/lib/design/`.
 >
 > **Shipped type:** **Doto** (short labels / buttons) · **Inter** (Czech
-> body). See [`design update/SHIPPED_DESIGN.md`](./design%20update/SHIPPED_DESIGN.md)
-> and `SHIPPED_*` in `src/lib/design/registry.ts`. Type roles:
+> body). Font locks live in `SHIPPED_*` in `src/lib/design/registry.ts`. Type roles:
 > `src/lib/design/typography.ts` (`TYPE`).
 >
 > Sections below that still describe cream cards / Share Tech Mono document the
@@ -21,9 +19,9 @@ The app is **Honza**. The character **is** the app: Nothing OS dot matrix meets 
 
 ## Background
 
-**Shipped (Fern Mist O4, `honza.pen`):** warm cream canvas with mood-tinted
+**Shipped (Fern Mist O4):** warm cream canvas with mood-tinted
 surfaces via the expression engine (`--bg`, `--accent`, `--energy`). Recess,
-frost dock, and frost fields are specified in the pen — not the old Hmat Metal
+frost dock, and frost fields are specified below, not in the old Hmat Metal
 inset-well mock.
 
 **Classic baseline:** warm cream / off-white `#F5F2EE`. Cards and bubbles sit on
@@ -137,7 +135,7 @@ All motion respects **`prefers-reduced-motion`**: prefer static or near-static p
 
 ## Cards and layout
 
-- **Product (O4):** orb **recess** (`.hmat-recess-hero`, spec in `honza.pen`), frost cards/fields, frost-dock. Max width ~**430px** phone stage (`max-w-landing` on `/welcome`). `mat-recess` remains only on a few non-orb wells (auth, onboarding, loading).
+- **Product (O4):** orb **recess** (`.hmat-recess-hero`), frost cards/fields, frost-dock. Max width ~**430px** phone stage (`max-w-landing` on `/welcome`). `mat-recess` remains only on a few non-orb wells (auth, onboarding, loading).
 - **Classic baseline:** white cards on cream; **`border-radius: 16px`**; border **`1px solid rgba(0, 0, 0, 0.07)`**.
 - **Bottom navigation (Hmat):** floating dock — Chat · Hovor · Nastavení; active tab accent-tinted with a sliding pill.
 
@@ -190,15 +188,13 @@ Shared API: `src/components/ui/Button.tsx` + `src/lib/design/button.ts`.
 
 ## On-disk references
 
-- **Pixels / screens / components:** `honza.pen` (Pencil).
-- Elevation / font lock notes: [`design update/SHIPPED_DESIGN.md`](./design%20update/SHIPPED_DESIGN.md).
-- `design-lab/round4-hmat.html` is an **archive** of the Metal inset-well exploration. Do not restyle product chrome from it.
+Shipped styles live in `src/app/globals.css` and `src/lib/design/`. Do not restyle product chrome from the old Metal inset-well exploration.
 
 ---
 
 # Product chrome (Fern Mist O4)
 
-Source of truth: **`honza.pen`**. CSS lives in `globals.css` (`.hmat-recess-hero`,
+Source of truth: the shipped Fern Mist styles. CSS lives in `globals.css` (`.hmat-recess-hero`,
 frost dock/fields, `.hmat-orb`). Hmat Metal / ceramic Lab variants do not ship.
 
 ## Token contract + theme runtime
@@ -211,7 +207,7 @@ frost dock/fields, `.hmat-orb`). Hmat Metal / ceramic Lab variants do not ship.
 - Registry: `src/lib/design/registry.ts` (`SHIPPED_DESIGN`, `SHIPPED_DISPLAY_FONT`,
   `SHIPPED_BODY_FONT`).
 
-## Recess, dock, and material (from `honza.pen`)
+## Recess, dock, and material
 
 - **Orb recess (`.hmat-recess-hero`)** — raised peach-white (mood-tinted) card
   the character leads from. Spec: 24px radius; fill 165° `#FFE8DC` → `#FFF8F4`
@@ -222,8 +218,8 @@ frost dock/fields, `.hmat-orb`). Hmat Metal / ceramic Lab variants do not ship.
   Translucent rim (backdrop blur) — no white stroke, no drop shadow — so a
   future speaking waveform can glow through the glass. Mood tints the glass.
 - **Cards / fields** — frost cards and `frost-field` (semi-opaque + blur) as in
-  the pen; leftover `.mat` / `.mat-metal` are archive.
-- **Keys** — sage/fern keys in the pen; `Button surface="mat-key"` still exists
+  the shipped screens; leftover `.mat` / `.mat-metal` are archive.
+- **Keys** — sage/fern keys on the shipped screens; `Button surface="mat-key"` still exists
   for mechanical travel on some controls.
 - **Lit channel** — under the orb recess: `200×5` mood-accent gradient
   (`#accent33` → accent → `#accent33`), opacity × `--energy`. Legacy beige

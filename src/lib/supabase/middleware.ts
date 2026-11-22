@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 import { ROUTES } from "@/lib/constants";
+import { isShowcaseMode, showcaseBlocksPath } from "@/lib/site-mode";
 
 import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "./config";
 
@@ -33,6 +34,17 @@ function isProtected(pathname: string): boolean {
  * pass-through so the app still runs locally without keys.
  */
 export async function updateSession(request: NextRequest) {
+  if (isShowcaseMode()) {
+    const { pathname } = request.nextUrl;
+    if (showcaseBlocksPath(pathname)) {
+      const url = request.nextUrl.clone();
+      url.pathname = ROUTES.welcome;
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next({ request });
+  }
+
   if (!isSupabaseConfigured()) {
     return NextResponse.next({ request });
   }
