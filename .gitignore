@@ -79,3 +79,13 @@ UX_COPY_AUDIT.md
 videos/
 public/audio/bed.mp3
 .cursor/
+
+# Private product, design and deploy docs: kept on disk, not published
+CONTEXT.md
+DESIGN.md
+PRODUCT.md
+DEPLOY.md
+.private-backup/
+docs/demo/
+scripts/capture-demo-*.mjs
+scripts/demo-auth.mjs
