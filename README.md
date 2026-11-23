@@ -15,9 +15,6 @@ Saying it, fixing it, and hearing it is what makes the note stick. Turn notifica
 
 ![Honza](docs/github/social-card.png)
 
-<!-- Launch film (33 s, sound on). Uploaded through GitHub so it plays inline. -->
-https://github.com/user-attachments/assets/5fc65832-d832-4868-9c31-78e1f80bdb24
-
 ![Chat with an in-thread correction, a live call, and daily check-in settings](docs/github/phone-strip.png)
 
 [heyhonza.vercel.app](https://heyhonza.vercel.app) is a tour of the interface. It links here. To practice with Honza, you run the app yourself.
@@ -43,6 +40,13 @@ Each message is another short turn with the Czech from your notes. That is how t
 ### 📱 Home screen
 
 Add it to your phone and it behaves like an app. Practice is a conversation you open between classes, not a lesson you have to sit down for.
+
+## 🎬 See it in action
+
+A 33-second film. Turn the sound on: in the call, that's Honza's real voice.
+
+<!-- A poster that links to the film, because GitHub puts the file name above an inline video. Video uploaded through GitHub. -->
+[![Watch the Honza film: Your Czech? Not yet.](docs/github/film-poster.jpg)](https://github.com/user-attachments/assets/5fc65832-d832-4868-9c31-78e1f80bdb24)
 
 ## 🎯 How this helps
 
