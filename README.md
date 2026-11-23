@@ -43,8 +43,10 @@ Add it to your phone and it behaves like an app. Practice is a conversation you 
 
 ## 🎬 See it in action
 
-<!-- The launch film (33 s, sound on). A <video> tag instead of the bare link, so GitHub doesn't show the file name above it. -->
-<video src="https://github.com/user-attachments/assets/5fc65832-d832-4868-9c31-78e1f80bdb24" controls width="100%"></video>
+A 33-second film. Turn the sound on: in the call, that's Honza's real voice.
+
+<!-- A poster that links to the film, because GitHub puts the file name above an inline video. Video uploaded through GitHub. -->
+[![Watch the Honza film: Your Czech? Not yet.](docs/github/film-poster.jpg)](https://github.com/user-attachments/assets/5fc65832-d832-4868-9c31-78e1f80bdb24)
 
 ## 🎯 How this helps
 
