@@ -15,6 +15,9 @@ Saying it, fixing it, and hearing it is what makes the note stick. Turn notifica
 
 ![Honza](docs/github/social-card.png)
 
+<!-- Launch film (33 s, sound on). Uploaded through GitHub so it plays inline. -->
+https://github.com/user-attachments/assets/5fc65832-d832-4868-9c31-78e1f80bdb24
+
 ![Chat with an in-thread correction, a live call, and daily check-in settings](docs/github/phone-strip.png)
 
 [heyhonza.vercel.app](https://heyhonza.vercel.app) is a tour of the interface. It links here. To practice with Honza, you run the app yourself.
@@ -86,6 +89,7 @@ On ElevenLabs' free plan, Honza speaks Czech with an English accent. A paid plan
 - Landing scroll is [GSAP](https://gsap.com). Smooth scroll on the landing page is [Lenis](https://lenis.darkroom.engineering).
 - The typefaces are [Doto](https://fonts.google.com/specimen/Doto) and [Inter](https://rsms.me/inter/).
 - Styling is [Tailwind CSS](https://tailwindcss.com).
+- The launch film was made with [HyperFrames](https://hyperframes.heygen.com). Honza's voice in it is the app's own. The pop sounds are "Pop, High, A (H1)" and "Pop, Low, A (H1)" by [InspectorJ](https://freesound.org/people/InspectorJ/) (freesound.org), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 ## License
 
